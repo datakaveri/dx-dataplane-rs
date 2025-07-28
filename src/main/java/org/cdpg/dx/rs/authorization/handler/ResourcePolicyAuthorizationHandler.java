@@ -1,0 +1,39 @@
+package org.cdpg.dx.rs.authorization.handler;
+
+import io.vertx.core.Handler;
+import io.vertx.ext.web.RoutingContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.catalogue.service.CatalogueService;
+import org.cdpg.dx.rs.authorization.service.AuthorizationServiceImpl;
+
+public class ResourcePolicyAuthorizationHandler implements Handler<RoutingContext> {
+  private static final Logger LOGGER =
+      LogManager.getLogger(ResourcePolicyAuthorizationHandler.class);
+  private final AuthorizationServiceImpl authorizationService;
+
+  public ResourcePolicyAuthorizationHandler(CatalogueService catService) {
+    this.authorizationService = new AuthorizationServiceImpl(catService);
+  }
+
+  @Override
+  public void handle(RoutingContext context) {
+
+    /*Optional<JwtData> jwtData = RoutingContextHelper.getJwtData(context);
+    String resourceId = RoutingContextHelper.getId(context);
+
+    if (resourceId == null || jwtData.isEmpty()) {
+      LOGGER.error("Resource ID or token is missing in the request");
+      context.fail(new DxAuthException("Resource ID or token is missing in the request"));
+      return;
+    }
+    authorizationService
+        .authorize(jwtData.get(), resourceId)
+        .onSuccess(v -> context.next())
+        .onFailure(
+            error -> {
+              LOGGER.error("Authorization failed: {}", error.getMessage());
+              context.fail(error);
+            });*/
+  }
+}

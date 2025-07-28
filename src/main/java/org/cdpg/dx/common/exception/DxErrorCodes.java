@@ -5,6 +5,7 @@ public class DxErrorCodes {
   public static final int VALIDATION_ERROR = 10001;
   public static final int NOT_FOUND = 10002;
   public static final int INTERNAL_ERROR = 10004;
+  public static final int AUTH_ERROR = 10005;
   public static final int BAD_REQUEST = 10006;
 
   // 11000 – 11999: PostgreSQL / DB
@@ -26,5 +27,13 @@ public class DxErrorCodes {
   public static final int FORBIDDEN_ACCESS_PENDING = 12012;
   public static final int FORBIDDEN_ACCESS_REJECTED = 12013;
   public static final int ES_ERROR = 12000;
+
+  public static final int REDIS_ERROR = 44000;
+  public static final int KEY_NOT_FOUND = 5001;
+  public static final int CONNECTION_ERROR = 5002;
+  public static final int INVALID_JSON_PATH = 5003;
+  public static final int OPERATION_FAILED = 5004;
+  public static final int INVALID_RESPONSE = 5005;
+  public static final int REDIS_TIMEOUT = 5006;
 
 }
