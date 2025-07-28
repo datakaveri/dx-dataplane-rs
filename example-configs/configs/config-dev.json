@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "zookeepers": [
+    "zookeeper"
+  ],
+  "clusterId": "iudx-rs-cluster",
+  "host": "rs.iudx.io",
+  "commonConfig": {
+    "dxApiBasePath": "/ngsi-ld/v1",
+    "dxCatalogueBasePath": "/iudx/cat/v1",
+    "dxAuthBasePath": "/auth/v1",
+    "catServerHost": "",
+    "catServerPort": 443,
+    "timeLimit": "",
+    "timeLimitForAsync": 365
+  },
+  "modules": [
+    {
+      "id": "org.cdpg.dx.database.postgres.PostgresVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "databaseIP": "",
+      "databasePort": 5433,
+      "databaseName": "",
+      "databaseUserName": "",
+      "databasePassword": "",
+      "poolSize": 25
+    },
+    {
+      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "dataBrokerIP": "",
+      "dataBrokerPort": 24568,
+      "prodVhost": "",
+      "internalVhost": "",
+      "externalVhost": "",
+      "dataBrokerUserName": "",
+      "dataBrokerPassword": "",
+      "dataBrokerManagementPort": 28042,
+      "connectionTimeout": 6000,
+      "requestedHeartbeat": 60,
+      "handshakeTimeout": 6000,
+      "requestedChannelMax": 5,
+      "networkRecoveryInterval": 500,
+      "automaticRecoveryEnabled": "true",
+      "brokerAmqpIp": "",
+      "brokerAmqpPort": 24567
+    },
+    {
+      "id": "org.cdpg.dx.catalogue.CatalogueVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1
+    },
+    {
+      "id": "org.cdpg.dx.revoked.RevokedVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1
+    },
+    {
+      "id": "org.cdpg.dx.uniqueattribute.UniqueAttributeVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1
+    },
+    {
+      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 2,
+      "tenantPrefix": "",
+      "databaseIP": "",
+      "databasePort": 24034,
+      "databaseUser": "",
+      "databasePassword": ""
+    }
+  ]
+}

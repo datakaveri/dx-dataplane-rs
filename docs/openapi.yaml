@@ -1,0 +1,3909 @@
+openapi: 3.0.2
+
+info:
+  title: "Data exchange Resource Server APIs"
+  version: 1.1.0
+  description: |
+    # Introduction
+    The Resource Server is DXs'(Data exchange) data store which allows publication, subscription and discovery of data.
+    For search and discovery, it allows users to search through temporal, geo-based and attribute queries. 
+    For publication and subscription, it allows users to use AMQP streaming protocol over TLS.
+    It enables *Providers* of datasources to publish data as per the DX(Data exchange) data descriptor.
+    It enables *Consumers* of datasources to search and query for data using HTTPs APIs.
+    
+    # Configurations
+    - **Server**: 
+      - In the doc, we display the server url to be https://example.com with the hostname as example.com
+      - This could be configured according to the deployment
+    - **Base path**:
+      - Base path is the path on which API is served, relative to the host
+      - It is the initial part of the API
+      - These base path values could be configured according to the deployment
+      - The base path for [DX AAA Server](https://github.com/datakaveri/iudx-aaa-server) is set to `/auth/v1`
+      - The base path for [DX Catalogue Server](https://github.com/datakaveri/iudx-catalogue-server) is set to `/iudx/cat/v1`
+      - Currently, the following APIs have `/ngsi-ld/v1` base path
+          -  /entities
+          -  /temporal/entities
+          -  /temporal/entityOperations/query
+          -  /entityOperations/query
+          -  /subscription
+          -  /async/search
+          -  /async/status
+          -  /ingestion
+          -  /ingestion/{id}
+          -  /ingestion/entities
+          -  /user/resetPassword
+      <br>
+    - **Request Samples**:
+      - The `<tokenValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
+      - The `<publicKeyValue>` in the header of request sample could be replaced with the respective public key [Also refer Encryption section [here](#section/Encryption)]
+      - The `<payload>` in the request sample could be replaced with the payload given adjacent to the request sample
+    
+    
+    # Tokens
+    All the <b>*Search API*</b>  calls to the resource server should now contain a valid data exchange auth token presented in the query header. To search (or) access an *Open* resource, the consumer should present a valid data exchange Auth token. To search (or) access a *Secure / Closed* resource, a consumer must get a token for the *Secure / Closed* resource along with the associated constraints from the DX(Data exchange) Auth Server. For subscription to a *Secure / Closed / Open* resource, a consumer must get a token along with the associated constraints from the DX(Data exchange) Auth Server.
+    
+    # Pagination
+    Resource server also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
+    
+    - <b> Pagination is applicable only for</b>
+       - <b>/entities</b>
+       - <b>/temporal/entities</b>
+       - <b>/temporal/entityOperations/query</b>
+       - <b>/entityOperations/query</b>\
+    
+    Additional query parameters to be used:
+      - <b>offset</b> : The from parameter defines the offset from the first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
+      - <b>limit</b> : The size parameter allows you to configure the maximum results to be returned  ( <i>default: 5000</i> ,<i>minValue: 0</i>, <i>maxValue: 5000</i> )
+    
+    # Encryption
+    All the count and search APIs have a feature to get encrypted data.
+    The user could provide a `publicKey` in the header. 
+    The header value should be in _url-safe base64 format_. 
+    
+    **Encryption is applicable only for**
+    -  **/entities**
+    -  **/temporal/entities**
+    -  **/temporal/entityOperations/query**
+    -  **/entityOperations/query**
+
+
+    # API HTTP Responses
+    Apart from the response codes specified in each API, the API server may respond with certain 4xx and 5xx error codes which are related to common API Gateway behaviours.
+    The application should address them accordingly.
+
+  contact:
+    name: For support contact CDPG Team at
+    email: support@cdpg.org.in
+    url: https://dataforpublicgood.org.in/
+  license:
+    name: Apache 2.0
+
+tags:
+  - name: Latest Entity
+    x-displayName: "Latest Data"
+    description: |
+      A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
+
+  - name: Spatial Entities
+    x-displayName: "Spatial Search"
+    description: |
+      A Spatial Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/> You can use this API to make a `spatial` or `attribute` or `complex : spatial+attribute` query.
+  - name: Temporal Entities
+    x-displayName: "Temporal and Complex Search"
+    description: |
+      A Temporal Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `temporal`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `temporal` parameter is <b>mandatory</b>. <br/> You can use this API to make a `temporal` or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute` query. <br/> If you are looking for an `attribute` only query refer the <b>Spatial Search</b> `/entities` endpoint.
+
+  - name: Entities Post Query
+    x-displayName: "Complex Search (Post Query)"
+    description: |
+      A Complex Search (Post Query) is an HTTP POST API and is used by DX(Data exchange) Data *Consumers*. <br/>This API is used for querying a resource using a <b>valid data exchange</b> `id`, `temporal`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/> You can use this API to make a `temporal` or `spatial` or `attribute` or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex : spatial+attribute` or `complex : temporal+spatial+attribute` query.
+
+  - name: Data Ingestion Adaptor
+    x-displayName: "Data Ingestion Adaptor"
+    description: |
+      Register Data Adaptor using HTTPs APIs. Once registered, the adaptors can publish data as per the DX(Data exchange) data descriptor using AMQP streaming protocol over TLS.
+      Stream data of an adaptor using AMQP streaming protocol.
+      These apis are intended to be used by DX(Data exchange) Data *Providers*.
+
+  - name: Data Subscriber
+    x-displayName: "Data Subscriber"
+    description: |
+      Register *Streaming Consumer* a.k.a [Subscribers] using HTTPs APIs to subscribe for data as per the DX(Data exchange) data descriptor  using AMQP streaming protocol over TLS.
+      These apis are intended to be used by DX(Data exchange) Data *Subscribers* a.k.a [Streaming Consumer].
+
+  - name: Management
+    x-displayName: "Management"
+    description: |
+      Management API provides the ability to the users to reset streaming credentials.
+
+  - name: Async
+    x-display: "Async"
+    description: |
+      Async APIs provide the ability to the user to query resources using larger temporal period and greater spatial area.
+
+  - name: Admin
+    x-display: "Admin"
+    description: |
+      Admin API provides the ability to the admin user to perform administrative tasks such as invalidating a user token, create unique attribute setting for resource group or resource item.    
+
+servers:
+  - url: 'https://example.com/ngsi-ld/v1'
+    description: 'Development Server URL'
+
+# Global security definition (applies to all paths unless overridden)
+security:
+  - authorization: []
+
+paths:
+
+  /ngsi-ld/v1/entities/{id}:
+    get:
+      tags:
+        - Latest Entity
+      summary: Latest Data
+      operationId: getLatestEntityData
+      parameters:
+        - name: token
+          in: header
+          description: >
+            A <b>valid data exchange Auth token</b> to process the request. <br/>
+            This field is <b>mandatory</b> for accessing a <b>resource</b>. <br/>
+            If not provided with a valid token, user will be responded with <b>401 Unauthorized</b>.
+          required: true
+          schema:
+            type: string
+            maxLength: 2048
+            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+
+        - name: id
+          in: path
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          required: true
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+
+      responses:
+        200:
+          description: 'Successful retrieval of latest data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        204:
+          description: 'Empty Response'
+
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
+          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+        413:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'get latest data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities/UUID' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities/UUID' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>'
+
+          description: |
+            The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange Auth token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
+
+      deprecated: false
+
+  /ngsi-ld/v1/entities:
+    get:
+      tags:
+        - Spatial Entities
+      operationId: getSpatialData
+      parameters:
+
+        - name: token
+          in: header
+          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          required: true
+          schema:
+            type: string
+        #            maxLength: 512
+        #            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+
+        - name: id
+          in: query
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          required: true
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+
+        - name: geoproperty
+          in: query
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+          schema:
+            type: string
+            enum: [ location ]
+        - name: georel
+          in: query
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+          schema:
+            type: string
+            enum: [ near,maxdistance=<distance_in_meters>, within, intersects,near,maxDistance=<distance_in_meters> ]
+
+        - name: geometry
+          in: query
+          description: 'The geometry type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/>The list is <b>case sensitive</b> '
+          schema:
+            type: string
+            enum: [ Point ,point, Polygon ,polygon, LineString ,linestring, bbox ]
+
+        - name: coordinates
+          in: query
+          description: >
+            The coordinates for a specific geometry query type, JSON‑encoded as a string.  
+            
+            **Supported geometries**:
+            
+            1. **Point**: a single two‑element array  
+               e.g. `[longitude, latitude]`  
+            2. **Polygon**: a three‑dimensional array (an array of linear rings)  
+               e.g. `[[[lon1,lat1],[lon2,lat2],…,[lonN,latN]]]`  
+            3. **LineString** / **Bbox**: a two‑dimensional array  
+               e.g. `[[lon1,lat1],[lon2,lat2],…,[lonN,latN]]`  
+            
+            - Maximum of **10** coordinate pairs for Polygon, LineString, and Bbox.  
+            - Maximum precision: **6** decimal places.
+          schema:
+            type: string
+            example: "[21.178,72.834]"
+          examples:
+            point:
+              summary: Point geometry
+              value: "[21.178,72.834]"
+            polygon:
+              summary: Polygon geometry
+              value: "[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]"
+            linestring:
+              summary: LineString/Bbox geometry
+              value: "[[72.8296,21.2],[72.8297,21.15]]"
+          style: form
+          explode: false
+        - name: maxDistance
+          description: 'The maximum distance to be queried from center point in meters. <br/> This is applicable and is <b>mandatory</b> for <b>point</b> geometry.<br/> It should be used along with relation <b>near</b>.'
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1000
+          in: query
+          required: false
+
+        - name: q
+          in: query
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> Additionally, a user can search a resource attribute with a alpha-numeric value using `==` operator. For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double, and as a special case alpha-nmeric values are allowed for `==`. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          schema:
+            type: string
+            maxLength: 512
+
+        - name: attrs
+          in: query
+          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+          schema:
+            type: string
+            maxLength: 512
+
+        - name: options
+          in: query
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. <br/> It should be used along with the <b> valid </b> `spatial`, `attribute` or `complex` queries. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+          schema:
+            type: string
+            enum: [ count ]
+
+
+      responses:
+        200:
+          description: 'Successful retrieval of spatial entity data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        204:
+          description: 'Empty Response'
+
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/entitiesInvalidParamBadRequestErrorResponse"
+          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+        413:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'search by attribute'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0' \
+            --header 'token: <tokenValue>'
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0' \
+            --header 'token: <tokenValue>'\
+            --header 'publicKey: <publicKeyValues>'
+
+        - lang: 'cURL'
+          label: 'search by circle'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by polygon'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by bbox'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by linestring'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]' \
+            --header 'token: <tokenValue>'
+
+
+        - lang: 'cURL'
+          label: 'search by attribute and filter'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel' \
+            --header 'token: <tokenValue>'
+
+
+        - lang: 'cURL'
+          label: 'count by circle'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by string attribute'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities?id=UUID&offset=0&limit=10&q=license_plate==GJ05BU3663' \
+            --header 'token: <tokenValue>'
+
+
+      deprecated: false
+      description: |
+        The `/entities` end point allows a consumer to query on data published based on a <b>spatial</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange </b> `id` of the resource. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
+
+          - <b>Allowed Search Operations</b>: 
+              - <b> Spatial (Geo) Search : </b> which queries the geo property of the resource.
+              - <b> Attribute Search : </b> which queries the valid attributes as per the data descriptor.
+              - <b> Complex Search : </b> which queries using the combination of the above two.
+        
+        
+        #### Spatial (Geo) Search
+        Geo search accepts geojson based queries. The params and their accepted values are briefed below -
+          - <b>geoproperty</b>: 
+              - Specifies the name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>.
+              - The current version of the API <b> mandates </b> it to be equal to `location`
+          - <b>georel</b>:   
+              - Specifies the spatial relationship to be queried.
+              - The relation type of <b>geoquery</b> can be <b>one of</b> `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.
+              - The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property.
+              - Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields.
+              - The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.
+              - The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.
+
+          - <b>geometry</b>:  
+              - Specifies the GeoJson geometries. 
+              - Should be One of `Point`(equivalent for a circle), `Polygon`, `LineString`, `bbox`.
+              - <b>Point</b>: Point and radius query
+                  - coordinates: Specifies the  center point of the circle, for e.g, `[73,13]`. <br/>Note, format is [longitude, latitude]
+                  - maxDistance: Specifies the Radius from the center point in meters, for e.g `100`. `maxValue` : 1000
+                  - georel: In this version of DX(Data exchange) API, the allowed relationship search for a circle is `near` with a `maxdistance` in meters specified. This will be equivalent to a `within` query. Format is `near;maxdistance=<distance_in_meters>` 
+              - <b>Polygon</b>: Polygon/Multi-Polygon query
+                  - coordinates: Specifies the  coordinates of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  <br/>Note, format is [longitude, latitude] and the first coordinate must be same as last. 
+                  - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates` : 10
+                  - georel: `within`, `intersects`
+              - <b>LineString</b>: Multi line string
+                  - coordinates: Specifies the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. <br/>Note, format is [longitude, latitude]
+                  - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates` : 10
+                  - georel:  `within`, `intersects`
+              - <b>bbox</b>: Bounding box
+                  - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`. <br/>Note, format is [longitude, latitude].
+                  - georel:  `within`, `intersects`
+
+        #### Attribute search
+        The attribute query is used for querying <b> allowed quantitative</b> properties. 
+          - Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==` operators. 
+          - For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value and attribute == value. 
+          - Allowed values for all operators is double and alphanumeric for `==` operator. 
+          - For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource. 
+          - e.g, `q=attribute-name>attribute-value`
+
+        #### Complex search
+        A combination of the above is allowed to make searches more  complex.
+
+        #### Filters
+          - A subset of properties of returned documents can be filtered out. This is an option parameter. <br/>For e.g, `attrs=[id]` returns documents with only the `id` property retained in them. 
+          - `minNumberOfAttributes` : 1 and `maxNumberOfAttributes` : 5 
+
+        #### Options
+          - The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. 
+          - It should be used along with the <b> valid </b> `spatial`, `attribute` or `complex` queries. 
+          - It <b>cannot</b> be used along with a <b>attrs</b> filter. 
+          - The value should be equal to `count` and it is <b>case sensitive</b>
+
+
+  /ngsi-ld/v1/temporal/entities:
+    get:
+      tags:
+        - Temporal Entities
+      summary: temporalSearch
+      operationId: temporalSearch
+      parameters:
+
+        - name: token
+          in: header
+          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          required: true
+          schema:
+            type: string
+        #            maxLength: 512
+        #            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+
+        - name: id
+          in: query
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          required: true
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+
+        - name: timerel
+          in: query
+          description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+          required: true
+          schema:
+            type: string
+            enum: [ between, before, after ,during]
+        - name: time
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          required: true
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
+          schema:
+            type: string
+
+        - name: geoproperty
+          in: query
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+          schema:
+            type: string
+            enum: [ location ]
+        - name: georel
+          in: query
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+          schema:
+            type: string
+            enum: [ near,maxdistance=<distance_in_meters>, within, intersects,near,maxDistance=<distance_in_meters> ]
+
+        - name: geometry
+          in: query
+          description: 'The geometry type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/>The list is <b>case sensitive</b> '
+          schema:
+            type: string
+            enum: [ Point, point, Polygon, polygon, LineString, linestring, bbox ]
+
+        - name: coordinates
+          in: query
+          description: 'The coordinates for a specific geometry query type. <br/> This parameter accepts both <b> one dimentional array and multi dimentional arrays </b> based on the <b> geometry</b> type. <br/> For e.g, [longitude-1,latitude-1] should be used for geometry <b>point</b>.  <br/>[[[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]]] should be used for geometry <b>polygon</b>. <br/> [[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]] should be used for geometry <b>bbox and linestring </b>. <br/> Maximum of 10 latitude, longitude pairs can be used for geometry <b>polygon, bbox and linestring </b>. <br/> Note: The data-type of this field is a string, therefore the coordinates are a string encoded multidimensional array.<br/> Maximum precision allowed is upto 6 decimal places.'
+          schema:
+            type: string
+            pattern: '^\[\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\]$'
+            example: "[21.178,72.834]"
+
+        - name: maxDistance
+          description: 'The maximum distance to be queried from center point in meters. <br/> This is applicable and is <b>mandatory</b> for <b>point</b> geometry.<br/> It should be used along with relation <b>near</b>.'
+          schema:
+            type: number
+            minimum: 0
+            maximum: 1000
+          in: query
+          required: false
+
+        - name: q
+          in: query
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          schema:
+            type: string
+            maxLength: 512
+
+        - name: attrs
+          in: query
+          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+          schema:
+            type: string
+            maxLength: 512
+
+        - name: options
+          in: query
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+          schema:
+            type: string
+            enum: [ count ]
+
+      responses:
+        200:
+          description: 'Successful retrieval of temporal entity data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        204:
+          description: 'Empty Response'
+
+        400:
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/invalidParamsErrorResponse'
+                  - $ref: '#/components/schemas/invalidDateFormatErrorResponse'
+          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+        413:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'search by between'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>'
+
+        - lang: 'cURL'
+          label: 'search by before'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by after'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'search by between and filter'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel' \
+            --header 'token: <tokenValue>'        
+
+        - lang: 'cURL'
+          label: 'count by after'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'complex search'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'complex count'
+          source: |
+            curl --location -g --request GET 'https://example.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count' \
+            --header 'token: <tokenValue>'
+
+
+      deprecated: false
+      description: |
+        The `/temporal/entities` end point allows a consumer to query on data published based on a <b>spatial</b>, <b>temporal</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id`  of the resource and a `temporal` parameter. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
+
+          - <b>Allowed Search Operations</b>: 
+              - <b> Temporal Search : </b> which queries the temporal property of the resource.
+              - <b> Spatial (Geo) Search : </b> which queries the geo property of the resource.
+              - <b> Attribute Search : </b> which queries the valid attributes as per the data descriptor.
+              - <b> Complex Search : </b> which queries using the combination of the above three.
+
+        #### Temporal search
+        Temporal search accepts time property based queries which are specified in ISO 8601 format. The params and their accepted values are -
+          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`. The value `during` could also be used instead of `between`.
+          - <b>time</b>: Start time for the temporal query in `ISO 8601` format. 
+          - <b>endtime</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
+          - Note, The time difference between `time` and `endtime` should be less than `10 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
+        
+        
+        #### Spatial (Geo) Search
+        Geo search accepts geojson based queries. The params and their accepted values are briefed below -
+          - <b>geoproperty</b>: 
+              - Specifies the name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>.
+              - The current version of the API <b> mandates </b> it to be equal to `location`
+          - <b>georel</b>:   
+              - Specifies the spatial relationship to be queried.
+              - The relation type of <b>geoquery</b> can be <b>one of</b> `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.
+              - The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property.
+              - Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields.
+              - The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.
+              - The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.
+
+          - <b>geometry</b>:  
+              - Specifies the GeoJson geometries. 
+              - Should be One of `Point`(equivalent for a circle), `Polygon`, `LineString`, `bbox`.
+              - <b>Point</b>: Point and radius query
+                  - coordinates: Specifies the  center point of the circle, for e.g, `[73,13]`. <br/>Note, format is [longitude, latitude]
+                  - maxDistance: Specifies the Radius from the center point in meters, for e.g `100`. `maxValue` : 1000
+                  - georel: In this version of DX(Data exchange) API, the allowed relationship search for a circle is `near` with a `maxdistance` in meters specified. This will be equivalent to a `within` query. Format is `near;maxdistance=<distance_in_meters>` 
+              - <b>Polygon</b>: Polygon/Multi-Polygon query
+                  - coordinates: Specifies the  coordinates of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  <br/>Note, format is [longitude, latitude] and the first coordinate must be same as last. 
+                  - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates` : 10
+                  - georel: `within`, `intersects`
+              - <b>LineString</b>: Multi line string
+                  - coordinates: Specifies the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. <br/>Note, format is [longitude, latitude]
+                  - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates` : 10
+                  - georel:  `within`, `intersects`
+              - <b>bbox</b>: Bounding box
+                  - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`. <br/>Note, format is [longitude, latitude].
+                  - georel:  `within`, `intersects`
+
+        #### Attribute search
+        The attribute query is used for querying <b> allowed quantitative</b> properties. 
+          - Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. 
+          - For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value and attribute == value. 
+          - Allowed values for all operators is double. 
+          - For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource. 
+          - e.g, `q=attribute-name>attribute-value`
+
+        #### Complex search
+        A combination of the above is allowed to make searches more  complex.
+
+        #### Filters
+          - A subset of properties of returned documents can be filtered out. This is an option parameter. <br/>For e.g, `attrs=[id]` returns documents with only the `id` property retained in them. 
+          - `minNumberOfAttributes` : 1 and `maxNumberOfAttributes` : 5 
+
+        #### Options
+          - The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. 
+          - It should be used along with the <b> valid </b> `temporal`, or `complex` queries. 
+          - It <b>cannot</b> be used along with a <b>attrs</b> filter. 
+          - The value should be equal to `count` and it is <b>case sensitive</b>
+
+  /ngsi-ld/v1/entityOperations/query:
+    post:
+      tags:
+        - Entities Post Query
+      summary: Spatial search
+      operationId: postSpatialSearch
+      parameters:
+
+        - name: token
+          in: header
+          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          required: true
+          schema:
+            type: string
+      #            maxLength: 512
+      #            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'Spatial complex query'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/entityOperations/query' \
+            --header 'token: <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/entityOperations/query' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/complex-geo-circle-filterrequest'
+            example:
+              type: Query
+              entities:
+                - id: UUID
+              geoQ:
+                geometry: Point
+                coordinates: [ 21.178,72.834 ]
+                georel: near;maxDistance=10
+                geoproperty: location
+        required: false
+
+      responses:
+        200:
+          description: 'Successful complex search query'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        204:
+          description: 'Empty Response'
+
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidPayloadFormatErrorResponse"
+          description: 'Bad query- Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        413:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+      description: |
+        The `/entityOperations/query` end point allows a consumer to query on data published based on a <b>spatial</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id` of the resource within the `entities` json object as per the schema. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
+
+          - <b>Allowed Search Operations</b>: 
+              - <b> Spatial (Geo) Search : </b> which queries the geo property of the resource.
+              - <b> Attribute Search : </b> which queries the valid attributes as per the data descriptor.
+              - <b> Complex Search : </b> which queries using the combination of the above three.
+        
+        #### Spatial (Geo) Search
+        Geo search accepts geojson based queries. The params and their accepted values are briefed below -
+          - <b>geoproperty</b>: 
+              - Specifies the name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>.
+              - The current version of the API <b> mandates </b> it to be equal to `location`
+          - <b>georel</b>:   
+              - Specifies the spatial relationship to be queried.
+              - The relation type of <b>geoquery</b> can be <b>one of</b> `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.
+              - The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property.
+              - Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields.
+              - The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.
+              - The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.
+
+          - <b>geometry</b>:  
+              - Specifies the GeoJson geometries. 
+              - Should be One of `Point`(equivalent for a circle), `Polygon`, `LineString`, `bbox`.
+              - <b>Point</b>: Point and radius query
+                  - coordinates: Specifies the  center point of the circle, for e.g, `[73,13]`. <br/>Note, format is [longitude, latitude]
+                  - maxDistance: Specifies the Radius from the center point in meters, for e.g `100`. `maxValue` : 1000
+                  - georel: In this version of DX(Data exchange) API, the allowed relationship search for a circle is `near` with a `maxdistance` in meters specified. This will be equivalent to a `within` query. Format is `near;maxdistance=<distance_in_meters>` 
+              - <b>Polygon</b>: Polygon/Multi-Polygon query
+                  - coordinates: Specifies the  coordinates of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  <br/>Note, format is [longitude, latitude] and the first coordinate must be same as last. 
+                  - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates` : 10
+                  - georel: `within`, `intersects`
+              - <b>LineString</b>: Multi line string
+                  - coordinates: Specifies the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. <br/>Note, format is [longitude, latitude]
+                  - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates` : 10
+                  - georel:  `within`, `intersects`
+              - <b>bbox</b>: Bounding box
+                  - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`. <br/>Note, format is [longitude, latitude].
+                  - georel:  `within`, `intersects`
+
+        #### Attribute search
+        The attribute query is used for querying <b> allowed quantitative</b> properties. 
+          - Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==` operators. 
+          - For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value and attribute == value. 
+          - Allowed values for all operators is double. 
+          - For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource. 
+          - e.g, `q=attribute-name>attribute-value`
+
+        #### Complex search
+        A combination of the above is allowed to make searches more  complex.
+
+        #### Filters
+          - A subset of properties of returned documents can be filtered out. This is an option parameter. <br/>For e.g, `attrs=[id]` returns documents with only the `id` property retained in them. 
+          - `minNumberOfAttributes` : 1 and `maxNumberOfAttributes` : 5 
+
+        #### Options
+          - The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. 
+          - It should be used along with the <b> valid </b> `temporal`, or `complex` queries. 
+          - It <b>cannot</b> be used along with a <b>attrs</b> filter. 
+          - The value should be equal to `count` and it is <b>case sensitive</b>
+
+      deprecated: false
+
+  /ngsi-ld/v1/temporal/entityOperations/query:
+    post:
+      tags:
+        - Entities Post Query
+      summary: Spatial + temporal search
+      operationId: postTemporalSearch
+      parameters:
+
+        - name: token
+          in: header
+          description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
+          required: true
+          schema:
+            type: string
+      #            maxLength: 512
+      #            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'Spatial + temporal complex query'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/temporal/entityOperations/query' \
+            --header 'token: <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/temporal/entityOperations/query' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/complex-geo-circle-time-filterrequest'
+            example:
+              {
+                "type": "Query",
+                "entities": [
+                  {
+                    "id": "UUID"
+                  }
+                ],
+                "geoQ": {
+                  "geometry": "Point",
+                  "coordinates": [ 21.178,72.834 ],
+                  "georel": "near;maxDistance=1000",
+                  "geoproperty": "location"
+                },
+                "temporalQ": {
+                  "timerel": "between",
+                  "time": "2020-10-18T14:20:00Z",
+                  "endtime": "2020-10-19T14:20:00Z",
+                  "timeProperty": "observationDateTime"
+                },
+                "q": "speed>30.0",
+                "attrs": "id,speed"
+              }
+        required: false
+
+      responses:
+        200:
+          description: 'Successful complex search query'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        204:
+          description: 'Empty Response'
+
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidPayloadFormatErrorResponse"
+          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        413:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+      description: |
+        The `/temporal/entityOperations/query` end point allows a consumer to query on data published based on a <b>spatial</b>,<b> temporal </b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id` of the resource within the `entities` json object as per the schema. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
+
+          - <b>Allowed Search Operations</b>:
+              - <b> Temporal Search : </b> which queries the temporal property of the resource.
+              - <b> Spatial (Geo) Search : </b> which queries the geo property of the resource.
+              - <b> Attribute Search : </b> which queries the valid attributes as per the data descriptor.
+              - <b> Complex Search : </b> which queries using the combination of the above three.
+        
+        #### Temporal search
+        Temporal search accepts time property based queries which are specified in ISO 8601 format. The params and their accepted values are -
+          - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`.The value `during` could also be used instead of `between`.
+          - <b>time</b>: Start time for the temporal query in `ISO 8601` format. 
+          - <b>endtime</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
+          - Note, The time difference between `time` and `endtime` should be less than `10 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
+        
+        #### Spatial (Geo) Search
+        Geo search accepts geojson based queries. The params and their accepted values are briefed below -
+          - <b>geoproperty</b>: 
+              - Specifies the name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>.
+              - The current version of the API <b> mandates </b> it to be equal to `location`
+          - <b>georel</b>:   
+              - Specifies the spatial relationship to be queried.
+              - The relation type of <b>geoquery</b> can be <b>one of</b> `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.
+              - The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property.
+              - Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields.
+              - The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.
+              - The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.
+
+          - <b>geometry</b>:  
+              - Specifies the GeoJson geometries. 
+              - Should be One of `Point`(equivalent for a circle), `Polygon`, `LineString`, `bbox`.
+              - <b>Point</b>: Point and radius query
+                  - coordinates: Specifies the  center point of the circle, for e.g, `[73,13]`. <br/>Note, format is [longitude, latitude]
+                  - maxDistance: Specifies the Radius from the center point in meters, for e.g `100`. `maxValue` : 1000
+                  - georel: In this version of DX(Data exchange) API, the allowed relationship search for a circle is `near` with a `maxdistance` in meters specified. This will be equivalent to a `within` query. Format is `near;maxdistance=<distance_in_meters>` 
+              - <b>Polygon</b>: Polygon/Multi-Polygon query
+                  - coordinates: Specifies the  coordinates of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  <br/>Note, format is [longitude, latitude] and the first coordinate must be same as last. 
+                  - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates` : 10
+                  - georel: `within`, `intersects`
+              - <b>LineString</b>: Multi line string
+                  - coordinates: Specifies the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. <br/>Note, format is [longitude, latitude]
+                  - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates` : 10
+                  - georel:  `within`, `intersects`
+              - <b>bbox</b>: Bounding box
+                  - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`. <br/>Note, format is [longitude, latitude].
+                  - georel:  `within`, `intersects`
+
+        #### Attribute search
+        The attribute query is used for querying <b> allowed quantitative</b> properties. 
+          - Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==` operators. 
+          - For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value and attribute == value. 
+          - Allowed values for all operators is double. 
+          - For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource. 
+          - e.g, `q=attribute-name>attribute-value`
+
+        #### Complex search
+        A combination of the above is allowed to make searches more  complex.
+
+        #### Filters
+          - A subset of properties of returned documents can be filtered out. This is an option parameter. <br/>For e.g, `attrs=[id]` returns documents with only the `id` property retained in them. 
+          - `minNumberOfAttributes` : 1 and `maxNumberOfAttributes` : 5 
+
+        #### Options
+          - The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a query. 
+          - It should be used along with the <b> valid </b> `complex` queries. 
+          - It <b>cannot</b> be used along with a <b>attrs</b> filter. 
+          - The value should be equal to `count` and it is <b>case sensitive</b>
+      deprecated: false
+
+  /ngsi-ld/v1/ingestion:
+    get:
+      tags:
+        - Data Ingestion Adaptor
+      summary: List of adaptor exchange
+      description: 'Ingestion API allows a provider and delegate to get list of all registered adaptors in DX(Data exchange) Resource Server.
+        Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.'
+
+
+      operationId: getAdapterExchangeList
+      parameters:
+        - name: token
+          in: header
+          description: 'DX auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Successfully retrieving list of all adapter exchanges'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/allexchange'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/ingestion' \
+            --header 'token: <tokenValue>'
+    post:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Register ingestion adapter
+      operationId: registerAdapter
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registeradapterrequest'
+        required: true
+      responses:
+        201:
+          description: 'Successful registration of ingestion adapter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/registeradapter'
+
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Adapter Not Found'
+
+        409:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceAlreadyExistErrorResponse"
+          description: 'Adapter Already Exists'
+
+      description: |
+        Ingestion API allows a provider to register an ingestion adapter with DX(Data exchange) Resource Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Register Adapter
+        To register an adapter, a user must request for a consent from the provider, obtain a token from DX(Data exchange) Auth server and then access the API with the following values:
+          - `entities`: List of DX(Data exchange) resource id's .
+      deprecated: false
+
+  /ngsi-ld/v1/ingestion/{id}:
+    get:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Retrieve ingestion adapter details
+      operationId: getAdaptorDetailsById
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+        - name: id
+          in: path
+          description: 'id of the adapter obtained from Register adapter.'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/retrieveadapter'
+          description: 'Successful retrieval of ingestion adapter'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/generalResourceNotFoundErrorResponse"
+          description: 'Adapter not found'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion by id'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/ingestion/UUID' \
+            --header 'token: <tokenValue>'
+
+      description: |
+        Retrieve Ingestion API allows a provider to fetch the list of `Subscribers` a.k.a [Streaming Consumers] for the data. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Retrieve Adapter Details
+        To retrieve subscriber list, the provider must present the `id` and `token`. Retrieve API validates the request with the Auth server to allow or deny access to the provider.
+      deprecated: false
+
+    delete:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Delete ingestion adaptor
+      operationId: deleteAdaptorById
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+        - name: id
+          in: path
+          description: 'id of the adapter obtained from Register ingestion adapter.'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      responses:
+        200:
+          description: 'Successful deletion of ingestion adapter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deleteadapter'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/generalResourceNotFoundErrorResponse"
+          description: 'Adapter not found'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion by id'
+          source: |
+            curl --location --request DELETE 'https://example.com/ngsi-ld/v1/ingestion/UUID' \
+            --header 'token: <tokenValue>'
+
+      description: |
+        Delete ingestion Adapter API allows a provider to delete a publisher. Once this is done all the `Subscribers` a.k.a [Streaming Consumers] and `Consumers` of the data will stop receiving further updates. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Delete Adapter
+        To delete an adapter, the provider must present the `id` and `token`. Delete API validates the request with the Auth server to allow or deny access to the provider.
+
+      deprecated: false
+
+  /ngsi-ld/v1/ingestion/entities:
+    post:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Ingestion adapter
+      operationId: postIngestionAdaptorEntities
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: entities is must in all the request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingestionEntityRequest'
+        required: true
+      responses:
+        200:
+          description: 'Successful registration of ingestion adapter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Not Found'
+
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/asyncBadRequestErrorResponse"
+          description: 'Not Found'
+
+
+      description: |
+        Ingestion Entities API allows a publish data into DX(Data exchange) Resource Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. Enitiy should be registered with DX through the adaptor /ingestion API.
+
+      deprecated: false
+
+  /ngsi-ld/v1/subscription:
+    get:
+      tags:
+        - Data Subscriber
+      summary: list of subscription queues
+      operationId: getListOfSubscribers
+      parameters:
+        - name: token
+          in: header
+          description: 'DX auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: 'Successfully retrieving list of all subscription queues'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/allqueue'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponseAllQueueAndExcahnge"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+      description: |
+        This API could be used by a consumer to get the list of all the data subscription under the given user. The API could be used by the subscriber by providing the user access token.
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/subscription' \
+            --header 'token: <tokenValue>'
+      security:
+        - authorization: []
+    post:
+      tags:
+        - Data Subscriber
+      summary: Create subscription
+      operationId: postSubscription
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+        - name: options
+          in: header
+          description: 'Type of subscription, for e.g. streaming'
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum: [ streaming ]
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/subscription' \
+            --header 'token: <tokenValue>' \
+            --header 'options: streaming' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: 'Successful query'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createastreamingsubscriptionrequest'
+        required: true
+      responses:
+        201:
+          description: 'Successful creation of streaming subscription'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/createstreaming'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidPayloadFormatErrorResponse"
+          description: 'Bad query - Missing/Invalid parameters'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        409:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/generalResourceAlreadyExistErrorResponse"
+          description: 'Conflict: Same Subscription request was previously sent'
+
+
+      description: |
+        Register Subscription API allows a subscriber to register an streaming subscription with DX(Data exchange) Resource Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Register Subscription
+        To register subscription, a user must request for consent from the provider, obtain a token from DX(Data exchange) Auth server and then access the API with the following values:
+          - `options`: A header parameter which specifies the type of subscription. Should be `streaming` to request for a streaming registration.
+          - `name`: A user friendly `alias-name` of the subscription
+          - `type`: Type of request. Should be `subscription`.
+          - `entities`: An array of entities to subscribe.
+
+      deprecated: false
+
+  /ngsi-ld/v1/subscription/{userid}/{name}:
+    get:
+      tags:
+        - Data Subscriber
+      summary: Retrieve subscription details
+      operationId: getSubscriberById
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+
+        - name: options
+          in: header
+          description: 'Type of subscription, for e.g. streaming'
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum: [ streaming ]
+        - name: userid
+          in: path
+          description: 'user id'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: name
+          in: path
+          description: ' '
+          required: true
+          style: simple
+          schema:
+            type: string
+
+
+      responses:
+        200:
+          description: 'Successful retrieval of streaming subscription'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/retrievestreaming'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/resourceNotFoundErrorResponse"
+          description: 'Subscription details not found'
+
+      deprecated: false
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription by id'
+          source: |
+            curl --location --request GET 'https://example.iudx.io/ngsi-ld/v1/subscription/fd47486b-XXX7-4XXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL009' \
+            --header 'token: <tokenValue>' \
+            --header 'options: streaming'
+
+      description: |
+        Retrieve Subscription API allows a subscriber to fetch the list of `entities` subscribed. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Retrieve Subscription Details
+        To retrieve subscriber list, the provider must present the `subscription-id` and `token`. Retrieve API validates the request with the Auth server to allow or deny access to the subscriber.
+        Subscription ID obtained during registration. Subscription ID is combination of userid and name (userid/name).
+          - `options`: A header parameter which specifies the type of subscription. Should be `streaming` to request for a streaming registration.
+    
+
+    patch:
+      tags:
+        - Data Subscriber
+      summary: Append subscription
+      operationId: appendStreamingSubscription
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing API and the resource.'
+          required: true
+          style: simple
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+
+        - name: options
+          in: header
+          description: 'Type of subscription, for e.g. streaming'
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum: [ streaming ]
+        - name: userid
+          in: path
+          description: 'user id'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: name
+          in: path
+          description: ' '
+          required: true
+          style: simple
+          schema:
+            type: string
+
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription by id'
+          source: |
+            curl --location --request PATCH 'https://example.iudx.io/ngsi-ld/v1/subscription/fd47486b-XXXX-XXX8-XXXX-082e4d37a66c/RS-integration-test-alias-RL009' \
+            --header 'token: <tokenValue>' \
+            --header 'options: streaming' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/appendstreamingsubscriptionrequest'
+        required: true
+      responses:
+        201:
+          description: 'Successful appending of streaming subscription'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/appendstreaming'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/subscriptionInvalidParamBadRequestErrorResponse"
+          description: 'Bad query - Missing/Invalid parameters'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Subscription details not found'
+
+      description: |
+        Append Subscription API allows a subscriber to add a new stream to the list of `entities` subscribed. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Append Subscription 
+        To append an entity to the subscriber list, the provider must present the `subscription-id` and `token` along with the list of `entities`. Append API validates the request with the Auth server to allow or deny access to the subscriber.
+        Subscription ID obtained during registration. Subscription ID is combination of userid and name (userid/name).
+          - `options`: A header parameter which specifies the type of subscription. Should be `streaming` to request for a streaming registration.
+
+      deprecated: false
+
+    put:
+      tags:
+        - Data Subscriber
+      summary: Update subscription
+      operationId: updateStreamingSubscription
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+
+        - name: options
+          in: header
+          description: 'Type of subscription, for e.g. streaming'
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum: [ streaming ]
+        - name: userid
+          in: path
+          description: 'user id'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: name
+          in: path
+          description: ' '
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription by id'
+          source: |
+            curl --location --request PUT 'https://example.iudx.io/ngsi-ld/v1/subscription/fd47486b-XX97-4XXX-XX1e-082e4d37a66c/RS-integration-test-alias-RL009'  \
+            --header 'token: <tokenValue>' \
+            --header 'options: streaming' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updatestreamingsubscriptionrequest'
+        required: true
+      responses:
+        201:
+          description: 'Successful updation of streaming subscription'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/updatestreaming'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/subscriptionInvalidParamBadRequestErrorResponse"
+          description: 'Bad query - Missing/Invalid parameters'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Subscription details not found'
+
+      description: |
+        Update Subscription API allows a subscriber to replace the list of `entities` subscribed. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Update (Replace) Subscription 
+        To replace the subscriber list, the provider must present the `subscription-id` and `token` along with the list of `entities`. Update API validates the request with the Auth server to allow or deny access to the subscriber.
+        Subscription ID obtained during registration. Subscription ID is combination of userid and name (userid/name).
+          - `options`: A header parameter which specifies the type of subscription. Should be `streaming` to request for a streaming registration.
+
+      deprecated: false
+
+    delete:
+      tags:
+        - Data Subscriber
+      summary: Delete subscription
+      operationId: deleteSubscriberById
+      parameters:
+        - name: options
+          in: header
+          description: 'Type of subscription, for e.g. streaming'
+          required: true
+          style: simple
+          schema:
+            type: string
+            enum: [ streaming ]
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+
+        - name: userid
+          in: path
+          description: 'user id'
+          required: true
+          style: simple
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: name
+          in: path
+          description: ' '
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      responses:
+        200:
+          description: 'Successful deletion of streaming subscription'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/deletestreaming'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/resourceNotFoundErrorResponse"
+          description: 'Subscription details not found'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'subscription by id'
+          source: |
+            curl --location --request DELETE 'https://example.iudx.io/ngsi-ld/v1/subscription/fd4XXXb-XX97-4248-XXXX-082e4XXX7a66c/RS-integration-test-alias-RL009' \
+            --header 'options: streaming' \
+            --header 'token: <tokenValue>'
+
+      description: |
+        Delete Subscription API allows a subscriber to delete the subscription. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. 
+        
+        #### Delete Subscription 
+        To delete the subscription list, the provider must present the `subscription-id` and `token`. Delete API validates the request with the Auth server to allow or deny access to the subscriber.
+        Subscription ID obtained during registration. Subscription ID is combination of userid and name (userid/name).
+          - `options`: A header parameter which specifies the type of subscription. Should be `streaming` to request for a streaming registration.
+
+      deprecated: false
+
+  /ngsi-ld/v1/user/resetPassword:
+    post:
+      tags:
+        - Management
+      summary: Reset user password
+      operationId: resetPassword
+      parameters:
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+      description: Reset user password is a type of management API that could update password or retrieve lost password of the given user to subscribe the resource through subscription APIs. The user could provider the required access token while using the API.
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'reset password'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/user/resetPassword' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        200:
+          description: 'User password reset successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/resetpassword'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/generalResourceNotFoundErrorResponse"
+          description: 'Password not found'
+
+  /ngis-ld/v1/async/search:
+    get:
+      tags:
+        - Async
+      summary: Search
+      operationId: asyncSearch
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: id
+          in: query
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          required: true
+          schema:
+            type: string
+            format: uuid
+            maxLength: 36
+        - name: timerel
+          in: query
+          description: 'The temporal relation type of <b>timerel</b> to be performed.'
+          #required: true
+          schema:
+            type: string
+            enum: [ between, before, after ]
+        - name: time
+          in: query
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          #required: true
+          schema:
+            type: string
+        - name: endtime
+          in: query
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+          #required: true
+          schema:
+            type: string
+        - name: geoproperty
+          in: query
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+          schema:
+            type: string
+            enum: [ location ]
+        - name: georel
+          in: query
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+          schema:
+            type: string
+            enum: [ near,maxdistance=<distance_in_meters>, within, intersects,near,maxDistance=<distance_in_meters> ]
+
+        - name: geometry
+          in: query
+          description: 'The geometry type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/>The list is <b>case sensitive</b> '
+          schema:
+            type: string
+            enum: [ Point ,point, Polygon ,polygon, LineString ,linestring, bbox ]
+
+        - name: coordinates
+          in: query
+          description: 'The coordinates for a specific geometry query type. <br/> This parameter accepts both <b> one dimentional array and multi dimentional arrays </b> based on the <b> geometry</b> type. <br/> For e.g, [longitude-1,latitude-1] should be used for geometry <b>point</b>.  <br/>[[[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]]] should be used for geometry <b>polygon</b>. <br/> [[longitude-1,latitude-1], [longitude-2,latitude-2],...., [longitude-n,latitude-n]] should be used for geometry <b>bbox and linestring </b>. <br/> Maximum of 10 latitude, longitude pairs can be used for geometry <b>polygon, bbox and linestring </b>. <br/> Note: The data-type of this field is a string, therefore the coordinates are a string encoded multidimensional array.<br/> Maximum precision allowed is upto 6 decimal places.'
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 10
+            items:
+              type: number
+            format: double
+        - name: q
+          in: query
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          schema:
+            type: string
+            maxLength: 512
+        - name: format
+          in: header
+          description: 'format in header could be added to get the response in required encoding through `/async/status` API'
+          schema:
+            type: string
+            enum:  ["json", "csv"]
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'async search'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>'
+
+        - lang: 'cURL'
+          label: 'get data in csv format'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/search?id=UUID&timerel=between&time=2020-10-10T14:20:00Z&endtime=2020-10-13T14:20:00Z' \
+            --header 'token: <tokenValue>' \
+            --header 'format: csv'
+
+      responses:
+        200:
+          description: 'Async search success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/asyncsearchResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/asyncBadRequestErrorResponse"
+          description: 'Bad query - Missing/Invalid parameters'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
+
+  /ngsi-ld/async/status:
+    get:
+      tags:
+        - Async
+      summary: Search status
+      operationId: asyncSearchStatus
+      parameters:
+
+        - name: token
+          in: header
+          description: 'data exchange auth token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 512
+            pattern: '^[a-zA-Z0-9\/\@\.]*$'
+        - name: searchId
+          in: query
+          description: 'searchId returned while submitting request through `/async/search`'
+          required: true
+          schema:
+            type: string
+            maxLength: 512
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'async status'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
+            --header 'token: <tokenValue>'
+
+        - lang: 'cURL'
+          label: 'get encrypted data'
+          source: |
+            curl --location --request GET 'https://example.com/ngsi-ld/v1/async/status?searchID=sasdasd-asdasd-aasasd-dasdasd' \
+            --header 'token: <tokenValue>' \
+            --header 'publicKey: <publicKeyValue>'
+
+      responses:
+        200:
+          description: 'Async search status success'
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/asyncsearchStatusComplete'
+                  - $ref: '#/components/schemas/asyncsearchStatusInprogress'
+        400:
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/asyncSearchStatusInvalidParamResponse'
+                  - $ref: '#/components/schemas/asyncSearchStatusIncorrectSearchIdResponse'
+          description: 'Bad query - Incorrect Search Id | Not a UUID'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+  /admin/revokeToken:
+    servers:
+      - url: 'https://example.com/'
+        description: 'Development Server URL '
+    post:
+      tags:
+        - Admin
+      summary: revoke token
+      operationId: revokeUserToken
+      parameters:
+        - name: token
+          in: header
+          description: 'DX(Data exchange) admin token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'revoke token'
+          source: |
+            curl --location --request POST 'https://example.com/admin/revokeToken' \
+            --header 'token: <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/revokeToken'
+            example:
+              sub: dde234bd-d752-4fff-9de7-0c02e032eb9d
+        required: true
+      responses:
+        200:
+          description: 'Token revoked successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardSuccessResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+      description: Revoke token API used by admin user to revoke token of user in certain cases. It removes the authorization to access the resource by removing the admin user's permission to access the token.
+
+  /admin/resourceattribute:
+    servers:
+      - url: 'https://example.com/'
+        description: 'Development Server URL '
+    post:
+      tags:
+        - Admin
+      summary: Create unique attribute.
+      operationId: createUniqueAttributeResource
+      parameters:
+        - name: token
+          in: header
+          description: 'DX(Data exchange) admin token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'create unique attribute'
+          source: |
+            curl --location --request POST 'https://example.com/admin/resourceattribute' \
+            --header 'token: <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+      
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unique-attribute'
+            example:
+              id: UUID
+              attribute: license_plate
+        required: true
+      responses:
+        200:
+          description: 'Unique attribute created successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardSuccessResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+      description: This API is used by admin user to create unique attribute for a resource by mentioning its resource `id` and the unique attribute in payload to the DX(Data exchange). If the unique attribute for the resource is already created, it would respond with a bad request.
+
+    put:
+      tags:
+        - Admin
+      summary: Update unique attribute
+      operationId: updateUniqueAttributeResource
+      parameters:
+        - name: token
+          in: header
+          description: 'DX(Data exchange) admin token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'update unique attribute'
+          source: |
+            curl --location --request PUT 'https://example.com/admin/resourceattribute' \
+            --header 'token: <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+      
+
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unique-attribute'
+            example:
+              id: UUID
+              attribute: license_plate
+        required: true
+      responses:
+        200:
+          description: 'Unique attribute updated successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardSuccessResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Attribute not found'
+      description: The `resourceattribute` API is used by admin user to update unique attribute for a resource in DX(Data exchange) by providing it's resource `id` and the unique attribute.
+
+    delete:
+      tags:
+        - Admin
+      summary: Delete unique attribute
+      operationId: deleteUniqueAttributeResource
+      parameters:
+        - name: token
+          in: header
+          description: 'DX(Data exchange) admin token for accessing the API'
+          required: true
+          style: simple
+          schema:
+            type: string
+        - name: id
+          in: query
+          description: 'Valid DX(Data exchange) resource id'
+          required: true
+          schema:
+            type: string
+            maxLength: 512
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'delete unique attribute'
+          source: |
+            curl --location --request DELETE 'https://example.com/admin/resourceattribute?id=UUID' \
+            --header 'token: <tokenValue>'
+
+      responses:
+        200:
+          description: 'Unique Attribute deleted successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardSuccessResponse'
+        400:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardBadRequestErrorResponse"
+          description: 'Bad query'
+
+        401:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: |-
+            - Unauthorized - `token` invalid/expired
+            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+
+
+        404:
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Attribute not found'
+      description: The `resourceattribute` API is used by admin user to delete unique attribute for a resource in DX(Data exchange). The user could provide the resource `id` to delete the unique attribute.
+
+components:
+  securitySchemes:
+    authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    createastreamingsubscriptionrequest:
+      title: createastreamingsubscriptionrequest
+      required:
+        - name
+        - type
+        - entities
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 512
+        type:
+          type: string
+          enum: [ subscription ]
+
+        entities:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: string
+            format: uuid
+            maxLength: 36
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          description: ''
+      example:
+        name: alias-name-of-application
+        type: subscription
+        entities:
+          - UUID
+    appendstreamingsubscriptionrequest:
+      title: appendstreamingsubscriptionrequest
+      required:
+        - name
+        - type
+        - entities
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 512
+
+        type:
+          type: string
+          enum: [ subscription ]
+
+        entities:
+          type: array
+          minItems: 1
+          maxItems: 5
+
+          items:
+            type: string
+          description: ''
+      example:
+        name: alias-name-of-application
+        type: subscription
+        entities:
+          - UUID
+    updatestreamingsubscriptionrequest:
+      title: updatestreamingsubscriptionrequest
+      required:
+        - name
+        - type
+        - entities
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 512
+
+        type:
+          type: string
+          enum: [ subscription ]
+
+        entities:
+          type: array
+          minItems: 1
+          maxItems: 5
+
+          items:
+            type: string
+          description: ''
+      example:
+        name: alias-name-of-application
+        type: subscription
+        entities:
+          - UUID
+    geospatial-circlerequest:
+      title: geospatial-circlerequest
+      required:
+        - type
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
+    Entity:
+      title: Entity
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          maxLength: 512
+          description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+      example:
+        id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+    GeoQ:
+      title: GeoQ
+      required:
+        - geometry
+        - coordinates
+        - georel
+        - geoproperty
+      type: object
+      properties:
+        geometry:
+          type: string
+          enum: [Point, point, Polygon, polygon, bbox, LineString, linestring]
+          description: >
+            The geometry type of <b>geoquery</b> to be performed. <br/>
+            This <b>should</b> be one from the available options in the Enum list. <br/>
+            The list is <b>case sensitive</b>.
+        coordinates:
+          oneOf:
+            - type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+              description: >
+                Used for geometry type <b>Point</b>. Represents a single longitude, latitude pair.
+            - type: array
+              minItems: 2
+              maxItems: 10
+              items:
+                type: array
+                minItems: 2
+                maxItems: 2
+                items:
+                  type: number
+              description: >
+                Used for geometry types <b>LineString</b> and <b>bbox</b>. Each sub-array is a longitude, latitude pair.
+            - type: array
+              minItems: 1
+              maxItems: 1
+              items:
+                type: array
+                minItems: 4
+                maxItems: 10
+                items:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: number
+              description: >
+                Used for geometry type <b>Polygon</b>. A single polygon defined as an array of linear ring coordinates.
+
+        georel:
+          type: string
+          #          enum: [ near, within, intersects ]
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+        geoproperty:
+          type: string
+          enum: [ location ]
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+      example:
+        geometry: Point
+        coordinates:
+          - 25.319768
+          - 82.987988000000001
+        georel: near;maxDistance=1000
+        geoproperty: geoJsonLocation
+    geospatial-circlecount-request:
+      title: geospatial-circle(count)request
+      required:
+        - type
+        - entities
+        - options
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+        options:
+          type: string
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=100
+          geoproperty: geoJsonLocation
+        options: count
+    geospatial-polygonrequest:
+      title: geospatial-polygonrequest
+      required:
+        - type
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ2'
+    GeoQ2:
+      title: GeoQ2
+      required:
+        - geometry
+        - coordinates
+        - georel
+        - geoproperty
+      type: object
+      properties:
+        geometry:
+          type: string
+        coordinates:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        georel:
+          type: string
+        geoproperty:
+          type: string
+    geospatial-linestringrequest:
+      title: geospatial-linestringrequest
+      required:
+        - type
+        - entities
+        - geoQ
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ2'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: linestring
+          coordinates:
+            - - 82.973500000000001
+              - 25.3352
+            - - 82.989400000000003
+              - 25.345199999999998
+            - - 82.989999999999995
+              - 25.34
+          georel: intersects
+          geoproperty: geoJsonLocation
+    geospatial-bboxrequest:
+      title: geospatial-bboxrequest
+      required:
+        - type
+        - entities
+        - geoQ
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ2'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: bbox
+          coordinates:
+            - - 82.950000000000003
+              - 25.3567
+            - - 83.005300000000005
+              - 25
+          georel: within
+          geoproperty: geoJsonLocation
+    responsefilterrequest:
+      title: responsefilterrequest
+      required:
+        - type
+        - entities
+        - attrs
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        attrs:
+          type: string
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        attrs: resource-id,latitude,longitude
+    geospatial-circle-responsefilterrequest:
+      title: geospatial-circle+responsefilterrequest
+      required:
+        - type
+        - entities
+        - geoQ
+        - attrs
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+        attrs:
+          type: string
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
+        attrs: resource-id,longitude,latitude
+    temporal-betweenrequest:
+      title: temporal-betweenrequest
+      required:
+        - type
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        temporalQ:
+          timerel: between
+          time: 2020-06-01T14:20:00Z
+          endtime: 2020-06-03T15:00:00Z
+          timeProperty: timeProperty
+    TemporalQ:
+      title: TemporalQ
+      required:
+        - timerel
+        - time
+        - timeProperty
+      type: object
+      properties:
+        timerel:
+          type: string
+          enum: [ between, before, after ]
+          description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+        time:
+          type: string
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+        endtime:
+          type: string
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
+        timeProperty:
+          type: string
+          enum: [ observationDateTime ]
+      example:
+        timerel: between
+        time: 2020-06-01T14:20:00Z
+        endtime: 2020-06-03T15:00:00Z
+        timeProperty: observationDateTime
+    time-beforerequest:
+      title: time-beforerequest
+      required:
+        - type
+        - entities
+        - temporalQ
+      type: object
+      properties:
+        type:
+          type: string
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        temporalQ:
+          $ref: '#/components/schemas/TemporalQ1'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        temporalQ:
+          timerel: before
+          time: 2020-06-01T14:20:00Z
+          timeProperty: timeProperty
+    TemporalQ1:
+      title: TemporalQ1
+      required:
+        - timerel
+        - time
+        - timeProperty
+      type: object
+      properties:
+        timerel:
+          type: string
+        time:
+          type: string
+        timeProperty:
+          type: string
+      example:
+        timerel: before
+        time: 2020-06-01T14:20:00Z
+        timeProperty: timeProperty
+    complex-geo-circle-time-filterrequest:
+      title: complex-geo-(circle)+time+filterrequest
+      required:
+        - type
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Query ]
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+        temporalQ:
+          $ref: '#/components/schemas/TemporalQ'
+        q:
+          type: string
+          maxLength: 512
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+        attrs:
+          type: string
+          maxLength: 512
+          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be usedzz to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        options:
+          type: string
+          enum: [ count ]
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
+        temporalQ:
+          timerel: between
+          time: 2020-06-01T14:20:00Z
+          endtime: 2020-06-03T15:00:00Z
+          timeProperty: timeProperty
+        attrs: resource-id,latitude,longitude
+
+    complex-geo-circle-filterrequest:
+      title: complex-geo-(circle)+filterrequest
+      required:
+        - type
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Query ]
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+        q:
+          type: string
+          maxLength: 512
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+        attrs:
+          type: string
+          maxLength: 512
+          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the data exchange Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        options:
+          type: string
+          enum: [ count ]
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+      example:
+        type: Query
+        entities:
+          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
+        attrs: resource-id,latitude,longitude
+
+    registeradapterrequest:
+      title: registeradapterrequest
+      required:
+        - entities
+      type: object
+      properties:
+        entities:
+          type: array
+          items:
+            type: string
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      example:
+        entities:
+          - UUID
+
+    ingestionEntityRequest:
+      title: ingestion entity
+      required:
+        - entities
+      type: array
+      properties:
+        entities:
+          type: array
+          items:
+            type: string
+      example:
+        [{
+          "currentLevel": 1.16,
+          "referenceLevel": 15.9,
+          "measuredDistance": 14.74,
+          "entities": [
+            "695e222b-3fae-4325-8db0-3e29d01c4fc0"
+          ],
+          "observationDateTime": "2020-09-22T18:30:00+05:30",
+          "deviceInfo": {
+            "deviceID": "FWR055"
+          }
+        }]
+
+    entityresponse:
+      title: entityresponse
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "trip_delay": 948,
+            "last_stop_arrival_time": "15:09:58",
+            "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+            "vehicle_label": "A09",
+            "observationDateTime": "2020-11-03T15:12:08+05:30",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
+
+    registeradapter:
+      title: registeradapter
+      required:
+        - username
+        - apiKey
+        - id
+        - URL
+        - port
+        - vHost
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          {
+            "username": "fd47486b-XXXX-4248-ac1e-082e4d37a66c",
+            "apiKey": "Use the apiKey returned on registration, if lost please use /resetPassword API",
+            "id": "UUID",
+            "URL": "databroker.iudx.io",
+            "port": 24567,
+            "vHost": "IUDX"
+          }
+        ]
+
+    adapterIngestionEntities:
+      title: ingestion
+      required:
+        - username
+        - apiKey
+        - id
+        - URL
+        - port
+        - vHost
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        detail: "Item Published"
+
+    retrieveadapter:
+      title: retrieveadapter
+      required:
+        - database
+        - adaptorLogs
+        - redis-latest
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          {
+            "database": [
+              "UUID/.*"
+            ],
+            "redis-latest": [
+              "UUID/.*"
+            ],
+            "subscriptions-monitoring": [
+              "UUID/.*"
+            ]
+          }
+        ]
+
+    deleteadapter:
+      title: deleteadapter
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          type: string
+      example:
+        type: urn:dx:rs:success
+        title: Success
+        detail: Adapter deleted
+
+    createstreaming:
+      title: createstreaming
+      required:
+        - username
+        - apiKey
+        - id
+        - URL
+        - port
+        - vHost
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          {
+            "username": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c",
+            "apiKey": "Use the apiKey returned on registration, if lost please use /resetPassword API",
+            "id": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL009",
+            "URL": "databroker.iudx.io",
+            "port": 24567,
+            "vHost": "IUDX"
+          }
+        ]
+
+
+
+    retrievestreaming:
+      title: retrievestreaming
+      required:
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          { "entities": [ "UUID/.*" ]
+          }
+        ]
+
+    appendstreaming:
+      title: appendstreaming
+      required:
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          { "entities": [ "UUID" ]
+          }
+        ]
+
+    updatestreaming:
+      title: updatestreaming
+      required:
+        - entities
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success,
+        title: success,
+        results: [
+          { "entities": [ "UUID" ]
+          }
+        ]
+
+    deletestreaming:
+      title: deletestreaming
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:success
+        title: success
+        detail: Subscription deleted Successfully
+
+    resetpassword:
+      title: resetpassword
+      required:
+        - apiKey
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: successful
+        results: [
+          { "username": "asasdasd-asdasd-aada-d23342",
+            "apiKey": "asass8a7s"
+          }
+        ]
+
+    asyncsearchResponse:
+      title: asyncsearch
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: query submitted successfully
+        results: [
+          { "searchId": "asasdasd-asdasd-a353f-dasdas5"
+          }
+        ]
+
+    asyncsearchStatusComplete:
+      title: complete
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          { "status": "COMPLETE",
+            "progress": 100.00,
+            "file-download-url": "https://example.com/filename",
+            "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+            "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+          }
+        ]
+
+    asyncsearchStatusInprogress:
+      title: inprogress
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          { "status": "IN_PROGRESS",
+            "progress": 70.00,
+            "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+            "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+          }
+        ]
+
+    getTotalAPICallsMade:
+      title: get Total API Calls Made
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: Success
+        results: [
+          {
+            "total": 54
+          }
+        ]
+
+    getDataCountQuery:
+      title: get Data Count Query
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: Success
+        results: [
+          {
+            "total": 1963
+          }
+        ]
+
+    meteringApiResponse:
+      title: get Data Read Query
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "id": "UUID",
+            "api": "/{basePath}/entities",
+            "userid": "15c7506f-c800-48d6-adeb-0542b03947c6",
+            "epochtime": 1669385581658,
+            "resourceid": "UUID",
+            "isotime": "2022-11-25T19:43:01+05:30[Asia/Kolkata]",
+            "providerid": "UUID",
+            "size": 456,
+            "time": "2022-11-25T14:13:01"
+          }
+        ]
+        limit: 2000
+        offset: 0
+        totalHits: 568
+
+    summaryApiResponse:
+      title: summaryresponse
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "resourceid": "UUID",
+            "resource_label": "description",
+            "publisher": "pune-env-flood",
+            "publisher_id": "UUID",
+            "city": "pune",
+            "count": 19
+          }
+        ]
+
+    overviewApiResponse:
+      title: overview response
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "month": "november",
+            "year": "2022",
+            "counts": 19
+          },
+          {
+            "month": "december",
+            "year": "2022",
+            "counts": 156
+          }
+        ]
+
+    revokeToken:
+      title: revoke-token
+      required:
+        - sub
+      type: object
+      properties:
+        sub:
+          type: string
+      example:
+        sub: ase2132-2342323-2423
+
+    unique-attribute:
+      title: unique-attribute
+      required:
+        - id
+        - attribute
+      type: object
+      properties:
+        id:
+          type: string
+        attribute:
+          type: string
+      example:
+        id: iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/example.com/surat-itms-realtime-information/surat-itms-live-eta
+        attribute: license_plate
+
+    standardSuccessResponse:
+      title: standardSuccessResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:success
+        title: Success
+        detail: Success
+
+    invalidParamBadRequestErrorResponse:
+      title: invalidParamBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidParameterValue
+        title: Bad Request
+        detail: Bad Request
+
+    subscriptionInvalidParamBadRequestErrorResponse:
+      title: subscriptionInvalidParamBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidParameter
+        title: Bad Request
+        detail: Invalid Name
+
+    entitiesInvalidParamBadRequestErrorResponse:
+      title: entitiesInvalidParamBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidParameterValue
+        title: Bad Request
+        detail: Bad query
+
+    asyncSearchStatusInvalidParamResponse:
+      title: asyncSearchStatusInvalidParamResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidParameterValue
+        title: Bad Request
+        detail: Bad Request
+
+    asyncSearchStatusIncorrectSearchIdResponse:
+      title: asyncSearchStatusIncorrectSearchIdResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:general
+        title: Bad Request
+        detail: "Fail: Incorrect search ID"
+
+    invalidPayloadFormatErrorResponse:
+      title: invalidPayloadFormatErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidPayloadFormat
+        title: Bad Request
+        detail: Bad Request
+
+    invalidParamsErrorResponse:
+      title: invalidParamsErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidTemporalRelationParam
+        title: Bad Request
+        detail: Bad Request
+
+    invalidDateFormatErrorResponse:
+      title: invalidDateFormatErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidAttributeValue
+        title: Bad Request
+        detail: Bad Request
+
+    asyncBadRequestErrorResponse:
+      title: asyncBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:badRequest
+        title: Bad Request
+        detail: Bad Request
+
+    standardBadRequestErrorResponse:
+      title: standardBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:badRequest
+        title: Bad Request Data
+        detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering
+
+    standardInvalidTokenErrorResponse:
+      title: standardInvalidTokenErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidAuthorizationToken
+        title: Not Authorized
+        detail: Not Authorized
+
+    summaryInvalidTokenErrorResponse:
+      title: standardInvalidTokenErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidAuthorizationToken
+        title: Not Authorized
+        detail: Not Authorized
+
+    generalResourceNotFoundErrorResponse:
+      title: generalResourceNotFoundErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:general
+        title: Not Found
+        detail: Not Found
+
+    standardResourceNotFoundErrorResponse:
+      title: standardResourceNotFoundErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:resourceNotFound
+        title: Not Found
+        detail: Not Found
+
+    resourceNotFoundErrorResponse:
+      title: resourceNotFoundErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:resourceNotFound
+        title: Not Found
+        detail: Resource Not Found
+
+    generalResourceAlreadyExistErrorResponse:
+      title: generalResourceAlreadyExistErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:general
+        title: Conflict
+        detail: Conflict
+
+    standardResourceAlreadyExistErrorResponse:
+      title: standardResourceAlreadyExistErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:resourceAlreadyExist
+        title: Conflict
+        detail: Conflict
+
+    allqueue:
+      title: Response
+      required:
+        - type
+        - title
+        - details
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          type: object
+          properties:
+            Subscription:
+              type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results: [
+          {
+            "queuename": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL",
+            "entity": "UUID",
+            "catitem": {
+              "name": "surat-itms-live-eta",
+              "provider": "UUID",
+              "type": [
+                "iudx:Resource",
+                "iudx:TransitManagement"
+              ],
+              "description": "Realtime bus position information from Surat city public transit buses.",
+              "label": "Surat Transit Realtime Position-UUID",
+              "accessPolicy": "SECURE",
+              "resourceGroup": "UUID",
+              "id": "UUID",
+              "instance": "surat"
+            }
+          }
+        ]
+
+    allexchange:
+      title: Response
+      required:
+        - type
+        - title
+        - details
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        results:
+          type: object
+          properties:
+            Ingestion:
+              type: object
+      example:
+        type: urn:dx:rs:success
+        title: success
+        results:  [
+          {
+            "_id": "3a7a9b7d-da3c-45b3-9ccc-44c9a19d7b26",
+            "exchange_name": "UUID",
+            "resource_id": "UUID",
+            "dataset_name": "FWR055",
+            "dataset_details_json": {
+              "id": "UUID",
+              "name": "FWR055",
+              "type": [
+                "iudx:Resource",
+                "iudx:EnvFlood"
+              ],
+              "label": "RS Adaptor Test Resource Group",
+              "instance": "pune",
+              "provider": "UUID",
+              "description": "Flood Sensor Data with respect to water level/flow",
+              "resourceGroup": "UUID",
+              "accessPolicy": "SECURE"
+            },
+            "user_id": "fd47486b-3497-4248-ac1e-082e4d37a66c",
+            "created_at": "2023-07-14T06:22:09.336142",
+            "modified_at": "2023-07-14T06:22:09.336142",
+            "providerid": "b2c27f3f-2524-4a84-816e-91f9ab23f837"
+          }
+        ]
+
+
+    standardInvalidTokenErrorResponseAllQueueAndExcahnge:
+      title: standardInvalidTokenErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:invalidAuthorizationToken
+        title: Not Authorized
+        detail: Not Authorized
+
+    adapterBadRequestErrorResponse:
+      title: adapterBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:badRequest
+        title: Bad Request Data
+        detail: Missing/Invalid parameters
+
+    summaryBadRequestErrorResponse:
+      title: adapterBadRequestErrorResponse
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:backend
+        title: bad request
+        detail: bad request
+
+    payloadTooLarge:
+      title: payloadtoolarge
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: urn:dx:rs:payloadTooLarge
+        title: Payload Too Large
+        detail: Response size exceeds limit use filters to get value within limit or use async api
