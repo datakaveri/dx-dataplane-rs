@@ -8,6 +8,7 @@ import io.vertx.core.Future;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.Route;
@@ -73,7 +74,7 @@ public class ApiServerVerticle extends AbstractVerticle {
               RouterBuilder routerBuilder = cf.resultAt(0);
               JWTAuth jwtAuth = cf.resultAt(1);
               AuthenticationHandler authHandler = new KeycloakJwtAuthHandler(jwtAuth);
-                AuthenticationHandler optionalAuth = new OptionalJwtAuthHandler(jwtAuth);
+              AuthenticationHandler optionalAuth = new OptionalJwtAuthHandler(jwtAuth);
               try {
 
                 LOGGER.debug("Adding platform handlers...");
@@ -225,7 +226,7 @@ public class ApiServerVerticle extends AbstractVerticle {
       String keystorePassword = config().getString("keystorePassword");
       serverOptions
           .setSsl(true)
-          .setKeyCertOptions(new KeyStoreOptions().setPath(keystore).setPassword(keystorePassword));
+          .setKeyCertOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
     } else {
       LOGGER.info("Info: Starting HTTP server");
       serverOptions.setSsl(false);

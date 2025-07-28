@@ -47,8 +47,8 @@ public class LatestController implements ApiController {
        // .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         /*.handler(clientRevocationValidationHandler)*/
-        .handler(resourcePolicyAuthorizationHandler)
-        .handler(this::roleAccessValidation)
+        /*.handler(resourcePolicyAuthorizationHandler)*/
+        /*.handler(this::roleAccessValidation)*/
         .handler(this::handleLatestSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");

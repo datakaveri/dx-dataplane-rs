@@ -132,8 +132,7 @@ servers:
     description: 'Development Server URL'
 
 # Global security definition (applies to all paths unless overridden)
-security:
-  - authorization: []
+
 
 paths:
 
@@ -143,6 +142,8 @@ paths:
         - Latest Entity
       summary: Latest Data
       operationId: getLatestEntityData
+      security:
+        - authorization: []
       parameters:
         - name: token
           in: header
@@ -1436,8 +1437,6 @@ paths:
           source: |
             curl --location --request GET 'https://example.com/ngsi-ld/v1/subscription' \
             --header 'token: <tokenValue>'
-      security:
-        - authorization: []
     post:
       tags:
         - Data Subscriber
@@ -2388,6 +2387,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Keycloak issued Bearer token
   schemas:
     createastreamingsubscriptionrequest:
       title: createastreamingsubscriptionrequest

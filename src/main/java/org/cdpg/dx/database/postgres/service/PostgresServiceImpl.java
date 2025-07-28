@@ -31,7 +31,7 @@ public class PostgresServiceImpl implements PostgresService {
       JsonObject json = new JsonObject();
       for (int i = 0; i < row.size(); i++) {
         // json.put(row.getColumnName(i), row.getValue(i));
-        LOG.info("Column name: {}, value: {}", row.getColumnName(i), row.getValue(i));
+       // LOG.info("Column name: {}, value: {}", row.getColumnName(i), row.getValue(i));
         String column = row.getColumnName(i);
         value = row.getValue(i);
         if (value == null
@@ -40,7 +40,7 @@ public class PostgresServiceImpl implements PostgresService {
             || value instanceof Boolean
             || value instanceof JsonObject
             || value instanceof JsonArray) {
-          LOG.info("value:" + value);
+         // LOG.info("value:" + value);
           json.put(column, value);
         } else {
           json.put(column, value.toString());

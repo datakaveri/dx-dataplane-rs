@@ -73,7 +73,7 @@ public class RedisServiceImpl implements RedisService {
             ));
         }
 
-        redisAPI.send(Command.JSON_GET, key, "path")
+        redisAPI.send(Command.JSON_GET, key, path)
                 .onSuccess(redisResponse -> {
                     if (redisResponse == null) {
                         promise.fail(new RedisKeyNotFoundException(
