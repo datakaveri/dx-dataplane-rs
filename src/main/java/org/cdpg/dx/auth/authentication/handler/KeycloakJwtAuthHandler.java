@@ -31,8 +31,9 @@ public class KeycloakJwtAuthHandler implements AuthenticationHandler {
         .authenticate(new JsonObject().put("token", token))
         .onSuccess(
             user -> {
-              LOGGER.debug("Authentication successful for user: {}", user);
-              ctx.setUser(user);
+                LOGGER.debug("Authentication successful for user");
+                LOGGER.trace("User Result : {}", user.principal());
+                 ctx.setUser(user);
               ctx.next();
             })
         .onFailure(

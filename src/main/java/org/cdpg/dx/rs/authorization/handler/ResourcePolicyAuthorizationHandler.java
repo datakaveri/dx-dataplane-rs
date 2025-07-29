@@ -1,11 +1,17 @@
 package org.cdpg.dx.rs.authorization.handler;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.catalogue.service.CatalogueService;
+import org.cdpg.dx.common.exception.DxAuthException;
+import org.cdpg.dx.common.model.JwtData;
+import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.authorization.service.AuthorizationServiceImpl;
+
+import java.util.Optional;
 
 public class ResourcePolicyAuthorizationHandler implements Handler<RoutingContext> {
   private static final Logger LOGGER =
@@ -19,7 +25,7 @@ public class ResourcePolicyAuthorizationHandler implements Handler<RoutingContex
   @Override
   public void handle(RoutingContext context) {
 
-    /*Optional<JwtData> jwtData = RoutingContextHelper.getJwtData(context);
+    Optional<JwtData> jwtData = RoutingContextHelper.getJwtData(context);
     String resourceId = RoutingContextHelper.getId(context);
 
     if (resourceId == null || jwtData.isEmpty()) {
@@ -34,6 +40,6 @@ public class ResourcePolicyAuthorizationHandler implements Handler<RoutingContex
             error -> {
               LOGGER.error("Authorization failed: {}", error.getMessage());
               context.fail(error);
-            });*/
+            });
   }
 }

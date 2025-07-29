@@ -145,18 +145,6 @@ paths:
       security:
         - authorization: []
       parameters:
-        - name: token
-          in: header
-          description: >
-            A <b>valid data exchange Auth token</b> to process the request. <br/>
-            This field is <b>mandatory</b> for accessing a <b>resource</b>. <br/>
-            If not provided with a valid token, user will be responded with <b>401 Unauthorized</b>.
-          required: true
-          schema:
-            type: string
-            maxLength: 2048
-            pattern: '^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-
         - name: id
           in: path
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
