@@ -1,0 +1,158 @@
+{
+    "version": "1.0",
+	"zookeepers": [
+		"zookeeper"
+	],
+    "commonConfig" : {
+        "dxApiBasePath" : "/ngsi-ld/v1",
+        "dxCatalogueBasePath": "/iudx/cat/v1",
+        "dxAuthBasePath": "/auth/v1"
+    },
+	"clusterId": "iudx-rs-cluster",
+	"modules": [
+		{
+			"id": "iudx.resource.server.database.archives.DatabaseVerticle",
+			"isWorkerVerticle":false,
+			"tenantPrefix": "iudx",
+			"verticleInstances": 2,
+			"databaseIP": "",
+			"databasePort": 12345,
+			"dbUser": "",
+			"dbPassword": "",
+			"timeLimit": "",
+			"testIdOpen": "",
+			"testIdSecure": "",
+			"temporalStartDate": "",
+			"temporalEndDate": ""
+		},
+		{
+			"id": "iudx.resource.server.authenticator.AuthenticationVerticle",
+			"isWorkerVerticle":false,
+			"verticleInstances": 2,
+			"audience": "server",
+			"keystore": "",
+			"keystorePassword": "",
+			"authServerHost": "",
+			"testAuthToken": "authtest.iudx.io/kailash.adhikari@india.nec.com/732b94a17b9e127d0541af9f3c9c9ef8",
+			"testExpiredAuthToken": "",
+			"testResourceID": "",
+			"catServerHost": "",
+			"catServerPort": "",
+			"jwtIgnoreExpiry": true,
+			"enableLimits": false
+		},
+		{
+			"id": "iudx.resource.server.databroker.DataBrokerVerticle",
+			"isWorkerVerticle":false,
+			"verticleInstances": 2,
+			"dataBrokerIP": "",
+			"dataBrokerPort": "",
+
+			"prodVhost":"",
+			"internalVhost": "",
+			"externalVhost":"",
+
+			"dataBrokerUserName": "",
+			"dataBrokerPassword": "",
+			"dataBrokerManagementPort": "",
+			"connectionTimeout": "",
+			"requestedHeartbeat": "",
+			"handshakeTimeout": "",
+			"requestedChannelMax": "",
+			"networkRecoveryInterval": "",
+			"automaticRecoveryEnabled": "",
+			"postgresDatabaseIP": "",
+			"postgresDatabasePort": 5432,
+			"postgresDatabaseName": "",
+			"postgresDatabaseUserName": "",
+			"postgresDatabasePassword": "",
+			"postgrespoolSize": 25,
+			"testResourceGroup": "",
+			"testResourceServer": "",
+			"testConsumer": "",
+			"testProvider": "",
+			"testAdapterConsumer": "",
+			"testAdapterProvider": ""
+		},
+		{
+			"id": "iudx.resource.server.apiserver.ApiServerVerticle",
+			"isWorkerVerticle":false,
+			"ssl": true,
+			"httpPort": 8443,
+			"keystore": "",
+			"keystorePassword": "",
+			"verticleInstances": 2,
+			"authToken": "authtest.iudx.io/kailash.adhikari@india.nec.com/732b94a17b9e127d0541af9f3c9c9ef8",
+			"invalidauthToken": "",
+			"resourceID": "",
+			"circleCoords": "",
+			"polygonCoords": "",
+			"bboxCoords": "",
+			"lineCoords": "",
+			"temporalTime": "",
+			"temporalEndTime": "",
+			"qparamGreaterThan": "",
+			"qparamLessThan": "",
+			"qparamGreaterEquals": "",
+			"qparamLessEquals": ""
+		},
+		{
+			"id": "iudx.resource.server.database.latest.LatestVerticle",
+			"isWorkerVerticle":false,
+			"tenantPrefix": "iudx",
+			"verticleInstances": 2,
+			"redisMode": "",
+			"redisUsername": "",
+			"redisPassword": "",
+			"redisMaxPoolSize": 30,
+			"redisMaxPoolWaiting": 200,
+			"redisMaxWaitingHandlers": 1024,
+			"redisPoolRecycleTimeout": 1500,
+			"redisHost": "",
+			"redisPort": 123
+		},
+		{
+			"id": "iudx.resource.server.metering.MeteringVerticle",
+			"isWorkerVerticle":false,
+			"verticleInstances": 1
+		},
+		{
+			"id": "iudx.resource.server.database.postgres.PostgresVerticle",
+			"isWorkerVerticle":false,
+			"verticleInstances": 1,
+			"databaseIp": "localhost",
+			"databasePort": 5432,
+			"databaseName": "",
+			"databaseUserName": "",
+			"databasePassword": "",
+			"poolSize": 25
+		},
+		{
+			"id": "iudx.resource.server.cache.CacheVerticle",
+			"isWorkerVerticle":false,
+			"catServerHost": "cat-api",
+            "catServerPort": 123,
+			"verticleInstances": 1
+		},
+		{
+			"id": "iudx.resource.server.database.async.AsyncVerticle",
+			"isWorkerVerticle": true,
+			"tenantPrefix": "iudx",
+			"threadPoolName": "async-query-pool",
+			"threadPoolSize": 20,
+			"verticleInstances": 20,
+			"databaseIP": "",
+			"databasePort": 998,
+			"dbUser": "",
+			"dbPassword": "",
+			"timeLimit": "",
+			"filePath": "/home/kailash/Downloads/",
+			"bucketName": ""
+		},
+		{
+			"id": "iudx.resource.server.encryption.EncryptionVerticle",
+			"isWorkerVerticle":false,
+			"verticleInstances": 1
+		}
+	]
+}
