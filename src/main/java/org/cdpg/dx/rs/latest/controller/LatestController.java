@@ -1,8 +1,11 @@
 package org.cdpg.dx.rs.latest.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.GET_LATEST_ENTITY_DATA;
+import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
@@ -12,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.model.JwtData;
 import org.cdpg.dx.common.response.ResponseBuilder;
+import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.latest.model.LatestData;
@@ -57,17 +61,32 @@ public class LatestController implements ApiController {
   private void handleLatestSearchQuery(RoutingContext ctx) {
     LOGGER.debug("Handling latest data query");
     String id = ctx.pathParam(ID);
-
-    latestService
-        .getLatestData(id)
-        .onSuccess(result -> sendResponse(ctx, result))
-        .onFailure(
-            err -> {
-              LOGGER.error("Error processing latest data request for ID: {}", id, err);
-              ctx.fail(err);
-            });
-  }
-
+    MultiMap params = ctx.queryParams();
+    int size = getSize(params);
+    int page = getPage(params);
+    String time = ctx.queryParams().get("time");
+    String endTime = ctx.queryParams().get("endTime");
+    String timeRel = ctx.queryParams().get("timeRel");
+    if (timeRel == null || timeRel.isEmpty()) {
+      latestService
+          .getLatestData(id, size, page)
+          .onSuccess(result -> sendResponse1(ctx, result))
+          .onFailure(
+              err -> {
+                LOGGER.error("Error processing latest data request for ID: {}", id, err);
+                ctx.fail(err);
+              });
+    } else {
+      latestService
+          .getLatestData(id, size, page, time, endTime, timeRel)
+          .onSuccess(result -> sendResponse1(ctx, result))
+          .onFailure(
+              err -> {
+                LOGGER.error("Error processing latest data request for ID: {}", id, err);
+                ctx.fail(err);
+              });
+    }
+}
   private void sendResponse(RoutingContext ctx, LatestData latestData) {
     if (latestData.getLatestData().isEmpty()) {
       ResponseBuilder.sendNoContent(ctx);
@@ -75,6 +94,12 @@ public class LatestController implements ApiController {
       //new AuditLogConstructor(ctx);
       ResponseBuilder.sendSuccess(ctx, latestData.getLatestData());
     }
+  }
+
+  private void sendResponse1(RoutingContext ctx, ResponseModel responseModel) {
+      //new AuditLogConstructor(ctx);
+      ResponseBuilder.sendSuccess(ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
+
   }
 
   public void roleAccessValidation(RoutingContext routingContext) {
@@ -89,5 +114,13 @@ public class LatestController implements ApiController {
       //routingContext.fail(new DxAuthException("Role validation failed"));
     }
     routingContext.next();
+  }
+
+  public int getSize(MultiMap params) {
+    return params.get(SIZE_KEY) != null ? Integer.parseInt(params.get(SIZE_KEY)) : 10;
+  }
+
+  public int getPage(MultiMap params) {
+    return params.get(PAGE_KEY) != null ? Integer.parseInt(params.get(PAGE_KEY)) : 1;
   }
 }
