@@ -1,11 +1,12 @@
 package org.cdpg.dx.rs.latest.controller;
 
-import static org.cdpg.dx.apiserver.config.ApiConstants.GET_LATEST_ENTITY_DATA;
+import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
@@ -14,9 +15,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.model.JwtData;
+import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.database.elastic.model.QueryDecoderRequestDTO;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.latest.model.LatestData;
 import org.cdpg.dx.rs.latest.service.LatestService;
@@ -29,33 +32,137 @@ public class LatestController implements ApiController {
   private final LatestService latestService;
   /*private final ClientRevocationValidationHandler clientRevocationValidationHandler;*/
   private final ResourcePolicyAuthorizationHandler resourcePolicyAuthorizationHandler;
-  //private final AuditingHandler auditingHandler;
+  // private final AuditingHandler auditingHandler;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
       LatestService latestService,
-      ResourcePolicyAuthorizationHandler resourcePolicyAuthorizationHandler/*,*/
+      ResourcePolicyAuthorizationHandler resourcePolicyAuthorizationHandler /*,*/
       /*ClientRevocationValidationHandler ClientRevocationValidationHandler,*/
-      /*AuditingHandler auditingHandler*/) {
+      /*AuditingHandler auditingHandler*/ ) {
     this.latestService = latestService;
     /*this.clientRevocationValidationHandler = ClientRevocationValidationHandler;*/
     this.resourcePolicyAuthorizationHandler = resourcePolicyAuthorizationHandler;
-   // this.auditingHandler = auditingHandler;
+    // this.auditingHandler = auditingHandler;
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
+        .operation(POST_LATEST_ENTITY_DATA_SEARCH)
+        .handler(getIdFromPathHandler)
+        .handler(this::handlePostLatestEntityDataSearch);
+    builder
         .operation(GET_LATEST_ENTITY_DATA)
-       // .handler(auditingHandler::handleApiAudit)
+        // .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         /*.handler(clientRevocationValidationHandler)*/
         /*.handler(resourcePolicyAuthorizationHandler)*/
         /*.handler(this::roleAccessValidation)*/
         .handler(this::handleLatestSearchQuery);
 
+    builder
+        .operation(DOWNLOAD_ID_ENTITY_DATA)
+        .handler(getIdFromPathHandler)
+        .handler(this::handleDownloadIdEntityData);
+
     LOGGER.debug("Latest Controller deployed and route registered.");
+  }
+
+  private void handleDownloadIdEntityData(RoutingContext routingContext) {
+    HttpServerResponse response = routingContext.response();
+    response
+        .putHeader("Access-Control-Allow-Origin", "*")
+        .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        .putHeader("Access-Control-Allow-Methods", "GET, POST,PUT, DELETE, OPTIONS")
+        .putHeader("Content-Type", "text/csv")
+        .putHeader("Content-Disposition", "attachment; filename=\"data_report.csv\"")
+        .setChunked(true);
+    String id = routingContext.pathParam(ID);
+    MultiMap params = routingContext.queryParams();
+    int size = getSize(params);
+    int page = getPage(params);
+    String time = routingContext.queryParams().get("time");
+    String endTime = routingContext.queryParams().get("endTime");
+    String timeRel = routingContext.queryParams().get("timeRel");
+
+    if (timeRel == null || timeRel.isEmpty()) {
+      latestService
+          .streamDataCsvBatched(id, size, page)
+          .onSuccess(
+              csvStream -> {
+                if (csvStream == null) {
+                  response.end();
+                  return;
+                }
+                csvStream
+                    .exceptionHandler(
+                        err -> {
+                          LOGGER.error("Failed to stream CSV", err);
+                          routingContext.fail(err);
+                        })
+                    .handler(buffer -> response.write(buffer))
+                    .endHandler(v -> response.end());
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Failed to stream CSV", err);
+                routingContext.fail(err);
+              });
+    } else {
+      latestService
+          .streamDataCsvBatched(id, size, page, time, endTime, timeRel)
+          .onSuccess(
+              csvStream -> {
+                if (csvStream == null) {
+                  response.end();
+                  return;
+                }
+                csvStream
+                    .exceptionHandler(
+                        err -> {
+                          LOGGER.error("Failed to stream CSV", err);
+                          routingContext.fail(err);
+                        })
+                    .handler(buffer -> response.write(buffer))
+                    .endHandler(v -> response.end());
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Failed to stream CSV", err);
+                routingContext.fail(err);
+              });
+    }
+  }
+
+  private void handlePostLatestEntityDataSearch(RoutingContext routingContext) {
+    LOGGER.debug("Into handlePostLatestEntityDataSearch()");
+    String id = routingContext.pathParam(ID);
+    try {
+      QueryDecoderRequestDTO queryDecoder =
+          PostSearchRequestBuilder.fromRoutingContext(routingContext)
+              .setAssetSearch(false)
+              .setCountApi(false)
+              .build();
+      latestService
+          .postSearch(queryDecoder, id)
+          .onSuccess(
+              searchService -> {
+                ResponseBuilder.sendSuccess(
+                    routingContext,
+                    searchService.getElasticsearchResponses(),
+                    searchService.getPaginationInfo());
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                routingContext.fail(err);
+              });
+
+    } catch (Exception e) {
+      LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+    }
   }
 
   private void handleLatestSearchQuery(RoutingContext ctx) {
@@ -86,20 +193,21 @@ public class LatestController implements ApiController {
                 ctx.fail(err);
               });
     }
-}
+  }
+
   private void sendResponse(RoutingContext ctx, LatestData latestData) {
     if (latestData.getLatestData().isEmpty()) {
       ResponseBuilder.sendNoContent(ctx);
     } else {
-      //new AuditLogConstructor(ctx);
+      // new AuditLogConstructor(ctx);
       ResponseBuilder.sendSuccess(ctx, latestData.getLatestData());
     }
   }
 
   private void sendResponse1(RoutingContext ctx, ResponseModel responseModel) {
-      //new AuditLogConstructor(ctx);
-      ResponseBuilder.sendSuccess(ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
-
+    // new AuditLogConstructor(ctx);
+    ResponseBuilder.sendSuccess(
+        ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
   }
 
   public void roleAccessValidation(RoutingContext routingContext) {
@@ -111,7 +219,7 @@ public class LatestController implements ApiController {
         jwtData.get().cons().getJsonArray("access", new JsonArray()).contains("api");
     if (!hasSubAccess) {
       LOGGER.error("Role validation failed");
-      //routingContext.fail(new DxAuthException("Role validation failed"));
+      // routingContext.fail(new DxAuthException("Role validation failed"));
     }
     routingContext.next();
   }

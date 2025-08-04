@@ -223,7 +223,11 @@ public class QueryDecoder {
       for (FilterType filterType : FilterType.values()) {
         queryMap.put(filterType, new ArrayList<>());
       }
-      new TemporalQueryFiltersDecorator(queryMap, temporalQueryRequest, 0).add();
+      int defaultDateLimit = 0;
+      if(temporalQueryRequest.getTimeRel()!=null && temporalQueryRequest.getTime()!=null) {
+        defaultDateLimit = Integer.parseInt(temporalQueryRequest.getTimeLimit().split(",")[2]);
+      }
+      new TemporalQueryFiltersDecorator(queryMap, temporalQueryRequest,defaultDateLimit).add();
 
       QueryModel q = new QueryModel();
       q.setLimit(String.valueOf(temporalQueryRequest.getSize()));

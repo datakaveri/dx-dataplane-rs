@@ -34,6 +34,7 @@ public class ControllerFactory {
     ElasticsearchService elasticsearchService = ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
 
     String tenantPrefix = config.getString("tenantPrefix");
+    String timeLimit = config.getString("timeLimit");
     //DataBrokerService dataBrokerService =
     //    DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
 
@@ -42,10 +43,9 @@ public class ControllerFactory {
     //ElasticsearchService esService =
     //    ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
 
-    ApiController latestController = LatestControllerFactory.create(uniqueAttrService,policyAuthHandler,tenantPrefix,elasticsearchService);
+    ApiController latestController = LatestControllerFactory.create(uniqueAttrService,policyAuthHandler,tenantPrefix,elasticsearchService, timeLimit);
     // TODO create other controllers
 
-    return List.of(
-            latestController);
+    return List.of(latestController);
   }
 }

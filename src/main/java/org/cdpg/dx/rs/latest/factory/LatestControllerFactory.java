@@ -1,7 +1,6 @@
 package org.cdpg.dx.rs.latest.factory;
 
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.latest.controller.LatestController;
 import org.cdpg.dx.rs.latest.service.LatestService;
@@ -16,13 +15,13 @@ public class LatestControllerFactory {
       /*ClientRevocationValidationHandler clientRevocationValidationHandler,*/
       ResourcePolicyAuthorizationHandler resourcePolicyAuthorizationHandler,
       /*AuditingHandler auditingHandler,*/
-      String tenantPrefix, ElasticsearchService elasticsearchService) {
+      String tenantPrefix,
+      ElasticsearchService elasticsearchService, String timeLimit) {
 
     LatestService latestService =
-        new LatestServiceImpl(/*redisService,*/ tenantPrefix, uniqueAttributeService,elasticsearchService);
+        new LatestServiceImpl(tenantPrefix, uniqueAttributeService, elasticsearchService, timeLimit);
 
-    return new LatestController(
-        latestService, resourcePolicyAuthorizationHandler/*,
+    return new LatestController(latestService, resourcePolicyAuthorizationHandler /*,
         clientRevocationValidationHandler, auditingHandler*/);
   }
 }

@@ -69,6 +69,8 @@ public class ApiConstants {
     // Request's operationIds
     public static final String GET_SPATIAL_DAT = "getSpatialData";
     public static final String GET_LATEST_ENTITY_DATA = "getLatestEntityData";
+    public static final String POST_LATEST_ENTITY_DATA_SEARCH = "postLatestEntityDataSearch";
+    public static final String DOWNLOAD_ID_ENTITY_DATA = "downloadIdEntityData";
     public static final String TEMPORAL_SEARCH = "temporalSearch";
     public static final String POST_TEMPORAL_SEARCH = "postTemporalSearch";
     public static final String POST_SPATIAL_SEARCH = "postSpatialSearch";
