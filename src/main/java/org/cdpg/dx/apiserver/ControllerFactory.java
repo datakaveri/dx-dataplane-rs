@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.catalogue.service.CatalogueService;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.database.postgres.service.PostgresService;
 import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
@@ -30,6 +31,7 @@ public class ControllerFactory {
             CatalogueService.createProxy(vertx, CATALOGUE_SERVICE_ADDRESS);
     final ResourcePolicyAuthorizationHandler policyAuthHandler =
             new ResourcePolicyAuthorizationHandler(catService);
+    ElasticsearchService elasticsearchService = ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
 
     String tenantPrefix = config.getString("tenantPrefix");
     //DataBrokerService dataBrokerService =
@@ -40,7 +42,7 @@ public class ControllerFactory {
     //ElasticsearchService esService =
     //    ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
 
-    ApiController latestController = LatestControllerFactory.create(redisService,uniqueAttrService,policyAuthHandler,tenantPrefix);
+    ApiController latestController = LatestControllerFactory.create(uniqueAttrService,policyAuthHandler,tenantPrefix,elasticsearchService);
     // TODO create other controllers
 
     return List.of(

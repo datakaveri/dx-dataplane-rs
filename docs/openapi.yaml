@@ -153,6 +153,18 @@ paths:
             type: string
             format: uuid
             maxLength: 36
+        - name: page
+          in: query
+          description: 'The page parameter is used to specify the page number of the result set. <br/> It is an optional parameter. <br/> If not provided, it defaults to 1.'
+          required: false
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: 'The size parameter is used to specify the number of results per page. <br/> It is an optional parameter. <br/> If not provided, it defaults to 10.'
+          required: false
+          schema:
+            type: integer
 
       responses:
         200:
