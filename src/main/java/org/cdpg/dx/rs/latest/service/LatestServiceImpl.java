@@ -3,10 +3,12 @@ package org.cdpg.dx.rs.latest.service;
 import static org.cdpg.dx.database.elastic.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import org.apache.logging.log4j.LogManager;
@@ -109,12 +111,22 @@ public class LatestServiceImpl implements LatestService {
 
   @Override
   public Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page, String time, String endTime, String timeRel) {
-    return null;
+    Objects.requireNonNull(rsId, "Resource ID must not be null");
+    String index = tenantPrefix + "__" + rsId;
+    TemporalQueryRequestModel temporalQueryRequestModel =
+        new TemporalQueryRequestModel(timeRel, time, endTime, timeLimit, size, page);
+    QueryModel queryModel = queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel);
+    queryModel.setSortFields(Map.of("observationDateTime", "desc"));
+    return org.cdpg.dx.rs.latest.util.CsvPaginatedStreamHelper.streamCsvPaginated(elasticsearchService, index, queryModel, size, page);
   }
 
   @Override
   public Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page) {
-    return null;
+    Objects.requireNonNull(rsId, "Resource ID must not be null");
+    String index = tenantPrefix + "__" + rsId;
+    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page);
+    queryModel.setSortFields(Map.of("observationDateTime", "desc"));
+    return org.cdpg.dx.rs.latest.util.CsvPaginatedStreamHelper.streamCsvPaginated(elasticsearchService, index, queryModel, size, page);
   }
 
   private Future<ResponseModel> fetchLatestValuesFromElastic(
