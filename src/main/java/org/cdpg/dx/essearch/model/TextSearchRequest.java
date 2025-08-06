@@ -1,3 +1,3 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-public record TextSearchRequestDTO(String q, Boolean fuzzy, Boolean autoComplete) {}
+public record TextSearchRequest(String q, Boolean fuzzy, Boolean autoComplete) {}

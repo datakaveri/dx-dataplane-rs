@@ -1,10 +1,10 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-public class AccessPolicyRequestDTO {
+public class AccessPolicyRequest {
   private String sub;
   private Boolean myAssetsReq;
 
-  public AccessPolicyRequestDTO(String sub, Boolean myAssetsReq) {
+  public AccessPolicyRequest(String sub, Boolean myAssetsReq) {
     this.sub = sub;
     this.myAssetsReq = myAssetsReq;
   }

@@ -1,14 +1,14 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.essearch.util.Constants.*;
 
 import java.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxEsException;
+import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.util.AggregationType;
 import org.cdpg.dx.database.elastic.util.QueryType;
-import org.cdpg.dx.essearch.model.*;
 
 public class QueryDecoder {
   private static final Logger LOGGER = LogManager.getLogger(QueryDecoder.class);

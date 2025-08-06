@@ -1,6 +1,7 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.util.QueryType;
 
 import java.time.OffsetDateTime;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.essearch.util.Constants.*;
 
 public class TemporalQueryFiltersDecorator implements ElasticsearchQueryDecorator {
     private final int defaultDateLimit;

@@ -1,12 +1,12 @@
 package org.cdpg.dx.common.request;
 
-import static org.cdpg.dx.database.elastic.util.Constants.*;
-import static org.cdpg.dx.database.elastic.util.Constants.FILTER;
-import static org.cdpg.dx.database.elastic.util.Constants.Q_VALUE;
-import static org.cdpg.dx.database.elastic.util.Constants.RESPONSE_FILTER;
-import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_CRITERIA_KEY;
-import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_TYPE_CRITERIA;
-import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_TYPE_TEXT;
+import static org.cdpg.dx.essearch.util.Constants.*;
+import static org.cdpg.dx.essearch.util.Constants.FILTER;
+import static org.cdpg.dx.essearch.util.Constants.Q_VALUE;
+import static org.cdpg.dx.essearch.util.Constants.RESPONSE_FILTER;
+import static org.cdpg.dx.essearch.util.Constants.SEARCH_CRITERIA_KEY;
+import static org.cdpg.dx.essearch.util.Constants.SEARCH_TYPE_CRITERIA;
+import static org.cdpg.dx.essearch.util.Constants.SEARCH_TYPE_TEXT;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
@@ -14,13 +14,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
-import org.cdpg.dx.database.elastic.model.*;
+import org.cdpg.dx.essearch.model.*;
 
 public class PostSearchRequestBuilder {
   private static final Logger LOGGER = LogManager.getLogger(PostSearchRequestBuilder.class);
+  private static final Set<String> TEXT_FIELDS = Set.of(/* Add text fields here if any */ );
   boolean isCountApi = false;
   boolean isAssetSearch = false;
   private RoutingContext routingContext;
@@ -45,10 +47,10 @@ public class PostSearchRequestBuilder {
     return this;
   }
 
-  public QueryDecoderRequestDTO build() {
+  public SearchQuery build() {
     JsonObject requestBody = routingContext.getBodyAsJson();
     MultiMap params = routingContext.queryParams();
-    return new QueryDecoderRequestDTO(
+    return new SearchQuery(
         buildSearchType(requestBody),
         getSize(params),
         getPage(params),
@@ -121,14 +123,14 @@ public class PostSearchRequestBuilder {
     return typeBuilder.toString();
   }
 
-  private TextSearchRequestDTO getTextSearchRequest(JsonObject requestBody) {
+  private TextSearchRequest getTextSearchRequest(JsonObject requestBody) {
     String qValue = requestBody.getString(Q_VALUE);
     boolean fuzzy = requestBody.getBoolean("fuzzy", false);
     boolean autoComplete = requestBody.getBoolean("autoComplete", false);
-    return new TextSearchRequestDTO(qValue, fuzzy, autoComplete);
+    return new TextSearchRequest(qValue, fuzzy, autoComplete);
   }
 
-  private SearchCriteriaRequestDTO getSearchCriteriaRequest(JsonObject requestBody) {
+  private SearchCriteriaRequest getSearchCriteriaRequest(JsonObject requestBody) {
     if (requestBody.containsKey(SEARCH_CRITERIA_KEY)) {
       JsonArray searchCriteriaArray = requestBody.getJsonArray(SEARCH_CRITERIA_KEY);
       if (searchCriteriaArray == null || searchCriteriaArray.isEmpty()) {
@@ -145,21 +147,21 @@ public class PostSearchRequestBuilder {
               ? requestBody.getJsonArray("filter").getList()
               : new ArrayList<>();
 
-      return new SearchCriteriaRequestDTO(searchCriteria, filter);
+      return new SearchCriteriaRequest(searchCriteria, filter);
     }
     return null;
   }
 
-  private AccessPolicyRequestDTO getAccessPolicyRequest(boolean isAssetSearch, String sub) {
-    return new AccessPolicyRequestDTO(sub, isAssetSearch);
+  private AccessPolicyRequest getAccessPolicyRequest(boolean isAssetSearch, String sub) {
+    return new AccessPolicyRequest(sub, isAssetSearch);
   }
 
-  private InstanceFilterRequestDTO getInstanceFilterRequest(JsonObject requestBody) {
-    return new InstanceFilterRequestDTO(requestBody.getString(INSTANCE));
+  private InstanceFilterRequest getInstanceFilterRequest(JsonObject requestBody) {
+    return new InstanceFilterRequest(requestBody.getString(INSTANCE));
   }
 
-  private ResponseFilterRequestDTO getResponseFilterRequest(JsonObject requestBody) {
-    return new ResponseFilterRequestDTO(
+  private ResponseFilterRequest getResponseFilterRequest(JsonObject requestBody) {
+    return new ResponseFilterRequest(
         buildSearchType(requestBody),
         isCountApi,
         requestBody.getJsonArray(ATTRIBUTE, new JsonArray()).getList(),
@@ -191,7 +193,9 @@ public class PostSearchRequestBuilder {
 
         String field = parts[0].trim();
         String direction = parts[1].trim().toLowerCase();
-        if (!field.endsWith(KEYWORD_KEY) && (!field.equalsIgnoreCase("itemCreatedAt"))) {
+        if (!field.endsWith(KEYWORD_KEY)
+            && (!field.equalsIgnoreCase(
+                "observationDateTime") /*&& (!field.equalsIgnoreCase("actual_trip_start_time"))*/)) {
           field = field + KEYWORD_KEY;
         }
         if (!direction.equals("asc") && !direction.equals("desc")) {
@@ -204,7 +208,6 @@ public class PostSearchRequestBuilder {
       orderByList.add(
           new OrderBy(defaultSortBy, OrderBy.Direction.valueOf(defaultOrder.toUpperCase())));
     }
-
     return orderByList;
   }
 }

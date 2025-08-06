@@ -1,4 +1,4 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 public class TemporalQueryRequestModel {
     private String timeRel;

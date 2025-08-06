@@ -1,8 +1,8 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 import java.util.List;
 
-public class ResponseFilterRequestDTO {
+public class ResponseFilterRequest {
   private String searchType;
   private Boolean search;
   private List<String> attribute;
@@ -10,7 +10,7 @@ public class ResponseFilterRequestDTO {
 
     @Override
     public String toString() {
-        return "ResponseFilterRequestDTO{" +
+        return "ResponseFilterRequest{" +
                 "searchType='" + searchType + '\'' +
                 ", search=" + search +
                 ", attribute=" + attribute +
@@ -18,7 +18,7 @@ public class ResponseFilterRequestDTO {
                 '}';
     }
 
-    public ResponseFilterRequestDTO(
+    public ResponseFilterRequest(
       String searchType, Boolean search, List<String> attribute, List<String> filter) {
     this.searchType = searchType;
     this.search = search;

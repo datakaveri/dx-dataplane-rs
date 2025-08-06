@@ -1,7 +1,8 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
+import org.cdpg.dx.database.elastic.model.OrderByConverter;
 
 @DataObject(generateConverter = true)
 public class OrderBy {

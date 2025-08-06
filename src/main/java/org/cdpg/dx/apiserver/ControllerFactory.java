@@ -12,8 +12,9 @@ import org.cdpg.dx.catalogue.service.CatalogueService;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.database.postgres.service.PostgresService;
 import org.cdpg.dx.database.redis.service.RedisService;
+import org.cdpg.dx.essearch.service.SearchService;
+import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
-import org.cdpg.dx.rs.latest.controller.LatestController;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
 import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
@@ -26,24 +27,26 @@ public class ControllerFactory {
     final RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
     PostgresService pgService = PostgresService.createProxy(vertx, POSTGRES_SERVICE_ADDRESS);
     final UniqueAttributeService uniqueAttrService =
-            UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
+        UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
     final CatalogueService catService =
-            CatalogueService.createProxy(vertx, CATALOGUE_SERVICE_ADDRESS);
+        CatalogueService.createProxy(vertx, CATALOGUE_SERVICE_ADDRESS);
     final ResourcePolicyAuthorizationHandler policyAuthHandler =
-            new ResourcePolicyAuthorizationHandler(catService);
-    ElasticsearchService elasticsearchService = ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+        new ResourcePolicyAuthorizationHandler(catService);
+    ElasticsearchService elasticsearchService =
+        ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+
+    SearchService searchService = new SearchServiceImpl(elasticsearchService);
 
     String tenantPrefix = config.getString("tenantPrefix");
     String timeLimit = config.getString("timeLimit");
-    //DataBrokerService dataBrokerService =
+    // DataBrokerService dataBrokerService =
     //    DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
 
-   // AuditingHandler auditingHandler = new AuditingHandler(dataBrokerService);
-    //KeycloakUserService keycloakUserService = new KeycloakUserServiceImpl(config);
-    //ElasticsearchService esService =
-    //    ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+    // AuditingHandler auditingHandler = new AuditingHandler(dataBrokerService);
+    // KeycloakUserService keycloakUserService = new KeycloakUserServiceImpl(config);
 
-    ApiController latestController = LatestControllerFactory.create(uniqueAttrService,policyAuthHandler,tenantPrefix,elasticsearchService, timeLimit);
+    ApiController latestController =
+        LatestControllerFactory.create(tenantPrefix, searchService, timeLimit);
     // TODO create other controllers
 
     return List.of(latestController);

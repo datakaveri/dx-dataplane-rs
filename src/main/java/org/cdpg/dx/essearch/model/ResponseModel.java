@@ -1,4 +1,4 @@
-package org.cdpg.dx.common.response;
+package org.cdpg.dx.essearch.model;
 
 import static org.cdpg.dx.essearch.util.Constants.RESULTS;
 

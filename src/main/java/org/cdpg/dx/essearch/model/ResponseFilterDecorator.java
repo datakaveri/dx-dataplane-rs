@@ -1,21 +1,22 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.essearch.util.Constants.*;
 
 import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxEsException;
+import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.util.QueryType;
 
 public class ResponseFilterDecorator implements ElasticsearchQueryDecorator {
   private static final Logger LOGGER = LogManager.getLogger(ResponseFilterDecorator.class);
   private final Map<FilterType, List<QueryModel>> queryMap;
-  private final ResponseFilterRequestDTO request;
+  private final ResponseFilterRequest request;
 
   public ResponseFilterDecorator(
-      Map<FilterType, List<QueryModel>> queryMap, ResponseFilterRequestDTO request) {
+      Map<FilterType, List<QueryModel>> queryMap, ResponseFilterRequest request) {
     this.queryMap = queryMap;
     this.request = request;
   }

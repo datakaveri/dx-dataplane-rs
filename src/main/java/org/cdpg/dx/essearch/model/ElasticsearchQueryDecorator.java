@@ -1,4 +1,6 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
+
+import org.cdpg.dx.database.elastic.model.QueryModel;
 
 import java.util.List;
 import java.util.Map;

@@ -1,12 +1,12 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 import java.util.List;
 
-public class SearchCriteriaRequestDTO {
+public class SearchCriteriaRequest {
   private List<SearchCriteriaDTO> searchCriteria;
   private List<String> filter;
 
-  public SearchCriteriaRequestDTO(List<SearchCriteriaDTO> searchCriteria, List<String> filter) {
+  public SearchCriteriaRequest(List<SearchCriteriaDTO> searchCriteria, List<String> filter) {
     this.searchCriteria = searchCriteria;
     this.filter = filter;
   }

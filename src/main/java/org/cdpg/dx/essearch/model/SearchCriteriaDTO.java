@@ -1,4 +1,4 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
 import io.vertx.core.json.JsonObject;
 import java.util.List;

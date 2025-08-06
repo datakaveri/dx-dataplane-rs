@@ -5,17 +5,19 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import org.cdpg.dx.common.request.PaginatedRequest;
 import org.cdpg.dx.common.response.ResponseModel;
-import org.cdpg.dx.database.elastic.model.QueryDecoderRequestDTO;
+import org.cdpg.dx.essearch.model.SearchQuery;
 
 public interface LatestService {
 
-  Future<ResponseModel> getLatestData(
+ /* Future<ResponseModel> getLatestData(
       String rsId, int size, int page, String time, String endTime, String timeRel);
 
   Future<ResponseModel> getLatestData(String rsId, int size, int page);
-
-  Future<ResponseModel> postSearch(QueryDecoderRequestDTO queryDecoder, String id);
+*/
+  Future<ResponseModel> postSearch(SearchQuery searchQuery, String id);
+/*
   Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page, String time, String endTime, String timeRel);
   Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page);
+*/
 
 }

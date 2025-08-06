@@ -1,19 +1,20 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.essearch.util.Constants.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.cdpg.dx.common.exception.DxEsException;
+import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.util.QueryType;
 
 public class TextSearchQueryDecorator implements ElasticsearchQueryDecorator {
   private final Map<FilterType, List<QueryModel>> queryMap;
-  private final TextSearchRequestDTO request;
+  private final TextSearchRequest request;
 
   public TextSearchQueryDecorator(
-      Map<FilterType, List<QueryModel>> queryMap, TextSearchRequestDTO request) {
+      Map<FilterType, List<QueryModel>> queryMap, TextSearchRequest request) {
     this.queryMap = queryMap;
     this.request = request;
   }

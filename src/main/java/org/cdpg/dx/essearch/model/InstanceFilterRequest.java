@@ -1,9 +1,9 @@
-package org.cdpg.dx.database.elastic.model;
+package org.cdpg.dx.essearch.model;
 
-public class InstanceFilterRequestDTO {
+public class InstanceFilterRequest {
   private String instance;
 
-  public InstanceFilterRequestDTO(String instance) {
+  public InstanceFilterRequest(String instance) {
     this.instance = instance;
   }
 
