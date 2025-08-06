@@ -10,16 +10,14 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.exception.DxEsException;
 import org.cdpg.dx.database.elastic.model.*;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.essearch.model.OrderBy;
 import org.cdpg.dx.essearch.model.QueryDecoder;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 
-/**
- * Default implementation of LatestService that retrieves the latest snapshot or single record for a
- * given resource ID from Redis, considering unique attribute grouping if applicable.
- */
 public class SearchServiceImpl implements SearchService {
   private static final Logger LOGGER = LogManager.getLogger(SearchServiceImpl.class);
   private final ElasticsearchService elasticsearchService;
@@ -31,12 +29,45 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
+  public Future<List<ElasticsearchResponse>> searchTemporalData(
+      String index, TemporalQueryRequestModel temporalQueryRequestModel) {
+    QueryModel queryModel = queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel);
+    return elasticsearchService
+        .search(index, queryModel, SOURCE_ONLY)
+        .onSuccess(
+            result -> {
+              Future.succeededFuture(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              Future.failedFuture(new DxEsException("Failed to process search request"));
+            });
+  }
+
+  @Override
+  public Future<List<ElasticsearchResponse>> searchAllData(String index, int size, int page) {
+    LOGGER.info("searching all data for index: {}", index);
+    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page);
+    return elasticsearchService
+        .search(index, queryModel, SOURCE_ONLY)
+        .onSuccess(
+            result -> {
+              Future.succeededFuture(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              Future.failedFuture(new DxEsException("Failed to process search request"));
+            });
+  }
+
+  @Override
   public Future<List<ElasticsearchResponse>> search(SearchQuery searchQuery, String index) {
     try {
       String searchType = searchQuery.getSearchType();
       LOGGER.info("search type {}", searchType);
-      QueryDecoder queryDecoder = new QueryDecoder();
-      QueryModel queryModel = queryDecoder.getSearchQueryModel(searchQuery);
+      QueryModel queryModel = queryDecoder.postSearchQueryModel(searchQuery);
       if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
         Map<String, String> sortFields =
             searchQuery.getSort().stream()

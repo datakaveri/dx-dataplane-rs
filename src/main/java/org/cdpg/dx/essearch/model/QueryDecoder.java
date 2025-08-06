@@ -214,7 +214,7 @@ public class QueryDecoder {
 
   // Added for handling queries based on observation date time
   public QueryModel getQueryBasedOnObservationDateTime(int size, int page) {
-    QueryModel q = new QueryModel();
+    QueryModel q = new QueryModel(QueryType.MATCH_ALL);
     q.setSortFields(Map.of("observationDateTime", "desc"));
     q.setLimit(String.valueOf(size));
     int offset = (page - 1) * size;
@@ -225,7 +225,7 @@ public class QueryDecoder {
   // Added for temporal query based on observation date time
   public QueryModel getTemporalQueryBasedOnObservationDateTime(
       TemporalQueryRequestModel temporalQueryRequest) {
-    LOGGER.debug("into query decoder getTemporalQueryBasedOnObservationDateTime()");
+    LOGGER.info("into query decoder getTemporalQueryBasedOnObservationDateTime()");
     if (temporalQueryRequest.getTimeRel() == null || temporalQueryRequest.getTimeRel().isEmpty()) {
       throw new DxEsException("Time relation is required for temporal queries");
     } else {
@@ -255,7 +255,7 @@ public class QueryDecoder {
   }
 
   // Added for creating simple search criteria query
-  public QueryModel getSearchQueryModel(SearchQuery request) {
+  public QueryModel postSearchQueryModel(SearchQuery request) {
     String searchType = request.getSearchType();
     boolean isValidQuery = false;
 

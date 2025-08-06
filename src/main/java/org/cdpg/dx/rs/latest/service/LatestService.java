@@ -6,6 +6,7 @@ import io.vertx.core.streams.ReadStream;
 import org.cdpg.dx.common.request.PaginatedRequest;
 import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.latest.model.GetRequestModel;
 
 public interface LatestService {
 
@@ -15,6 +16,7 @@ public interface LatestService {
   Future<ResponseModel> getLatestData(String rsId, int size, int page);
 */
   Future<ResponseModel> postSearch(SearchQuery searchQuery, String id);
+  Future<ResponseModel> getSearch(GetRequestModel getRequestModel);
 /*
   Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page, String time, String endTime, String timeRel);
   Future<ReadStream<Buffer>> streamDataCsvBatched(String rsId, int size, int page);

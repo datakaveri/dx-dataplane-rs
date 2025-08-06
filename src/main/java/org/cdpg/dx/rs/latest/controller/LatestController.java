@@ -15,6 +15,7 @@ import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 
@@ -26,8 +27,7 @@ public class LatestController implements ApiController {
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
 
   /** Initializes the latest controller with required services and config. */
-  public LatestController(
-      LatestService latestService) {
+  public LatestController(LatestService latestService) {
     this.latestService = latestService;
   }
 
@@ -36,11 +36,11 @@ public class LatestController implements ApiController {
     builder
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(getIdFromPathHandler)
-        .handler(this::handlePostLatestEntityDataSearch);
+        .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        .handler(this::handleLatestSearchQuery);
+        .handler(this::handleGetSearchQuery);
 
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
@@ -51,7 +51,7 @@ public class LatestController implements ApiController {
   }
 
   private void handleDownloadIdEntityData(RoutingContext routingContext) {
-   /* HttpServerResponse response = routingContext.response();
+    /* HttpServerResponse response = routingContext.response();
     response
         .putHeader("Access-Control-Allow-Origin", "*")
         .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -116,8 +116,8 @@ public class LatestController implements ApiController {
     }*/
   }
 
-  private void handlePostLatestEntityDataSearch(RoutingContext routingContext) {
-    LOGGER.debug("Into handlePostLatestEntityDataSearch()");
+  private void handlePostEntityDataSearch(RoutingContext routingContext) {
+    LOGGER.debug("Into handlePostEntityDataSearch()");
     String id = routingContext.pathParam(ID);
     try {
       SearchQuery searchQuery =
@@ -145,8 +145,8 @@ public class LatestController implements ApiController {
     }
   }
 
-  private void handleLatestSearchQuery(RoutingContext ctx) {
-    /*LOGGER.debug("Handling latest data query");
+  private void handleGetSearchQuery(RoutingContext ctx) {
+    LOGGER.debug("Handling latest data query");
     String id = ctx.pathParam(ID);
     MultiMap params = ctx.queryParams();
     int size = getSize(params);
@@ -154,32 +154,21 @@ public class LatestController implements ApiController {
     String time = ctx.queryParams().get("time");
     String endTime = ctx.queryParams().get("endTime");
     String timeRel = ctx.queryParams().get("timeRel");
-    if (timeRel == null || timeRel.isEmpty()) {
-      latestService
-          .getLatestData(id, size, page)
-          .onSuccess(result -> sendResponse(ctx, result))
-          .onFailure(
-              err -> {
-                LOGGER.error("Error processing latest data request for ID: {}", id, err);
-                ctx.fail(err);
-              });
-    } else {
-      latestService
-          .getLatestData(id, size, page, time, endTime, timeRel)
-          .onSuccess(result -> sendResponse(ctx, result))
-          .onFailure(
-              err -> {
-                LOGGER.error("Error processing latest data request for ID: {}", id, err);
-                ctx.fail(err);
-              });
-    }*/
+    GetRequestModel getRequestModel = new GetRequestModel(id, size, page, time, endTime, timeRel);
+    latestService
+        .getSearch(getRequestModel)
+        .onSuccess(result -> sendResponse(ctx, result))
+        .onFailure(
+            err -> {
+              LOGGER.error("Error processing latest data request for ID: {}", id, err);
+              ctx.fail(err);
+            });
   }
 
   private void sendResponse(RoutingContext ctx, ResponseModel responseModel) {
     ResponseBuilder.sendSuccess(
         ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
   }
-
 
   public int getSize(MultiMap params) {
     return params.get(SIZE_KEY) != null ? Integer.parseInt(params.get(SIZE_KEY)) : 10;
