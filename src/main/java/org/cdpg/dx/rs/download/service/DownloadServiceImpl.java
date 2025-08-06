@@ -8,22 +8,23 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
+import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 
 public class DownloadServiceImpl implements DownloadService {
   private static final Logger LOGGER = LogManager.getLogger(DownloadServiceImpl.class);
   private final SearchService searchService;
-  private final String tenantPrefix;
   private final String timeLimit;
 
-  public DownloadServiceImpl(SearchService searchService, String tenantPrefix, String timeLimit) {
+  public DownloadServiceImpl(SearchService searchService, String timeLimit) {
     this.searchService = searchService;
-    this.tenantPrefix = tenantPrefix;
+
     this.timeLimit = timeLimit;
   }
 
   @Override
   public Future<ReadStream<Buffer>> streamElasticDataCsvBatched(GetRequestModel getRequestModel) {
-    String index = tenantPrefix + "__" + getRequestModel.id();
+    String index = IndexNameCreation.createIndex(getRequestModel.id());
+
     if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       LOGGER.debug("Streaming All data for ID: {}", getRequestModel.id());
       return searchService.streamAllData(index, getRequestModel.size(), getRequestModel.page());

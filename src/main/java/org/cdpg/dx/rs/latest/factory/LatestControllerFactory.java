@@ -7,12 +7,9 @@ import org.cdpg.dx.rs.latest.service.LatestServiceImpl;
 
 public class LatestControllerFactory {
 
-  public static LatestController create(
-          String tenantPrefix,
-          SearchService searchService, String timeLimit) {
+  public static LatestController create(SearchService searchService, String timeLimit) {
 
-    LatestService latestService =
-        new LatestServiceImpl(tenantPrefix, searchService, timeLimit);
+    LatestService latestService = new LatestServiceImpl(searchService, timeLimit);
 
     return new LatestController(latestService);
   }

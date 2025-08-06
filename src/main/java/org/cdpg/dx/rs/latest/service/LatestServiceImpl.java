@@ -10,17 +10,16 @@ import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.essearch.service.SearchService;
+import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 
 public class LatestServiceImpl implements LatestService {
   private static final Logger LOGGER = LogManager.getLogger(LatestServiceImpl.class);
   private final SearchService searchService;
-  private final String tenantPrefix;
   private final String timeLimit;
 
-  public LatestServiceImpl(String tenantPrefix, SearchService searchService, String timeLimit) {
+  public LatestServiceImpl( SearchService searchService, String timeLimit) {
     this.timeLimit = Objects.requireNonNull(timeLimit, "timeLimit must not be null");
-    this.tenantPrefix = Objects.requireNonNull(tenantPrefix, "tenantPrefix must not be null");
     this.searchService = searchService;
   }
 
@@ -41,7 +40,7 @@ public class LatestServiceImpl implements LatestService {
 
   private Future<List<ElasticsearchResponse>> fetchDataFromElastic(
       GetRequestModel getRequestModel) {
-    String index = tenantPrefix + "__" + getRequestModel.id();
+    String index = IndexNameCreation.createIndex(getRequestModel.id());
     if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       LOGGER.debug("Fetching All data for ID: {}", getRequestModel.id());
       return searchService.searchAllData(index, getRequestModel.size(), getRequestModel.page());
@@ -61,7 +60,7 @@ public class LatestServiceImpl implements LatestService {
 
   @Override
   public Future<ResponseModel> postSearch(SearchQuery searchQuery, String id) {
-    String index = tenantPrefix + "__" + id;
+    String index = IndexNameCreation.createIndex(id);
     return searchService
         .search(searchQuery, index)
         .map(

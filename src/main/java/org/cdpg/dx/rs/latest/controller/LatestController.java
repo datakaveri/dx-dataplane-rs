@@ -6,7 +6,6 @@ import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -44,6 +43,7 @@ public class LatestController implements ApiController {
 
     LOGGER.debug("Latest Controller deployed and route registered.");
   }
+
   private void handlePostEntityDataSearch(RoutingContext routingContext) {
     LOGGER.debug("Into handlePostEntityDataSearch()");
     String id = routingContext.pathParam(ID);

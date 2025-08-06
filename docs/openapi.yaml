@@ -80,6 +80,11 @@ info:
     name: Apache 2.0
 
 tags:
+  - name: Download CSV
+    x-displayName: "Download"
+    description: |
+      Download APIs are used by DX(Data exchange) Data to stream data in csv.
+
   - name: Latest Entity
     x-displayName: "Latest Data"
     description: |
@@ -508,7 +513,7 @@ paths:
   /ngsi-ld/v1/{id}/download:
     get:
       tags:
-        - Latest Entity
+        - Download CSV
       operationId: downloadIdEntityData
       security:
         - authorization: []

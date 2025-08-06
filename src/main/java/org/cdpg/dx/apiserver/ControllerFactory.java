@@ -16,6 +16,7 @@ import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
+import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
 import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
@@ -25,7 +26,6 @@ public class ControllerFactory {
   private ControllerFactory() {}
 
   public static List<ApiController> createControllers(Vertx vertx, JsonObject config) {
-    final RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
     PostgresService pgService = PostgresService.createProxy(vertx, POSTGRES_SERVICE_ADDRESS);
     final UniqueAttributeService uniqueAttrService =
         UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
@@ -46,10 +46,10 @@ public class ControllerFactory {
     // AuditingHandler auditingHandler = new AuditingHandler(dataBrokerService);
     // KeycloakUserService keycloakUserService = new KeycloakUserServiceImpl(config);
 
-    ApiController latestController =
-        LatestControllerFactory.create(tenantPrefix, searchService, timeLimit);
-    ApiController downloadController =
-        DownloadControllerFactory.create(tenantPrefix, searchService, timeLimit);
+    IndexNameCreation.tenantPrefixs = tenantPrefix;
+
+    ApiController latestController = LatestControllerFactory.create(searchService, timeLimit);
+    ApiController downloadController = DownloadControllerFactory.create(searchService, timeLimit);
     // TODO create other controllers
 
     return List.of(latestController, downloadController);
