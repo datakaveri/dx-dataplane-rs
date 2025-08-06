@@ -6,6 +6,7 @@ import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +23,6 @@ import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
-
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
 
@@ -42,80 +42,8 @@ public class LatestController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(this::handleGetSearchQuery);
 
-    builder
-        .operation(DOWNLOAD_ID_ENTITY_DATA)
-        .handler(getIdFromPathHandler)
-        .handler(this::handleDownloadIdEntityData);
-
     LOGGER.debug("Latest Controller deployed and route registered.");
   }
-
-  private void handleDownloadIdEntityData(RoutingContext routingContext) {
-    /* HttpServerResponse response = routingContext.response();
-    response
-        .putHeader("Access-Control-Allow-Origin", "*")
-        .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        .putHeader("Access-Control-Allow-Methods", "GET, POST,PUT, DELETE, OPTIONS")
-        .putHeader("Content-Type", "text/csv")
-        .putHeader("Content-Disposition", "attachment; filename=\"data_report.csv\"")
-        .setChunked(true);
-    String id = routingContext.pathParam(ID);
-    MultiMap params = routingContext.queryParams();
-    int size = getSize(params);
-    int page = getPage(params);
-    String time = routingContext.queryParams().get("time");
-    String endTime = routingContext.queryParams().get("endTime");
-    String timeRel = routingContext.queryParams().get("timeRel");
-
-    if (timeRel == null || timeRel.isEmpty()) {
-      latestService
-          .streamDataCsvBatched(id, size, page)
-          .onSuccess(
-              csvStream -> {
-                if (csvStream == null) {
-                  response.end();
-                  return;
-                }
-                csvStream
-                    .exceptionHandler(
-                        err -> {
-                          LOGGER.error("Failed to stream CSV", err);
-                          routingContext.fail(err);
-                        })
-                    .handler(buffer -> response.write(buffer))
-                    .endHandler(v -> response.end());
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Failed to stream CSV", err);
-                routingContext.fail(err);
-              });
-    } else {
-      latestService
-          .streamDataCsvBatched(id, size, page, time, endTime, timeRel)
-          .onSuccess(
-              csvStream -> {
-                if (csvStream == null) {
-                  response.end();
-                  return;
-                }
-                csvStream
-                    .exceptionHandler(
-                        err -> {
-                          LOGGER.error("Failed to stream CSV", err);
-                          routingContext.fail(err);
-                        })
-                    .handler(buffer -> response.write(buffer))
-                    .endHandler(v -> response.end());
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Failed to stream CSV", err);
-                routingContext.fail(err);
-              });
-    }*/
-  }
-
   private void handlePostEntityDataSearch(RoutingContext routingContext) {
     LOGGER.debug("Into handlePostEntityDataSearch()");
     String id = routingContext.pathParam(ID);

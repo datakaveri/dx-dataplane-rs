@@ -15,6 +15,7 @@ import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
+import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
 import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
@@ -47,8 +48,10 @@ public class ControllerFactory {
 
     ApiController latestController =
         LatestControllerFactory.create(tenantPrefix, searchService, timeLimit);
+    ApiController downloadController =
+        DownloadControllerFactory.create(tenantPrefix, searchService, timeLimit);
     // TODO create other controllers
 
-    return List.of(latestController);
+    return List.of(latestController, downloadController);
   }
 }
