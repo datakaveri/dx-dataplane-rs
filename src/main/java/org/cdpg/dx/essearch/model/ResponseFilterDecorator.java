@@ -22,7 +22,7 @@ public class ResponseFilterDecorator implements ElasticsearchQueryDecorator {
 
   @Override
   public Map<FilterType, List<QueryModel>> add() {
-    LOGGER.info("Adding response filter query decorator DTO {}", request);
+    LOGGER.info("Adding response filter query decorator DTO {}", request.toString());
     String searchType = request.getSearchType();
     if (searchType == null || !searchType.matches(RESPONSE_FILTER_REGEX)) {
       return queryMap;
@@ -37,9 +37,16 @@ public class ResponseFilterDecorator implements ElasticsearchQueryDecorator {
     if (sourceFilter == null || sourceFilter.isEmpty()) {
       throw new DxEsException("Missing response filter: 'attribute' or 'filter' is required");
     }
-    QueryModel sourceConfigModel = new QueryModel(QueryType.BOOL);
-    sourceConfigModel.setIncludeFields(sourceFilter);
-    queryMap.get(FilterType.FILTER).add(sourceConfigModel);
+    // Set includeFields in all QueryModels in FILTER
+    for (QueryModel qm : queryMap.get(FilterType.FILTER)) {
+      qm.setIncludeFields(sourceFilter);
+    }
+    // If no FILTER QueryModel exists, create a new one
+    if (queryMap.get(FilterType.FILTER).isEmpty()) {
+      QueryModel sourceConfigModel = new QueryModel(QueryType.BOOL);
+      sourceConfigModel.setIncludeFields(sourceFilter);
+      queryMap.get(FilterType.FILTER).add(sourceConfigModel);
+    }
     return queryMap;
   }
 }

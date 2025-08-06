@@ -29,7 +29,7 @@ public class TemporalQueryFiltersDecorator implements ElasticsearchQueryDecorato
         String queryRequestTimeRelation = requestQuery.getTimeRel();
         String queryRequestStartTime = requestQuery.getTime();
         String queryRequestEndTime = requestQuery.getEndTime();
-    System.out.println(queryRequestEndTime + " " + queryRequestStartTime + " " + queryRequestTimeRelation);
+
         ZonedDateTime startDateTime = getZonedDateTime(queryRequestStartTime);
         ZonedDateTime endDateTime =
                 (queryRequestEndTime != null) ? getZonedDateTime(queryRequestEndTime) : null;

@@ -8,7 +8,17 @@ public class ResponseFilterRequestDTO {
   private List<String> attribute;
   private List<String> filter;
 
-  public ResponseFilterRequestDTO(
+    @Override
+    public String toString() {
+        return "ResponseFilterRequestDTO{" +
+                "searchType='" + searchType + '\'' +
+                ", search=" + search +
+                ", attribute=" + attribute +
+                ", filter=" + filter +
+                '}';
+    }
+
+    public ResponseFilterRequestDTO(
       String searchType, Boolean search, List<String> attribute, List<String> filter) {
     this.searchType = searchType;
     this.search = search;

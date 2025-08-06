@@ -39,7 +39,7 @@ public class SearchCriteriaQueryDecorator implements ElasticsearchQueryDecorator
       String field = criterion.getField();
       List<Object> values = criterion.getValues();
       String type = criterion.getSearchType() != null ? criterion.getSearchType() : TERM;
-      LOGGER.info("Searchtype, field, values, cST {},{},{}", field, values, type);
+      LOGGER.info("Searchtype {}, field {}, values {}", type, field, values);
 
       switch (type) {
         case TERM:
@@ -70,9 +70,12 @@ public class SearchCriteriaQueryDecorator implements ElasticsearchQueryDecorator
       }
     }
 
-    queryMap
-        .computeIfAbsent(FilterType.FILTER, k -> new ArrayList<>())
-        .add(new QueryModel(QueryType.BOOL).setMustQueries(mustList));
+    // Fix: Add single must query directly to FILTER, avoid unnecessary bool nesting
+    if (mustList.size() == 1) {
+      queryMap.computeIfAbsent(FilterType.FILTER, k -> new ArrayList<>()).add(mustList.get(0));
+    } else {
+      queryMap.computeIfAbsent(FilterType.FILTER, k -> new ArrayList<>()).add(new QueryModel(QueryType.BOOL).setMustQueries(mustList));
+    }
     LOGGER.info("queryMap {}", queryMap);
     if (queryMap.get(FilterType.FILTER) != null) {
       LOGGER.info("Size {}", queryMap.get(FilterType.FILTER).size());
@@ -85,43 +88,39 @@ public class SearchCriteriaQueryDecorator implements ElasticsearchQueryDecorator
   }
 
   private QueryModel buildTermQuery(String field, List<Object> values) {
-    List<QueryModel> shouldQueries = new ArrayList<>();
-    for (Object valueObj : values) {
-      String value = valueObj.toString();
-      // Case: description or location (match/fuzzy match)
+    if (values.size() == 1) {
+      String value = values.get(0).toString();
+      // If field is already keyword type, do not append .keyword
       if (DESCRIPTION_ATTR.equals(field) || field.startsWith(LOCATION)) {
-        shouldQueries.add(
-            new QueryModel(QueryType.MATCH).setQueryParameters(Map.of(FIELD, field, VALUE, value)));
-        // Fuzzy for description
-        // No request.getString(FUZZY), so skip fuzzy for DTO unless needed
+        return new QueryModel(QueryType.MATCH).setQueryParameters(Map.of(FIELD, field, VALUE, value));
       } else if (TAGS.equals(field)) {
-        // Case: tags → match_phrase
-        shouldQueries.add(
-            new QueryModel(QueryType.MATCH_PHRASE)
-                .setQueryParameters(Map.of(FIELD, field, VALUE, value)));
+        return new QueryModel(QueryType.MATCH_PHRASE).setQueryParameters(Map.of(FIELD, field, VALUE, value));
       } else if (FILE_FORMAT.equals(field)) {
-        // Case: fileFormat → wildcard (case-insensitive)
-        shouldQueries.add(
-            new QueryModel(QueryType.WILDCARD)
-                .setQueryParameters(
-                    Map.of(
-                        FIELD,
-                        field + KEYWORD_KEY,
-                        VALUE,
-                        value.toLowerCase(),
-                        CASE_INSENSITIVE,
-                        true)));
+        return new QueryModel(QueryType.WILDCARD).setQueryParameters(Map.of(FIELD, field + KEYWORD_KEY, VALUE, value.toLowerCase(), CASE_INSENSITIVE, true));
       } else {
-        // Fallback: .keyword match or raw match
-        String searchField = field.endsWith(KEYWORD_KEY) ? field : field + KEYWORD_KEY;
-        shouldQueries.add(
-            new QueryModel(QueryType.TERM)
-                .setQueryParameters(Map.of(FIELD, searchField, VALUE, value)));
+        // Only append .keyword if field is not already keyword type
+        String searchField = field;
+        return new QueryModel(QueryType.TERM).setQueryParameters(Map.of(FIELD, searchField, VALUE, value));
       }
+    } else {
+      List<QueryModel> shouldQueries = new ArrayList<>();
+      for (Object valueObj : values) {
+        String value = valueObj.toString();
+        if (DESCRIPTION_ATTR.equals(field) || field.startsWith(LOCATION)) {
+          shouldQueries.add(new QueryModel(QueryType.MATCH).setQueryParameters(Map.of(FIELD, field, VALUE, value)));
+        } else if (TAGS.equals(field)) {
+          shouldQueries.add(new QueryModel(QueryType.MATCH_PHRASE).setQueryParameters(Map.of(FIELD, field, VALUE, value)));
+        } else if (FILE_FORMAT.equals(field)) {
+          shouldQueries.add(new QueryModel(QueryType.WILDCARD).setQueryParameters(Map.of(FIELD, field + KEYWORD_KEY, VALUE, value.toLowerCase(), CASE_INSENSITIVE, true)));
+        } else {
+          String searchField = field;
+          shouldQueries.add(new QueryModel(QueryType.TERM).setQueryParameters(Map.of(FIELD, searchField, VALUE, value)));
+        }
+      }
+      QueryModel queryModel = new QueryModel(QueryType.BOOL);
+      queryModel.setShouldQueries(shouldQueries);
+      return queryModel;
     }
-    QueryModel queryModel = new QueryModel(QueryType.BOOL);
-    queryModel.setShouldQueries(shouldQueries);
-    return queryModel;
   }
 
   private QueryModel buildRangeQuery(String field, Map<String, String> operators) {

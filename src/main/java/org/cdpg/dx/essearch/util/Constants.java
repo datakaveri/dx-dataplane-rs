@@ -63,6 +63,7 @@ public class Constants {
   public static final String TEXTSEARCH_REGEX = "(.*)textSearch(.*)";
   public static final String ATTRIBUTE_SEARCH_REGEX = "(.*)attributeSearch(.*)";
   public static final String SEARCH_CRITERIA_REGEX = "(.*)searchCriteria(.*)";
+  public static final String ACCESS_POLICY_REGEX = "(.*)accessPolicySearch(.*)";
 
   public static final String GEOSEARCH_REGEX = "(.*)geoSearch(.*)";
   public static final String RESPONSE_FILTER_GEO = "responseFilter_geoSearch_";
@@ -70,7 +71,6 @@ public class Constants {
   public static final String ITEM_TYPE_AI_MODEL = "adex:AiModel";
   public static final String ITEM_TYPE_DATA_BANK = "adex:DataBank";
   public static final String ITEM_TYPE_APPS = "adex:Apps";
-
 
   /** DB Query related. */
   public static final String MATCH_KEY = "match";
@@ -339,8 +339,10 @@ public class Constants {
   /* Database */
   public static final String AGGREGATION_KEY = "aggs";
   public static final String GEO_SHAPE_KEY = "geo_shape";
+
   /** General. */
   public static final String CONFIG_FILE = "config.properties";
+
   public static final String OPTIONAL_MODULES = "optionalModules";
   public static final String IS_SSL = "ssl";
   public static final String PORT = "httpPort";
@@ -361,8 +363,10 @@ public class Constants {
   public static final Pattern UUID_PATTERN =
       Pattern.compile(
           "^[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}$");
+
   /** Item type. */
   public static final String RELATIONSHIP = "relationship";
+
   public static final String RESOURCE = "resource";
   public static final String RESOURCE_GRP = "resourceGroup";
   public static final String RESOURCE_SVR = "resourceServer";
@@ -377,8 +381,10 @@ public class Constants {
   public static final String COS_ITEM = "cos";
   public static final String RESOURCETYPE = "resourceType";
   public static final String MALFORMED_ID = "Malformed Id ";
+
   /** Item types. */
   public static final String ITEM_TYPE_RESOURCE = "Resource";
+
   public static final String ITEM_TYPE_RESOURCE_GROUP = "ResourceGroup";
   public static final String ITEM_TYPE_RESOURCE_SERVER = "ResourceServer";
   public static final String ITEM_TYPE_PROVIDER = "Provider";
@@ -402,15 +408,19 @@ public class Constants {
   public static final String RESOURCE_ID = "resourceId";
   public static final String ITEM_TYPE = "itemType";
   public static final String PROPERTY = "property";
+
   /** GeoRels. */
   public static final String GEOREL_WITHIN = "within";
+
   public static final String GEOREL_NEAR = "near";
   public static final String GEOREL_COVERED_BY = "coveredBy";
   public static final String GEOREL_INTERSECTS = "intersects";
   public static final String GEOREL_EQUALS = "equals";
   public static final String GEOREL_DISJOINT = "disjoint";
+
   /** Geometries. */
   public static final String GEORELATION = "georel";
+
   public static final String INTERSECTS = "intersects";
   public static final String LOCATION = "location";
   public static final String MAX_DISTANCE = "maxDistance";
@@ -421,8 +431,10 @@ public class Constants {
   public static final String AUTO_COMPLETE = "autoComplete";
   public static final String LIMIT = "limit";
   public static final String OFFSET = "offset";
+
   /** SearchTypes. */
   public static final String SEARCH_TYPE_GEO = "geoSearch_";
+
   public static final String SEARCH_TYPE_TEXT = "textSearch_";
   public static final String SEARCH_TYPE_ATTRIBUTE = "attributeSearch_";
   public static final String SEARCH_TYPE_TAGS = "tagsSearch_";
@@ -440,8 +452,10 @@ public class Constants {
   public static final String FAILED = "failed";
   public static final String ERROR = "error";
   public static final String DESC = "detail";
+
   /** DB Query. */
   public static final String TOTAL_HITS = "totalHits";
+
   public static final String INCLUDE_FIELDS = "includeFields";
   public static final String FIELD = "field";
   public static final String VALUES = "values";
@@ -461,8 +475,10 @@ public class Constants {
   public static final String LESS_THAN = "lt";
   public static final String GREATER_THAN = "gt";
   public static final String FILE_FORMAT = "fileFormat";
+
   /** Temporal Query * */
   public static final String BETWEEN_RANGE = "betweenRange";
+
   public static final String AFTER_RANGE = "afterRange";
   public static final String BEFORE_RANGE = "beforeRange";
   public static final String BETWEEN_TEMPORAL = "betweenTemporal";
@@ -475,20 +491,27 @@ public class Constants {
   public static final String RESOURCE_COUNT = "resourceCount";
   public static final String PROVIDER_COUNT = "providerCount";
   public static final String RESOURCE_GROUP_COUNT = "resourceGroupCount";
+
   /** HTTP Methods. */
   public static final String REQUEST_GET = "GET";
+
   public static final String REQUEST_POST = "POST";
   public static final String REQUEST_PUT = "PUT";
   public static final String REQUEST_PATCH = "PATCH";
   public static final String REQUEST_DELETE = "DELETE";
+
   /** Error Messages. */
   public static final String DATABASE_ERROR = "DB Error. Check logs for more information";
+
   /** Operation type. */
   public static final String INSERT = "insert";
+
   public static final String UPDATE = "update";
   public static final String DELETE = "delete";
+
   /** Limits/Constraints. */
   public static final long COORDINATES_SIZE = 10;
+
   public static final int COORDINATES_PRECISION = 6;
   public static final int STRING_SIZE = 100;
   public static final int PROPERTY_SIZE = 4;
