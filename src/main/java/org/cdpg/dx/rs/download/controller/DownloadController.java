@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.download.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_ID_ENTITY_DATA;
+import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_PUT_SEARCH_DATA;
 import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.download.util.Constants.ID;
@@ -12,6 +13,8 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.common.request.PostSearchRequestBuilder;
+import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
@@ -30,10 +33,57 @@ public class DownloadController implements ApiController {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        .handler(this::handleDownloadIdEntityData);
+        .handler(this::handleDownloadIdGetData);
+    builder
+        .operation(DOWNLOAD_PUT_SEARCH_DATA)
+        .handler(getIdFromPathHandler)
+        .handler(this::handleDownloadIdPostData);
   }
 
-  private void handleDownloadIdEntityData(RoutingContext routingContext) {
+  private void handleDownloadIdPostData(RoutingContext routingContext) {
+    HttpServerResponse response = routingContext.response();
+    response
+        .putHeader("Access-Control-Allow-Origin", "*")
+        .putHeader("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        .putHeader("Access-Control-Allow-Methods", "GET, POST,PUT, DELETE, OPTIONS")
+        .putHeader("Content-Type", "text/csv")
+        .putHeader("Content-Disposition", "attachment; filename=\"data_report.csv\"")
+        .setChunked(true);
+    String id = routingContext.pathParam(ID);
+    try {
+      SearchQuery searchQuery =
+          PostSearchRequestBuilder.fromRoutingContext(routingContext)
+              .setAssetSearch(false)
+              .setCountApi(false)
+              .build();
+      downloadService
+          .streamElasticDataCsvBatched(searchQuery, id)
+          .onSuccess(
+              csvStream -> {
+                if (csvStream == null) {
+                  response.end();
+                  return;
+                }
+                csvStream
+                    .exceptionHandler(
+                        err -> {
+                          LOGGER.error("Failed to stream CSV", err);
+                          routingContext.fail(err);
+                        })
+                    .handler(buffer -> response.write(buffer))
+                    .endHandler(v -> response.end());
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Failed to stream CSV", err);
+                routingContext.fail(err);
+              });
+    } catch (Exception e) {
+      LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+    }
+  }
+
+  private void handleDownloadIdGetData(RoutingContext routingContext) {
     HttpServerResponse response = routingContext.response();
     response
         .putHeader("Access-Control-Allow-Origin", "*")

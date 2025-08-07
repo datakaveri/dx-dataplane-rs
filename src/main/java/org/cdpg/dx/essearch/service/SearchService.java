@@ -20,4 +20,6 @@ public interface SearchService {
 
   Future<ReadStream<Buffer>> streamTemporalData(
       String index, TemporalQueryRequestModel temporalQueryRequestModel);
+    Future<ReadStream<Buffer>> streamPostData(
+            SearchQuery searchQuery, String index);
 }

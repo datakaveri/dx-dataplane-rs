@@ -5,6 +5,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
@@ -40,5 +41,14 @@ public class DownloadServiceImpl implements DownloadService {
               getRequestModel.size(),
               getRequestModel.page()));
     }
+  }
+
+  @Override
+  public Future<ReadStream<Buffer>> streamElasticDataCsvBatched(
+      SearchQuery searchQuery, String id) {
+    String index = IndexNameCreation.createIndex(id);
+    return searchService
+        .streamPostData(searchQuery, index)
+        .onFailure(err -> LOGGER.error("Error:: {}", err.getMessage()));
   }
 }
