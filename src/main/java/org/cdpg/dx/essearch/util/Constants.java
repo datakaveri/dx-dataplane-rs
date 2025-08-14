@@ -1,4 +1,4 @@
-package org.cdpg.dx.database.elastic.util;
+package org.cdpg.dx.essearch.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
