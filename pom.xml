@@ -564,7 +564,7 @@
                 <version>${exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>resource-server</id>
+                        <id>dataplane-rs</id>
                         <configuration>
                             <mainClass>org.cdpg.dx.deploy.Deployer</mainClass>
                             <arguments>
