@@ -3989,14 +3989,16 @@ components:
 
     ingestionEntityRequest:
       title: ingestion entity
-      required:
-        - entities
       type: array
-      properties:
-        entities:
-          type: array
-          items:
-            type: string
+      items:
+        type: object
+        required:
+          - entities
+        properties:
+          entities:
+            type: array
+            items:
+              type: string
       example:
         [{
           "currentLevel": 1.16,

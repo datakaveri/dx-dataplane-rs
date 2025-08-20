@@ -7,16 +7,22 @@
   "host": "rs.iudx.io",
   "commonConfig": {
     "dxApiBasePath": "/ngsi-ld/v1",
-    "dxCatalogueBasePath": "/iudx/cat/v1",
-    "dxAuthBasePath": "/auth/v1",
-    "catServerHost": "",
-    "catServerPort": 443,
-    "timeLimit": "",
-    "timeLimitForAsync": 365
+
+    "timeLimit": "test,2020-10-22T00:00:00Z,20",
+    "timeLimitForAsync": 365,
+    "tenantPrefix": "iudx",
+    "corsAllowedOrigin": [
+      "*",
+      "http://localhost:4001"
+    ],
+    "kcIss": "",
+    "aaaIss": "",
+    "keycloakCertUrl": "",
+    "aaaCertUrl": ""
   },
   "modules": [
     {
-      "id": "org.cdpg.dx.database.postgres.PostgresVerticle",
+      "id": "org.cdpg.dx.database.postgres.verticle.PostgresVerticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "databaseIP": "",
@@ -24,7 +30,8 @@
       "databaseName": "",
       "databaseUserName": "",
       "databasePassword": "",
-      "poolSize": 25
+      "poolSize": 25,
+      "databaseSchema": ""
     },
     {
       "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
@@ -50,12 +57,10 @@
     {
       "id": "org.cdpg.dx.catalogue.CatalogueVerticle",
       "isWorkerVerticle": false,
-      "verticleInstances": 1
-    },
-    {
-      "id": "org.cdpg.dx.revoked.RevokedVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1
+      "verticleInstances": 1,
+      "dxCatalogueBasePath": "",
+      "catServerHost": "",
+      "catServerPort": 443
     },
     {
       "id": "org.cdpg.dx.uniqueattribute.UniqueAttributeVerticle",
@@ -65,12 +70,29 @@
     {
       "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
       "isWorkerVerticle": false,
-      "verticleInstances": 2,
+      "verticleInstances": 1,
       "tenantPrefix": "",
       "databaseIP": "",
       "databasePort": 24034,
       "databaseUser": "",
       "databasePassword": ""
+    },
+    {
+      "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "ssl": false,
+      "production": false,
+      "httpPort": 1234,
+      "iss": "",
+      "aud": "",
+      "jwtIgnoreExpiry": true,
+      "isAdexInstance": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "",
+      "dxAuthBasePath": "",
+      "authServerHost": "",
+      "authServerPort": 443
     }
   ]
 }
