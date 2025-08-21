@@ -1,0 +1,572 @@
+{
+	"info": {
+		"_postman_id": "f5f60ce8-54cc-4f3a-900e-03b15c694083",
+		"name": "DX-Data-Plane",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20457128"
+	},
+	"item": [
+		{
+			"name": "Token",
+			"item": [
+				{
+					"name": "Generate Client id and Client Secret",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTQ4OTEwMzUsImlhdCI6MTc1NDg5MDEzNSwianRpIjoib25ydHJvOjkxZjk3ZGExLTEwY2EtNDVmNC1iYjA4LWVmNTJjZGIxYmI2OCIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIyYWJmYTcyZS1mMjFiLTQxNTAtYjNmYi0xNDVlMWFiMTNmNTUiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.b3AdD9jKrFlF76XwkI2DlsuYgwHML_BjHGjlpdn-0swLoohDqWmoCSqvJN9WacbyoUgatPfkwo7_kmq7czr4MwOWApMTCzbx7aUIjvlHA3hzN-LuBXYKxVp6OV44t2vVqxVrX5NbR9K8bzg0z_xmnvayGLSugC-CGGgRY1DO7gc11qS2MvLJF4suHDhjjkUL8Wv446V5MeaN0BTOapCCcRNT8gGRlIrBEjrO_aS6LgluUetfPhlpbyMvd3SmQ7dGOXUZYe_ZOvG3jvw94BKXskWRJD5QWGMmXQZVIRAFxRk3Xo2t3k4sRaIjlGeCJQtWU8jSCaJ4bvJg_UmJbyh5UQ"
+							}
+						],
+						"url": {
+							"raw": "https://controlplane.tgdex.iudx.io/iudx/v2/auth/client",
+							"protocol": "https",
+							"host": [
+								"controlplane",
+								"tgdex",
+								"iudx",
+								"io"
+							],
+							"path": [
+								"iudx",
+								"v2",
+								"auth",
+								"client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AAA Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "clientId",
+								"value": "dd0f645d-e286-40f5-ba73-1d3a06aaaa1e"
+							},
+							{
+								"key": "clientSecret",
+								"value": "dd45b0da4c3614249b8cfcb2e8a418b2b0293cfb"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"itemId\": \"b58da193-23d9-43eb-b98a-a103d4b6103c\",\n  \"itemType\": \"resource\",\n  \"role\": \"consumer\"\n}"
+						},
+						"url": {
+							"raw": "https://controlplane.tgdex.iudx.io/iudx/auth/v2/token",
+							"protocol": "https",
+							"host": [
+								"controlplane",
+								"tgdex",
+								"iudx",
+								"io"
+							],
+							"path": [
+								"iudx",
+								"auth",
+								"v2",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cos Admin Keycloak Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"cosAdmin\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "frontend-client",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{cos-admin-username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{cos-admin-password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://{{keycloak-url}}/auth/realms/tgdex-pilot/protocol/openid-connect/token",
+							"protocol": "https",
+							"host": [
+								"{{keycloak-url}}"
+							],
+							"path": [
+								"auth",
+								"realms",
+								"tgdex-pilot",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Latest Data",
+			"item": [
+				{
+					"name": "200 (success) Get Latest data (Secure Resource)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    pm.expect(body).to.have.property(\"result\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{basePath}}/entities/83c2e5c2-3574-4e11-9530-2b1fbdfce832",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{basePath}}",
+								"entities",
+								"83c2e5c2-3574-4e11-9530-2b1fbdfce832"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "timeRel",
+									"value": "before",
+									"disabled": true
+								},
+								{
+									"key": "time",
+									"value": "2020-11-15T14:20:00Z",
+									"disabled": true
+								},
+								{
+									"key": "endTime",
+									"value": "2020-12-28T14:20:00Z",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Download Data",
+			"item": [
+				{
+					"name": "200 (success) Get Latest data (Secure Resource)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"text/csv\");",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2021-05-02T09:15:27+0530\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{basePath}}/83c2e5c2-3574-4e11-9530-2b1fbdfce832/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{basePath}}",
+								"83c2e5c2-3574-4e11-9530-2b1fbdfce832",
+								"download"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "timeRel",
+									"value": "during",
+									"disabled": true
+								},
+								{
+									"key": "time",
+									"value": "2020-11-18T14:20:00Z",
+									"disabled": true
+								},
+								{
+									"key": "endTime",
+									"value": "2020-12-28T14:20:00Z",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) Get Latest data (Secure Resource)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"text/csv\");",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJpc3MiOiJjb3MudGdkZXguaXVkeC5pbyIsImF1ZCI6IkNMQUlNX0FVRElFTkNFIiwiZXhwIjoxNzU5MzUyNjM0LCJpYXQiOjE3NTU3NTI2MzQsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJjb25zdW1lciIsIm9yZ19hZG1pbiIsImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJwcm92aWRlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsiY29uc3VtZXIiLCJvcmdfYWRtaW4iLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwicHJvdmlkZXIiXX19LCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJuYW1lIjoiT3JnIEFkbWluIiwiZ2l2ZW5fbmFtZSI6Ik9yZyIsImZhbWlseV9uYW1lIjoiQWRtaW4iLCJlbWFpbCI6Im9yZ2FkbWluQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhY2NvdW50X2VuYWJsZWQiOnRydWUsImNyZWF0ZWRfYXQiOiIyMDI1LTA1LTI2VDA2OjQ0OjE0Ljc3NyIsIm9yZ2FuaXNhdGlvbklkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwib3JnYW5pc2F0aW9uTmFtZSI6IlRlc3QgMTIiLCJreWNWZXJpZmllZCI6dHJ1ZSwia3ljSW5mb3JtYXRpb24iOnsidWlkIjoieHh4eHh4eHg4NzM3IiwiUG9hIjp7ImNvdW50cnkiOiJJbmRpYSIsInN1YmRpc3QiOiJNdWt1bmRhcHVyYW0iLCJwYyI6NjgwMzAyLCJ2dGMiOiJBbWJhbGx1ciIsInN0cmVldCI6Ik1hbm5hbXBldHRhIiwiZGlzdCI6IlRocmlzc3VyIiwic3RhdGUiOiJLZXJhbGEiLCJjbyI6IlMvTzogR292aW5kYW4gSyBWIiwiaG91c2UiOiJLdXpodXBwaWxseSBIb3VzZSIsInBvIjoiVmFyYWthcmEifSwiTERhdGEiOnsiY291bnRyeSI6IiAiLCJwYyI6NjgwMzAyLCJ2dGMiOiLgtIbgtK7gtY3gtKrgtLLgtY3gtLLgtYLgtLDgtY3igI0iLCJzdHJlZXQiOiLgtK7gtKPgtKPgtILgtKrgtYfgtJ_gtY3gtJ8iLCJuYW1lIjoi4LSX4LWL4LSV4LWB4LSy4LWNIOC0leC1hiDgtJzgtL8iLCJkaXN0Ijoi4LSk4LWD4LS24LWC4LSw4LWN4oCNIiwic3RhdGUiOiLgtJXgtYfgtLDgtLPgtIIiLCJjbyI6IuC0quC0v-C0pOC0vuC0teC0v-C0qOC1jeKAjeC0seC1hiAvIOC0ruC0vuC0pOC0vuC0teC0v-C0qOC1jeKAjeC0seC1hiDgtKrgtYfgtLDgtY06IOC0l-C1i-C0teC0v-C0qOC1jeC0puC1ryDgtJXgtYYg4LS14LS_IiwibGFuZyI6MTEsImhvdXNlIjoi4LSV4LWB4LS04LWB4LSq4LWN4LSq4LS_4LSz4LWN4LSz4LS_IOC0ueC1jOC0uOC1jeKAjCJ9LCJQb2kiOnsiZ2VuZGVyIjoiTSIsImRvYiI6IjAxLTEwLTE5OTAiLCJuYW1lIjoiR29rdWwgSyBHIn0sImNvZGVfdmVyaWZpZXIiOiJHOVBoMUx4cFI2V1h3eUFFVFVPNFpucXk1bmhPRXBLTGgyVmNMcnhjdHpJIn19.x28vYneZUDkmzZigdk_C0TzJehKcRemX70PhyWLvf9z7utkAgDmjys-NRuZtcdieUKVTnIahNNqYxPyfz8mgSg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/{{basePath}}/83c2e5c2-3574-4e11-9530-2b1fbdfce832/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{basePath}}",
+								"83c2e5c2-3574-4e11-9530-2b1fbdfce832",
+								"download"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "2"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "timeRel",
+									"value": "during"
+								},
+								{
+									"key": "time",
+									"value": "2020-11-18T14:20:00Z"
+								},
+								{
+									"key": "endTime",
+									"value": "2020-12-28T14:20:00Z"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search Data",
+			"item": [
+				{
+					"name": "200 (success) Get Latest data (Secure Resource)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    pm.expect(body).to.have.property(\"result\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"term\",\n            \"field\": \"vehicle_label\",\n            \"values\": [\"M74\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{basePath}}/entities/83c2e5c2-3574-4e11-9530-2b1fbdfce832/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{basePath}}",
+								"entities",
+								"83c2e5c2-3574-4e11-9530-2b1fbdfce832",
+								"search"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "timeRel",
+									"value": "during",
+									"disabled": true
+								},
+								{
+									"key": "time",
+									"value": "2020-11-18T14:20:00Z",
+									"disabled": true
+								},
+								{
+									"key": "endTime",
+									"value": "2020-12-28T14:20:00Z",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "200 (success) Get Latest data (Secure Resource)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test the response code",
+									"pm.test(\"response is 200 (OK)\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Test the response header",
+									"pm.test(\"Check response header\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+									"});",
+									"",
+									"// Test the response",
+									"pm.test(\"Check response body\", function () {    ",
+									"    const body = pm.response.json();",
+									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
+									"    pm.expect(body).to.have.property(\"results\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"q\" : \"UP\",\n    \"fuzzy\" : false,\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2021-05-02T09:15:27+0530\"]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/{{basePath}}/entities/83c2e5c2-3574-4e11-9530-2b1fbdfce832/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"{{basePath}}",
+								"entities",
+								"83c2e5c2-3574-4e11-9530-2b1fbdfce832",
+								"search"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "timeRel",
+									"value": "during",
+									"disabled": true
+								},
+								{
+									"key": "time",
+									"value": "2020-11-18T14:20:00Z",
+									"disabled": true
+								},
+								{
+									"key": "endTime",
+									"value": "2020-12-28T14:20:00Z",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
