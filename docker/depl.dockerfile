@@ -15,7 +15,7 @@ RUN mvn clean package -Dmaven.test.skip=true
 FROM eclipse-temurin:21.0.5_11-jre-jammy
 
 ARG VERSION
-ENV JAR="iudx.resource.server-cluster-${VERSION}-fat.jar"
+ENV JAR="dx.resource.server-cluster-${VERSION}-fat.jar"
 
 WORKDIR /usr/share/app
 # Copying openapi docs 
@@ -30,7 +30,7 @@ EXPOSE 8080 8443
 # Creating a non-root user
 RUN  useradd -r -u 1001 -g root rs-user
 # Create storage directory and owned by rs-user
-RUN mkdir -p /usr/share/app/storage/temp-dir && chown rs-user /usr/share/app/storage/temp-dir
+    RUN mkdir -p /usr/share/app/storage/temp-dir && chown rs-user /usr/share/app/storage/temp-dir
 # hint for volume mount 
 VOLUME /usr/share/app/storage/temp-dir
 # Setting non-root user to use when container starts

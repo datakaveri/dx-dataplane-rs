@@ -15,7 +15,7 @@ RUN mvn clean package -Dmaven.test.skip=true
 FROM eclipse-temurin:21.0.5_11-jre-jammy
 
 ARG VERSION
-ENV JAR="iudx.resource.server-dev-${VERSION}-fat.jar"
+ENV JAR="dx.resource.server-dev-${VERSION}-fat.jar"
 
 WORKDIR /usr/share/app
 # Copying openapi docs 
