@@ -21,18 +21,10 @@ info:
       - These base path values could be configured according to the deployment
       - The base path for [DX AAA Server](https://github.com/datakaveri/iudx-aaa-server) is set to `/auth/v1`
       - The base path for [DX Catalogue Server](https://github.com/datakaveri/iudx-catalogue-server) is set to `/iudx/cat/v1`
-      - Currently, the following APIs have `/ngsi-ld/v1` base path
-          -  /entities
-          -  /temporal/entities
-          -  /temporal/entityOperations/query
-          -  /entityOperations/query
-          -  /subscription
-          -  /async/search
-          -  /async/status
-          -  /ingestion
-          -  /ingestion/{id}
-          -  /ingestion/entities
-          -  /user/resetPassword
+      - Currently, the following APIs have `/ngsi-ld/v2` base path
+          -  /entities/{id}
+          -  /entities/{id}/search
+          -  /{id}/download
       <br>
     - **Request Samples**:
       - The `<tokenValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
@@ -47,10 +39,9 @@ info:
     Resource server also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
     
     - <b> Pagination is applicable only for</b>
-       - <b>/entities</b>
-       - <b>/temporal/entities</b>
-       - <b>/temporal/entityOperations/query</b>
-       - <b>/entityOperations/query</b>\
+       - <b>/entities/{id}</b>
+       - <b>/entities/{id}/search</b>
+       - <b>/{id}/download</b>\
     
     Additional query parameters to be used:
       - <b>offset</b> : The from parameter defines the offset from the first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
@@ -63,9 +54,6 @@ info:
     
     **Encryption is applicable only for**
     -  **/entities**
-    -  **/temporal/entities**
-    -  **/temporal/entityOperations/query**
-    -  **/entityOperations/query**
 
 
     # API HTTP Responses
@@ -91,7 +79,7 @@ tags:
       A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
 
 servers:
-  - url: 'https://example.com/ngsi-ld/v1'
+  - url: 'https://example.com/'
     description: 'Development Server URL'
 
 # Global security definition (applies to all paths unless overridden)
