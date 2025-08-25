@@ -9,6 +9,9 @@ import io.vertx.ext.web.client.WebClientOptions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxAuthException;
+import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.exception.DxForbiddenNoAccessException;
+import org.cdpg.dx.common.exception.DxInternalServerErrorException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 
 public class CheckItemAccessHandler implements Handler<RoutingContext> {
@@ -20,7 +23,6 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
     
     public CheckItemAccessHandler(String controlPlaneDomain) {
         this.webClient = WebClient.create(Vertx.vertx(), new WebClientOptions().setTrustAll(true));
-        LOGGER.debug("CheckItemAccessHandler initialized with controlPlaneDomain: {}", controlPlaneDomain);
         this.checkAccessRequestUrl = controlPlaneDomain + "/iudx/acl/apd/v2/access_request/has_access";
     }
 
@@ -29,33 +31,26 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
         try {
             String bearerToken = RoutingContextHelper.getToken(context)
                 .orElseThrow(() -> new DxAuthException("Bearer token is missing in the request"));
-            LOGGER.debug("Context Id {}", RoutingContextHelper.getId(context));
             JsonObject requestBody = new JsonObject()
                 .put("itemId", RoutingContextHelper.getId(context));
-            if (requestBody == null) {
-                LOGGER.error("Request body is missing");
-                context.fail(new DxAuthException("Request body is missing"));
-                return;
-            }
             LOGGER.debug("Making request to endpoint: {}", checkAccessRequestUrl);
             
             webClient.postAbs(checkAccessRequestUrl)
                 .putHeader("Authorization", "Bearer " + bearerToken)
                 .sendJsonObject(requestBody)
                 .onSuccess(response -> {
-
                     if (response.statusCode() == 200) {
                         LOGGER.debug("Access check successful for endpoint: {}", checkAccessRequestUrl);
                         context.next();
                     } else {
                         LOGGER.error("Access check failed with status: {} for endpoint: {}", 
                                    response.statusCode(), checkAccessRequestUrl);
-                        context.fail(new DxAuthException("Access check failed with status: " + response.statusCode()));
+                        context.fail(new DxForbiddenNoAccessException("Access check failed. "+response.bodyAsJsonObject().getString("detail")));
                     }
                 })
                 .onFailure(error -> {
-                    LOGGER.error("Access check request failed for endpoint: {},{}", checkAccessRequestUrl, error);
-                    context.fail(new DxAuthException("Access check request failed: " + error.getMessage()));
+                    LOGGER.error("Access check request failed for endpoint: {}", error.getMessage());
+                    context.fail(new DxInternalServerErrorException("Access check request failed: " + error.getMessage()));
                 });
                 
         } catch (Exception e) {
