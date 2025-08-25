@@ -1,7 +1,6 @@
 package org.cdpg.dx.apiserver;
 
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.*;
-import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.REDIS_SERVICE_ADDRESS;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -11,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.catalogue.service.CatalogueService;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.database.postgres.service.PostgresService;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
@@ -40,16 +38,12 @@ public class ControllerFactory {
 
     String tenantPrefix = config.getString("tenantPrefix");
     String timeLimit = config.getString("timeLimit");
-    // DataBrokerService dataBrokerService =
-    //    DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-
-    // AuditingHandler auditingHandler = new AuditingHandler(dataBrokerService);
-    // KeycloakUserService keycloakUserService = new KeycloakUserServiceImpl(config);
+    String controlPlaneDomain = config.getString("controlPlaneDomain");
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
 
-    ApiController latestController = LatestControllerFactory.create(searchService, timeLimit);
-    ApiController downloadController = DownloadControllerFactory.create(searchService, timeLimit);
+    ApiController latestController = LatestControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
+    ApiController downloadController = DownloadControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
     // TODO create other controllers
 
     return List.of(latestController, downloadController);

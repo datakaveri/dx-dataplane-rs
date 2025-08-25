@@ -1,7 +1,5 @@
 package org.cdpg.dx.auth.authentication.provider;
 
-
-
 import io.vertx.core.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.JWTOptions;

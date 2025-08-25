@@ -6,9 +6,9 @@ import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.rs.download.service.DownloadServiceImpl;
 
 public class DownloadControllerFactory {
-  public static DownloadController create(SearchService searchService, String timeLimit) {
+  public static DownloadController create(SearchService searchService, String timeLimit,String controlPlaneDomain) {
     DownloadService downloadService = new DownloadServiceImpl(searchService, timeLimit);
 
-    return new DownloadController(downloadService);
+    return new DownloadController(downloadService,controlPlaneDomain);
   }
 }

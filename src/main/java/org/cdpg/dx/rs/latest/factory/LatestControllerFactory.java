@@ -7,10 +7,10 @@ import org.cdpg.dx.rs.latest.service.LatestServiceImpl;
 
 public class LatestControllerFactory {
 
-  public static LatestController create(SearchService searchService, String timeLimit) {
+  public static LatestController create(SearchService searchService, String timeLimit,String controlPlaneDomain) {
 
     LatestService latestService = new LatestServiceImpl(searchService, timeLimit);
 
-    return new LatestController(latestService);
+    return new LatestController(latestService,controlPlaneDomain);
   }
 }

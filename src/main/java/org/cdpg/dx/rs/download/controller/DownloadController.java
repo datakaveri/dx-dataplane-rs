@@ -17,15 +17,18 @@ import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
+import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
+  private final CheckItemAccessHandler checkItemAccessHandler;
 
-  public DownloadController(DownloadService downloadService) {
+  public DownloadController(DownloadService downloadService,String controlPlaneDomain) {
     this.downloadService = downloadService;
+    this.checkItemAccessHandler=new CheckItemAccessHandler(controlPlaneDomain);
   }
 
   @Override
@@ -33,11 +36,14 @@ public class DownloadController implements ApiController {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(getIdFromPathHandler)
+        .handler(checkItemAccessHandler)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(getIdFromPathHandler)
+        .handler(checkItemAccessHandler)
         .handler(this::handleDownloadIdPostData);
+    LOGGER.debug("Download Controller deployed and route registered.");
   }
 
   private void handleDownloadIdPostData(RoutingContext routingContext) {
