@@ -26,9 +26,9 @@ public class DownloadController implements ApiController {
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
 
-  public DownloadController(DownloadService downloadService,String controlPlaneDomain) {
+  public DownloadController(DownloadService downloadService, String controlPlaneDomain) {
     this.downloadService = downloadService;
-    this.checkItemAccessHandler=new CheckItemAccessHandler(controlPlaneDomain);
+    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
   }
 
   @Override
@@ -105,7 +105,11 @@ public class DownloadController implements ApiController {
     String time = routingContext.queryParams().get("time");
     String endTime = routingContext.queryParams().get("endTime");
     String timeRel = routingContext.queryParams().get("timeRel");
-    GetRequestModel getRequestModel = new GetRequestModel(id, size, page, time, endTime, timeRel);
+    String sortBy = routingContext.queryParams().get("sort").split(":")[0];
+    String sortOrder = routingContext.queryParams().get("sort").split(":")[1];
+
+    GetRequestModel getRequestModel =
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
 
     downloadService
         .streamElasticDataCsvBatched(getRequestModel)

@@ -18,7 +18,6 @@ public class DownloadServiceImpl implements DownloadService {
 
   public DownloadServiceImpl(SearchService searchService, String timeLimit) {
     this.searchService = searchService;
-
     this.timeLimit = timeLimit;
   }
 
@@ -28,7 +27,12 @@ public class DownloadServiceImpl implements DownloadService {
 
     if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       LOGGER.debug("Streaming All data for ID: {}", getRequestModel.id());
-      return searchService.streamAllData(index, getRequestModel.size(), getRequestModel.page());
+      return searchService.streamAllData(
+          index,
+          getRequestModel.size(),
+          getRequestModel.page(),
+          getRequestModel.sortBy(),
+          getRequestModel.sortOrder());
     } else {
       LOGGER.debug("Streaming Temporal data for ID: {}", getRequestModel.id());
       return searchService.streamTemporalData(
@@ -39,7 +43,9 @@ public class DownloadServiceImpl implements DownloadService {
               getRequestModel.endTime(),
               timeLimit,
               getRequestModel.size(),
-              getRequestModel.page()));
+              getRequestModel.page()),
+          getRequestModel.sortBy(),
+          getRequestModel.sortOrder());
     }
   }
 

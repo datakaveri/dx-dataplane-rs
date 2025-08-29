@@ -72,7 +72,10 @@ tags:
     x-displayName: "Download"
     description: |
       Download APIs are used by DX(Data exchange) Data to stream data in csv.
-
+  - name: Search Entity
+    x-displayName: "Search Data"
+    description: |
+      A Search query is used by DX(Data exchange) Data *Consumers* for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, and temporal-based searches and geo-spatial search using a common `searchCriteria` array format.
   - name: Latest Entity
     x-displayName: "Latest Data"
     description: |
@@ -97,7 +100,7 @@ paths:
         By default data is sorted in descending order of the `observationDateTime` property. <br/>
         Note: time and endTime parameters are only supported if timeRel is given.
       security:
-        - authorization: []
+        - authorization: [ ]
       parameters:
         - name: id
           in: path
@@ -125,7 +128,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [ between, before, after ,during]
+            enum: [ between, before, after ,during ]
         - name: time
           in: query
           description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
@@ -138,6 +141,13 @@ paths:
           required: false
           schema:
             type: string
+        - name: sort
+          in: query
+          description: 'This parameter is used to sort the results basis on this property. <br/> The default sortBy property is `observationDateTime:desc` . <br/> The user could provide any property among `observationDateTime` and `itemCreatedAt` of the resource to sort the data. <br/> If the user provides a property which is not part of the resource, the API will throw a `400-Bad Request` error.'
+          required: false
+          schema:
+            type: string
+            enum: [ observationDateTime:desc, itemCreatedAt:desc, observationDateTime:asc, itemCreatedAt:asc ]
 
       responses:
         200:
@@ -201,8 +211,8 @@ paths:
   /ngsi-ld/v2/entities/{id}/search:
     post:
       tags:
-        - Latest Entity
-      summary: Latest Data Post Search
+        - Search Entity
+      summary: Data Post Search
       description: |
         Unified catalogue search query for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, and temporal-based searches using a common `searchCriteria` array format.
         
@@ -339,9 +349,11 @@ paths:
         - Field Filtering: Use the `filter` parameter to specify a subset of fields to return.
           For example, `filter=[id]` returns only the `id` field for each result.
         - Limits: The sum of the internally calculated `offset` and `size` must be less than or equal to `10,000` to prevent overly large queries.
+        
+        #### Geo-Spatial Search
       operationId: postLatestEntityDataSearch
       security:
-        - authorization: []
+        - authorization: [ ]
       parameters:
         - name: id
           in: path
@@ -466,7 +478,7 @@ paths:
       description: This is used to stream data in csv format for a given resource ID. (Get Search Data)
       operationId: downloadIdEntityData
       security:
-        - authorization: []
+        - authorization: [ ]
       parameters:
         - name: id
           in: path
@@ -493,14 +505,11 @@ paths:
             default: 100
         - name: sort
           in: query
-          description: >
-            This parameter allows sorting the results by up to 3 fields, separated by a semicolon (;).
-            The format for each field is `fieldName:asc` or `fieldName:desc`.
-            For example: `itemCreatedAt:desc;dataReadiness:asc;name:desc` will sort by creation date (descending),
-            then dataReadiness (ascending), then name (descending).
+          description: 'This parameter is used to sort the results basis on this property. <br/> The default sortBy property is `observationDateTime:desc` . <br/> The user could provide any property among `observationDateTime` and `itemCreatedAt` of the resource to sort the data. <br/> If the user provides a property which is not part of the resource, the API will throw a `400-Bad Request` error.'
           required: false
           schema:
             type: string
+            enum: [ observationDateTime:desc, itemCreatedAt:desc, observationDateTime:asc, itemCreatedAt:asc ]
       responses:
         '200':
           description: Success
@@ -1394,7 +1403,7 @@ components:
       properties:
         geometry:
           type: string
-          enum: [Point, point, Polygon, polygon, bbox, LineString, linestring]
+          enum: [ Point, point, Polygon, polygon, bbox, LineString, linestring ]
           description: >
             The geometry type of <b>geoquery</b> to be performed. <br/>
             This <b>should</b> be one from the available options in the Enum list. <br/>
@@ -1845,7 +1854,7 @@ components:
             items:
               type: string
       example:
-        [{
+        [ {
           "currentLevel": 1.16,
           "referenceLevel": 15.9,
           "measuredDistance": 14.74,
@@ -1856,7 +1865,7 @@ components:
           "deviceInfo": {
             "deviceID": "FWR055"
           }
-        }]
+        } ]
 
     entityresponse:
       title: entityresponse
@@ -2693,7 +2702,7 @@ components:
       example:
         type: urn:dx:rs:success
         title: success
-        results:  [
+        results: [
           {
             "_id": "3a7a9b7d-da3c-45b3-9ccc-44c9a19d7b26",
             "exchange_name": "UUID",

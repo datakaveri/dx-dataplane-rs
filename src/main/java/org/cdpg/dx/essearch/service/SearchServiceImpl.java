@@ -35,9 +35,9 @@ public class SearchServiceImpl implements SearchService {
 
   @Override
   public Future<List<ElasticsearchResponse>> searchTemporalData(
-      String index, TemporalQueryRequestModel temporalQueryRequestModel) {
+      String index, TemporalQueryRequestModel temporalQueryRequestModel, String sortBy, String sortOrder) {
     QueryModel queryModel =
-        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel);
+        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel, sortBy, sortOrder);
     return elasticsearchService
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
@@ -52,9 +52,9 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
-  public Future<List<ElasticsearchResponse>> searchAllData(String index, int size, int page) {
+  public Future<List<ElasticsearchResponse>> searchAllData(String index, int size, int page, String sortBy, String sortOrder) {
     LOGGER.info("searching all data for index: {}", index);
-    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page);
+    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
     return elasticsearchService
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
@@ -68,19 +68,19 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
-  public Future<ReadStream<Buffer>> streamAllData(String index, int size, int page) {
+  public Future<ReadStream<Buffer>> streamAllData(String index, int size, int page, String sortBy, String sortOrder) {
     LOGGER.info("Streaming all data for index: {}", index);
-    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page);
+    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
     return CsvPaginatedStreamHelper.streamCsvPaginated(
         elasticsearchService, index, queryModel, size, page);
   }
 
   @Override
   public Future<ReadStream<Buffer>> streamTemporalData(
-      String index, TemporalQueryRequestModel temporalQueryRequestModel) {
+      String index, TemporalQueryRequestModel temporalQueryRequestModel, String sortBy, String sortOrder) {
     LOGGER.info("Streaming temporal data for index: {}", index);
     QueryModel queryModel =
-        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel);
+        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel, sortBy, sortOrder);
     return CsvPaginatedStreamHelper.streamCsvPaginated(
         elasticsearchService,
         index,
