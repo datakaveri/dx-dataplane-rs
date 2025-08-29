@@ -43,7 +43,8 @@ public class LatestServiceImpl implements LatestService {
     String index = IndexNameCreation.createIndex(getRequestModel.id());
     if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       LOGGER.debug("Fetching All data for ID: {}", getRequestModel.id());
-      return searchService.searchAllData(index, getRequestModel.size(), getRequestModel.page());
+      return searchService.searchAllData(index, getRequestModel.size(), getRequestModel.page(),
+          getRequestModel.sortBy(), getRequestModel.sortOrder());
     } else {
       LOGGER.debug("Fetching Temporal data for ID: {}", getRequestModel.id());
       return searchService.searchTemporalData(
@@ -54,7 +55,7 @@ public class LatestServiceImpl implements LatestService {
               getRequestModel.endTime(),
               timeLimit,
               getRequestModel.size(),
-              getRequestModel.page()));
+              getRequestModel.page()), getRequestModel.sortBy(), getRequestModel.sortOrder());
     }
   }
 

@@ -76,9 +76,10 @@ public class QueryDecoder {
   }
 
   // Added for handling queries based on observation date time
-  public QueryModel getQueryBasedOnObservationDateTime(int size, int page) {
+  public QueryModel getQueryBasedOnObservationDateTime(
+      int size, int page, String sortBy, String sortOrder) {
     QueryModel q = new QueryModel(QueryType.MATCH_ALL);
-    q.setSortFields(Map.of("observationDateTime", "desc"));
+    q.setSortFields(Map.of(sortBy, sortOrder));
     q.setLimit(String.valueOf(size));
     int offset = (page - 1) * size;
     q.setOffset(String.valueOf(offset));
@@ -87,7 +88,7 @@ public class QueryDecoder {
 
   // Added for temporal query based on observation date time
   public QueryModel getTemporalQueryBasedOnObservationDateTime(
-      TemporalQueryRequestModel temporalQueryRequest) {
+      TemporalQueryRequestModel temporalQueryRequest, String sortBy, String sortOrder) {
     LOGGER.info("into query decoder getTemporalQueryBasedOnObservationDateTime()");
     if (temporalQueryRequest.getTimeRel() == null || temporalQueryRequest.getTimeRel().isEmpty()) {
       throw new DxEsException("Time relation is required for temporal queries");
@@ -103,7 +104,7 @@ public class QueryDecoder {
       new TemporalQueryFiltersDecorator(queryMap, temporalQueryRequest, defaultDateLimit).add();
 
       QueryModel q = new QueryModel();
-      q.setSortFields(Map.of("observationDateTime", "desc"));
+      q.setSortFields(Map.of(sortBy, sortOrder));
       q.setLimit(String.valueOf(temporalQueryRequest.getSize()));
       int offset = (temporalQueryRequest.getPage() - 1) * temporalQueryRequest.getSize();
       q.setOffset(String.valueOf(offset));
