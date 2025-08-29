@@ -1,5 +1,6 @@
 package org.cdpg.dx.essearch.service;
 
+import static org.cdpg.dx.database.elastic.util.Constants.MAX_SEARCH_RESULT_LIMIT;
 import static org.cdpg.dx.essearch.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
@@ -18,6 +19,7 @@ import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.essearch.model.OrderBy;
 import org.cdpg.dx.essearch.model.QueryDecoder;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.essearch.model.SearchResultWithCount;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.rs.download.util.CsvPaginatedStreamHelper;
 
@@ -40,7 +42,7 @@ public class SearchServiceImpl implements SearchService {
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
             result -> {
-              Future.succeededFuture(result);
+              LOGGER.debug("Temporal search completed successfully with {} results", result.size());
             })
         .onFailure(
             failure -> {
@@ -57,12 +59,11 @@ public class SearchServiceImpl implements SearchService {
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
             result -> {
-              Future.succeededFuture(result);
+              LOGGER.debug("All data search completed successfully with {} results", result.size());
             })
         .onFailure(
             failure -> {
               LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
-              Future.failedFuture(new DxEsException("Failed to process search request"));
             });
   }
 
@@ -92,7 +93,7 @@ public class SearchServiceImpl implements SearchService {
   public Future<ReadStream<Buffer>> streamPostData(SearchQuery searchQuery, String index) {
     try {
       String searchType = searchQuery.getSearchType();
-      LOGGER.info("search type {}", searchType);
+      LOGGER.info("search type {} streamPostData", searchType);
       QueryModel queryModel = queryDecoder.postSearchQueryModel(searchQuery);
       if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
         Map<String, String> sortFields =
@@ -126,10 +127,70 @@ public class SearchServiceImpl implements SearchService {
           .search(index, queryModel, SOURCE_ONLY)
           .onSuccess(
               result -> {
-                Future.succeededFuture(result);
+                LOGGER.debug("Search completed successfully with {} result", result.size());
+              })
+          .onFailure(
+              failure -> {
+                LOGGER.error("Error during search: {}", failure.getMessage(), failure);
               });
     } catch (Exception e) {
       LOGGER.error("Error during postSearch: {}", e.getMessage(), e);
+      return Future.failedFuture(new DxBadRequestException("Failed to process search request"));
+    }
+  }
+
+  @Override
+  public Future<SearchResultWithCount> searchWithCountValidation(
+      SearchQuery searchQuery, String index) {
+    try {
+      String searchType = searchQuery.getSearchType();
+      LOGGER.info("search type {} in searchWithCountValidation", searchType);
+      QueryModel queryModel = queryDecoder.postSearchQueryModel(searchQuery);
+      if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
+        Map<String, String> sortFields =
+            searchQuery.getSort().stream()
+                .collect(
+                    Collectors.toMap(OrderBy::getColumn, sort -> sort.getDirection().toString()));
+        queryModel.setSortFields(sortFields);
+      }
+
+      // First execute count query to get accurate total hits
+      return elasticsearchService
+          .count(index, queryModel)
+          .compose(
+              count -> {
+                LOGGER.info("Count query result: {}", count);
+
+                // Check if count exceeds the maximum limit
+                if (count > MAX_SEARCH_RESULT_LIMIT) {
+                  LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
+                  return Future.failedFuture(
+                      new DxBadRequestException(
+                          "Payload too large: "
+                              + count
+                              + " results found. Use filters to get results within limit or use async API. Maximum allowed: "
+                              + MAX_SEARCH_RESULT_LIMIT));
+                }
+
+                // Execute search query
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(
+                        searchResults -> {
+                          LOGGER.debug(
+                              "Search completed successfully with {} results",
+                              searchResults.size());
+                          ElasticsearchResponse.setTotalHits(count);
+                          return new SearchResultWithCount(searchResults, count);
+                        });
+              })
+          .onFailure(
+              failure -> {
+                LOGGER.error(
+                    "Error during search with count validation: {}", failure.getMessage(), failure);
+              });
+    } catch (Exception e) {
+      LOGGER.error("Error during search with count validation: {}", e.getMessage(), e);
       return Future.failedFuture(new DxBadRequestException("Failed to process search request"));
     }
   }

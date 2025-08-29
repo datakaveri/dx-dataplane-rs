@@ -48,7 +48,7 @@ public class DataBrokerVerticle extends AbstractVerticle {
   private int amqpPort;
   private String amqpUrl;
   /*private RevokedService revokedService;*/
-  private UniqueAttributeService uniqueAttributeService;
+  /*private UniqueAttributeService uniqueAttributeService;*/
 
   @Override
   public void start() throws Exception {
@@ -121,15 +121,15 @@ public class DataBrokerVerticle extends AbstractVerticle {
 
     /* Create RabbitMQ listeners for revoke client queue, unique attribute queue and async query queue. */
     /*revokedService = RevokedService.createProxy(vertx, REVOKED_SERVICE_ADDRESS);*/
-    uniqueAttributeService =
-        UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
+   /* uniqueAttributeService =
+        UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);*/
     /*RevokeClientQlistener revokeQlistener =
         new RevokeClientQlistener(iudxInternalRabbitMqClient, revokedService);*/
-    UniqueAttribQListener uniqueAttrQlistener =
-        new UniqueAttribQListener(iudxInternalRabbitMqClient, uniqueAttributeService);
+    /*UniqueAttribQListener uniqueAttrQlistener =
+        new UniqueAttribQListener(iudxInternalRabbitMqClient, uniqueAttributeService);*/
 
     /*revokeQlistener.start();*/
-    uniqueAttrQlistener.start();
+    /*uniqueAttrQlistener.start();*/
 
     dataBrokerService =
         new DataBrokerServiceImpl(

@@ -561,6 +561,14 @@ public class QueryModel {
                   .build();
           return QueryBuilders.geoShape(
               g -> g.field((String) queryParameters.get(GEO_PROPERTY)).shape(geoShapeFieldQuery));
+        case GEO_DISTANCE:
+          JsonArray coordinates = (JsonArray) queryParameters.get(COORDINATES);
+          String distance = queryParameters.get("distance").toString();
+          return QueryBuilders.geoDistance(
+              g -> g.field((String) queryParameters.get(GEO_PROPERTY))
+                  .location(GeoLocation.of(gl -> gl.latlon(LatLonGeoLocation.of(latLon -> 
+                      latLon.lat(coordinates.getDouble(1)).lon(coordinates.getDouble(0))))))
+                  .distance(distance));
         case TEXT:
           return QueryStringQuery.of(qs -> qs.query(queryParameters.get(Q_VALUE).toString()))
               ._toQuery();

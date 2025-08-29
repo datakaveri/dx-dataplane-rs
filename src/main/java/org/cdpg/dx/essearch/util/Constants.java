@@ -441,6 +441,8 @@ public class Constants {
   public static final String RESPONSE_FILTER = "responseFilter_";
   public static final String SEARCH_TYPE_CRITERIA = "searchCriteria_"; // used in SEARCH_TYPE value
   public static final String SEARCH_CRITERIA_KEY = "searchCriteria";
+  public static final String GEO_KEY_Q = "geoQ";
+  public static final String GEO_SEARCH_KEY = "geoSearch_";
   public static final String MESSAGE = "detail";
   public static final String RESULTS = "results";
   public static final String METHOD = "method";
@@ -527,6 +529,7 @@ public class Constants {
   public static final int POPULAR_DATASET_COUNT = 6;
   public static final String FILTER_PAGINATION_FROM = "0";
   public static final String MAX_LIMIT = "10000";
+  public static final int MAX_SEARCH_RESULT_LIMIT = 50000; // Maximum total hits for search operations
   public static final String SUCCESS = "Success";
   /* URN Codes */
   public static final String TYPE_WRONG_PROVIDER = "urn:dx:cat:WrongProvider";
