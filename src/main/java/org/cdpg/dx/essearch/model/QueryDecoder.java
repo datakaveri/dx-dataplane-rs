@@ -1,5 +1,6 @@
 package org.cdpg.dx.essearch.model;
 
+import static org.cdpg.dx.database.elastic.util.Constants.GEOSEARCH_REGEX;
 import static org.cdpg.dx.essearch.util.Constants.*;
 
 import java.util.*;
@@ -9,6 +10,7 @@ import org.cdpg.dx.common.exception.DxEsException;
 import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.util.AggregationType;
 import org.cdpg.dx.database.elastic.util.QueryType;
+import org.cdpg.dx.rs.latest.util.dtoUtil.GeoQ;
 
 public class QueryDecoder {
   private static final Logger LOGGER = LogManager.getLogger(QueryDecoder.class);
@@ -130,7 +132,11 @@ public class QueryDecoder {
     for (FilterType filterType : FilterType.values()) {
       queryMap.put(filterType, new ArrayList<>());
     }
-
+    if (searchType != null && searchType.matches(GEOSEARCH_REGEX)) {
+      GeoQ geoQ = request.getGeoQ();
+      new GeoQueryFiltersDecorator(queryMap, geoQ).add();
+      isValidQuery = true;
+    }
     if (searchType != null && searchType.matches(SEARCH_CRITERIA_REGEX)) {
       LOGGER.debug("Info: searchCriteria block");
       new SearchCriteriaQueryDecorator(queryMap, request.getSearchCriteriaRequest()).add();

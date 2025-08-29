@@ -6,6 +6,7 @@ import io.vertx.core.streams.ReadStream;
 import java.util.List;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.essearch.model.SearchResultWithCount;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 
 public interface SearchService {
@@ -20,6 +21,8 @@ public interface SearchService {
 
   Future<ReadStream<Buffer>> streamTemporalData(
       String index, TemporalQueryRequestModel temporalQueryRequestModel);
-    Future<ReadStream<Buffer>> streamPostData(
-            SearchQuery searchQuery, String index);
+
+  Future<ReadStream<Buffer>> streamPostData(SearchQuery searchQuery, String index);
+
+  Future<SearchResultWithCount> searchWithCountValidation(SearchQuery searchQuery, String index);
 }

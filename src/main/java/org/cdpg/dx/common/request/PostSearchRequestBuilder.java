@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.essearch.model.*;
+import org.cdpg.dx.rs.latest.util.dtoUtil.GeoQ;
 
 public class PostSearchRequestBuilder {
   private static final Logger LOGGER = LogManager.getLogger(PostSearchRequestBuilder.class);
@@ -61,7 +62,8 @@ public class PostSearchRequestBuilder {
         getAccessPolicyRequest(isAssetSearch, getSub(routingContext)),
         getInstanceFilterRequest(requestBody),
         getResponseFilterRequest(requestBody),
-        extractSortOrders());
+        extractSortOrders(),
+        getGeoQ(requestBody));
   }
 
   public int getSize(MultiMap params) {
@@ -99,6 +101,7 @@ public class PostSearchRequestBuilder {
   }
 
   private String buildSearchType(JsonObject body) {
+    LOGGER.debug("body received for building search type: " + body);
     boolean hasFilter = false;
     StringBuilder typeBuilder = new StringBuilder();
 
@@ -115,6 +118,10 @@ public class PostSearchRequestBuilder {
         && body.getJsonArray(FILTER) != null
         && !body.getJsonArray(FILTER).isEmpty()) {
       typeBuilder.append(RESPONSE_FILTER);
+      hasFilter = true;
+    }
+    if (body.getJsonObject(GEO_KEY_Q) != null && !body.getJsonObject(GEO_KEY_Q).isEmpty()) {
+      typeBuilder.append(GEO_SEARCH_KEY);
       hasFilter = true;
     }
     if (!hasFilter) {
@@ -209,5 +216,12 @@ public class PostSearchRequestBuilder {
           new OrderBy(defaultSortBy, OrderBy.Direction.valueOf(defaultOrder.toUpperCase())));
     }
     return orderByList;
+  }
+
+  private GeoQ getGeoQ(JsonObject requestBody) {
+    if (requestBody.containsKey("geoQ")) {
+      return new GeoQ(requestBody.getJsonObject("geoQ"));
+    }
+    return null;
   }
 }

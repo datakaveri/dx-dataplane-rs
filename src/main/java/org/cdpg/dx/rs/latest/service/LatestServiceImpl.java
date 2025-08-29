@@ -18,7 +18,7 @@ public class LatestServiceImpl implements LatestService {
   private final SearchService searchService;
   private final String timeLimit;
 
-  public LatestServiceImpl( SearchService searchService, String timeLimit) {
+  public LatestServiceImpl(SearchService searchService, String timeLimit) {
     this.timeLimit = Objects.requireNonNull(timeLimit, "timeLimit must not be null");
     this.searchService = searchService;
   }
@@ -62,11 +62,15 @@ public class LatestServiceImpl implements LatestService {
   public Future<ResponseModel> postSearch(SearchQuery searchQuery, String id) {
     String index = IndexNameCreation.createIndex(id);
     return searchService
-        .search(searchQuery, index)
+        .searchWithCountValidation(searchQuery, index)
         .map(
-            results -> {
-              LOGGER.debug("Search execution successful for ID: {}", id);
-              return new ResponseModel(results, searchQuery.getSize(), searchQuery.getPage());
+            searchResultWithCount -> {
+              LOGGER.debug(
+                  "Search execution successful for ID: {} with total count: {}",
+                  id,
+                  searchResultWithCount.getTotalCount());
+              return new ResponseModel(
+                  searchResultWithCount.getResults(), searchQuery.getSize(), searchQuery.getPage());
             })
         .onFailure(
             err -> {

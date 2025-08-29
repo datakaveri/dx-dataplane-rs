@@ -1,6 +1,7 @@
 package org.cdpg.dx.essearch.model;
 
 import java.util.List;
+import org.cdpg.dx.rs.latest.util.dtoUtil.GeoQ;
 
 public class SearchQuery {
   private String searchType;
@@ -14,6 +15,7 @@ public class SearchQuery {
   private InstanceFilterRequest instanceFilterRequest;
   private ResponseFilterRequest responseFilterRequest;
   private List<OrderBy> sort;
+  private GeoQ geoQ;
 
   public SearchQuery(
       String searchType,
@@ -26,7 +28,8 @@ public class SearchQuery {
       AccessPolicyRequest accessPolicyRequest,
       InstanceFilterRequest instanceFilterRequest,
       ResponseFilterRequest responseFilterRequest,
-      List<OrderBy> sort) {
+      List<OrderBy> sort,
+      GeoQ geoQ) {
     this.searchType = searchType;
     this.size = size;
     this.page = page;
@@ -38,6 +41,7 @@ public class SearchQuery {
     this.instanceFilterRequest = instanceFilterRequest;
     this.responseFilterRequest = responseFilterRequest;
     this.sort = sort;
+    this.geoQ = geoQ;
   }
 
   public List<OrderBy> getSort() {
@@ -126,5 +130,13 @@ public class SearchQuery {
 
   public void setResponseFilterRequest(ResponseFilterRequest responseFilterRequest) {
     this.responseFilterRequest = responseFilterRequest;
+  }
+
+  public GeoQ getGeoQ() {
+    return geoQ;
+  }
+
+  public void setGeoQ(GeoQ geoQ) {
+    this.geoQ = geoQ;
   }
 }
