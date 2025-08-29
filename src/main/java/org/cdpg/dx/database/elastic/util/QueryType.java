@@ -10,6 +10,7 @@ public enum QueryType {
   RANGE,
   WILDCARD,
   GEO_SHAPE,
+  GEO_DISTANCE,
   GEO_BOUNDING_BOX,
   TEXT,
   SCRIPT_SCORE,

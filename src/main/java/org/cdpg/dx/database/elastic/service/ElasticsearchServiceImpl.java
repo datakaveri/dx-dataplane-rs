@@ -81,6 +81,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     }
 
     if (queryModel.toSortOptions() != null) {
+      LOGGER.debug("Sort options: {}", queryModel.toSortOptions());
       requestBuilder.sort(queryModel.toSortOptions());
     }
 
@@ -100,7 +101,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
               try {
                 List<ElasticsearchResponse> esResponses = new ArrayList<>();
                 JsonObject aggregationsJson = new JsonObject();
-                LOGGER.debug("Total :: {}",response.hits().hits().size());
+                LOGGER.debug("Total :: {}", response.hits().hits().size());
                 // 1. Handle hits if needed
                 if (!options.startsWith(AGGREGATION_ONLY)) {
                   for (var hit : response.hits().hits()) {

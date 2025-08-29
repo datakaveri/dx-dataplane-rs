@@ -309,6 +309,8 @@ public class Constants {
   public static final String RESULT = "results";
   public static final String SIZE_KEY = "size";
   public static final String PAGE_KEY = "page";
+    public static final int DEFAULT_SIZE_VALUE = 5000;
+    public static final int DEFAULT_FROM_VALUE = 0;
 
   public static final int STATIC_DELAY_TIME = 3000;
   public static final String FILTER_PATH = "?filter_path=took,hits.total.value,hits.hits._source";
@@ -527,6 +529,7 @@ public class Constants {
   public static final int POPULAR_DATASET_COUNT = 6;
   public static final String FILTER_PAGINATION_FROM = "0";
   public static final String MAX_LIMIT = "10000";
+  public static final int MAX_SEARCH_RESULT_LIMIT = 50000; // Maximum total hits for search operations
   public static final String SUCCESS = "Success";
   /* URN Codes */
   public static final String TYPE_WRONG_PROVIDER = "urn:dx:cat:WrongProvider";

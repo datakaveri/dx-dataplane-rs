@@ -1,158 +1,25 @@
 pipeline {
-
   environment {
-    devRegistry = 'ghcr.io/datakaveri/rs-dev'
-    deplRegistry = 'ghcr.io/datakaveri/rs-depl'
-    testRegistry = 'ghcr.io/datakaveri/rs-test:latest'
+    devRegistry = 'ghcr.io/datakaveri/dataplane-rs-dev'
     registryUri = 'https://ghcr.io'
     registryCredential = 'datakaveri-ghcr'
     GIT_HASH = GIT_COMMIT.take(7)
   }
-
-  agent { 
+  agent {
     node {
-      label 'slave1' 
+      label 'slave1'
     }
   }
-
   stages {
-    
-    stage('Build images') {
+
+    stage('Building images') {
       steps{
         script {
           echo 'Pulled - ' + env.GIT_BRANCH
           devImage = docker.build( devRegistry, "-f ./docker/dev.dockerfile .")
-          deplImage = docker.build( deplRegistry, "-f ./docker/depl.dockerfile .")
-          testImage = docker.build( testRegistry, "-f ./docker/test.dockerfile .")
         }
       }
     }
-
-    stage('Unit Tests and Code Coverage Test'){
-      steps{
-        script{
-          sh 'docker compose -f docker-compose.test.yml up test'
-        }
-        xunit (
-          thresholds: [ skipped(failureThreshold: '40'), failed(failureThreshold: '0') ],
-          tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
-        )
-        jacoco classPattern: 'target/classes', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java', exclusionPattern:'iudx/resource/server/apiserver/ApiServerVerticle.class,**/*VertxEBProxy.class,**/Constants.class,**/*VertxProxyHandler.class,**/*Verticle.class,iudx/resource/server/database/archives/DatabaseService.class,iudx/resource/server/database/async/AsyncService.class,iudx/resource/server/database/latest/LatestDataService.class,iudx/resource/server/deploy/*.class,iudx/resource/server/database/postgres/PostgresService.class,iudx/resource/server/apiserver/ManagementRestApi.class,iudx/resource/server/apiserver/AdminRestApi.class,iudx/resource/server/apiserver/AsyncRestApi.class,iudx/resource/server/callback/CallbackService.class,**/JwtDataConverter.class,**/EncryptionService.class,**/EsResponseFormatter.class,**/AbstractEsSearchResponseFormatter.class'
-      }
-      post{
-      always {
-        recordIssues(
-          enabledForFailure: true,
-          skipBlames: true,
-          qualityGates: [[threshold:1000, type: 'TOTAL', unstable: false]],
-          tool: checkStyle(pattern: 'target/checkstyle-result.xml')
-        )
-        recordIssues(
-          enabledForFailure: true,
-          skipBlames: true,
-          qualityGates: [[threshold:1000, type: 'TOTAL', unstable: false]],
-          tool: pmdParser(pattern: 'target/pmd.xml')
-        )
-      }
-        failure{
-          script{
-            sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-          }
-          error "Test failure. Stopping pipeline execution!"
-        }
-        cleanup{
-          script{
-            sh 'sudo rm -rf target/'
-          }
-        }        
-      }
-    }
-
-    stage('Start Resource-Server for Performance and Integration Testing'){
-      steps{
-        script{
-          sh 'scp Jmeter/ResourceServer.jmx jenkins@jenkins-master:/var/lib/jenkins/iudx/rs/Jmeter/'
-          sh 'docker compose -f docker-compose.test.yml up -d perfTest'
-          sh 'sleep 60'
-        }
-      }
-      post{
-        failure{
-          script{
-            sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-          }
-        }
-      }
-    }
-    
-    stage('Jmeter Performance Test'){
-      steps{
-        script{
-          env.puneToken = sh(returnStdout: true, script: 'python3 Jenkins/resources/get-token.py --pune').trim()
-          env.suratToken = sh(returnStdout: true, script: 'python3 Jenkins/resources/get-token.py --surat').trim()
-        }
-        node('built-in') {
-          script{
-            sh 'rm -rf /var/lib/jenkins/iudx/rs/Jmeter/report ; mkdir -p /var/lib/jenkins/iudx/rs/Jmeter/report'
-            sh "set +x;/var/lib/jenkins/apache-jmeter/bin/jmeter.sh -n -t /var/lib/jenkins/iudx/rs/Jmeter/ResourceServer.jmx -l /var/lib/jenkins/iudx/rs/Jmeter/report/JmeterTest.jtl -e -o /var/lib/jenkins/iudx/rs/Jmeter/report/ -Jhost=jenkins-slave1 -Jport=8080 -Jprotocol=http -JpuneToken=$env.puneToken -JsuratToken=$env.suratToken"
-          }
-          perfReport filterRegex: '', showTrendGraphs: true, sourceDataFiles: '/var/lib/jenkins/iudx/rs/Jmeter/report/*.jtl'     
-        }
-      }
-      post{
-        failure{
-          script{
-            sh 'docker compose -f docker-compose.test.yml  down --remove-orphans'
-          }
-        }
-      }
-    }
-
-    stage('Integration Tests and OWASP ZAP pen test'){
-      steps{
-        node('built-in') {
-          script{
-            startZap ([host: '0.0.0.0', port: 8090, zapHome: '/var/lib/jenkins/tools/com.cloudbees.jenkins.plugins.customtools.CustomTool/OWASP_ZAP/ZAP_2.11.0'])
-            sh 'curl http://0.0.0.0:8090/JSON/pscan/action/disableScanners/?ids=10096'
-          }
-        }
-        script{
-            sh 'mkdir -p configs'
-            sh 'scp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
-            sh 'sudo update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java'
-            sh 'mvn test-compile failsafe:integration-test -DskipUnitTests=true -DintTestProxyHost=jenkins-master-priv -DintTestProxyPort=8090 -DintTestHost=jenkins-slave1 -DintTestPort=8080'
-        }
-        node('built-in') {
-          script{
-            runZapAttack()
-            }
-        }
-
-      }
-      post{
-        always{
-           xunit (
-             thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-             tools: [ JUnit(pattern: 'target/failsafe-reports/*.xml') ]
-             )
-          node('built-in') {
-            script{
-              archiveZap failHighAlerts: 1, failMediumAlerts: 1, failLowAlerts: 1
-            }
-          }
-        }
-        failure{
-          error "Test failure. Stopping pipeline execution!"
-        }
-        cleanup{
-          script{
-            sh 'sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java'
-            sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-          } 
-        }
-      }
-    }
-
     stage('Continuous Deployment') {
       when {
         allOf {
@@ -164,7 +31,7 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.GIT_BRANCH == 'origin/master';
+            return env.GIT_BRANCH == 'origin/main';
           }
         }
       }
@@ -173,8 +40,7 @@ pipeline {
           steps {
             script {
               docker.withRegistry( registryUri, registryCredential ) {
-                devImage.push("5.6.0-alpha-${env.GIT_HASH}")
-                deplImage.push("5.6.0-alpha-${env.GIT_HASH}")
+                devImage.push("1.0.0-${env.GIT_HASH}")
               }
             }
           }
@@ -182,35 +48,25 @@ pipeline {
         stage('Docker Swarm deployment') {
           steps {
             script {
-              sh "ssh azureuser@docker-swarm 'docker service update rs_rs --image ghcr.io/datakaveri/rs-depl:5.6.0-alpha-${env.GIT_HASH}'"
-              sh 'sleep 60'
+              sh "ssh azureuser@docker-swarm 'docker service update dataplane-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
+              sh 'sleep 15'
+              sh '''#!/bin/bash
+              response_code=$(curl -s -o /dev/null -w \'%{http_code}\\n\' --connect-timeout 5 --retry 5 --retry-connrefused -XGET https://v2.dev.rs.iudx.io/apis)
+
+              if [[ "$response_code" -ne "200" ]]
+              then
+                echo "Health check failed"
+                exit 1
+              else
+                echo "Health check complete; Server is up."
+                exit 0
+              fi
+              '''
             }
           }
           post{
             failure{
               error "Failed to deploy image in Docker Swarm"
-            }
-          }          
-        }
-        stage('Integration test on swarm deployment') {
-          steps {
-              script{
-                sh 'sudo update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java'
-                sh 'mvn test-compile failsafe:integration-test -DskipUnitTests=true -DintTestDepl=true'
-              }
-          }
-          post{
-            always{
-             script{
-                sh 'sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java'
-             }
-             xunit (
-               thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-               tools: [ JUnit(pattern: 'target/failsafe-reports/*.xml') ]
-               )
-            }
-            failure{
-              error "Test failure. Stopping pipeline execution!"
             }
           }
         }
@@ -220,8 +76,8 @@ pipeline {
   post{
     failure{
       script{
-        if (env.GIT_BRANCH == 'origin/master')
-        emailext recipientProviders: [buildUser(), developers()], to: '$RS_RECIPIENTS, $DEFAULT_RECIPIENTS', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
+        if (env.GIT_BRANCH == 'origin/main')
+        emailext recipientProviders: [buildUser(), developers()], to: '$AAA_RECIPIENTS, $DEFAULT_RECIPIENTS', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS:
 Check console output at $BUILD_URL to view the results.'''
       }
     }

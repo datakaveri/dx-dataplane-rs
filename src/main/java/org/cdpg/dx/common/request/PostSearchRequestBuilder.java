@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.essearch.model.*;
+import org.cdpg.dx.rs.latest.util.dtoUtil.GeoQ;
 
 public class PostSearchRequestBuilder {
   private static final Logger LOGGER = LogManager.getLogger(PostSearchRequestBuilder.class);
@@ -26,7 +27,7 @@ public class PostSearchRequestBuilder {
   boolean isCountApi = false;
   boolean isAssetSearch = false;
   private RoutingContext routingContext;
-  private String defaultSortBy = "itemCreatedAt";
+  private String defaultSortBy = "observationDateTime";
   private String defaultOrder = "desc";
 
   public PostSearchRequestBuilder(RoutingContext routingContext) {
@@ -61,7 +62,8 @@ public class PostSearchRequestBuilder {
         getAccessPolicyRequest(isAssetSearch, getSub(routingContext)),
         getInstanceFilterRequest(requestBody),
         getResponseFilterRequest(requestBody),
-        extractSortOrders());
+        extractSortOrders(),
+        getGeoQ(requestBody));
   }
 
   public int getSize(MultiMap params) {
@@ -99,6 +101,7 @@ public class PostSearchRequestBuilder {
   }
 
   private String buildSearchType(JsonObject body) {
+    LOGGER.debug("body received for building search type: " + body);
     boolean hasFilter = false;
     StringBuilder typeBuilder = new StringBuilder();
 
@@ -115,6 +118,10 @@ public class PostSearchRequestBuilder {
         && body.getJsonArray(FILTER) != null
         && !body.getJsonArray(FILTER).isEmpty()) {
       typeBuilder.append(RESPONSE_FILTER);
+      hasFilter = true;
+    }
+    if (body.getJsonObject(GEO_KEY_Q) != null && !body.getJsonObject(GEO_KEY_Q).isEmpty()) {
+      typeBuilder.append(GEO_SEARCH_KEY);
       hasFilter = true;
     }
     if (!hasFilter) {
@@ -171,10 +178,6 @@ public class PostSearchRequestBuilder {
   private List<OrderBy> extractSortOrders() {
     List<OrderBy> orderByList = new ArrayList<>();
     MultiMap params = routingContext.request().params(true);
-    if (params.get("sort") == null) {
-      LOGGER.debug("No sort parameter found in request.");
-      return null;
-    }
     String sortParam = params.get("sort");
     final int MAX_SORT_FIELDS = 3;
 
@@ -204,10 +207,18 @@ public class PostSearchRequestBuilder {
 
         orderByList.add(new OrderBy(field, OrderBy.Direction.valueOf(direction.toUpperCase())));
       }
-    } else if (defaultSortBy != null) {
+    }
+    if (orderByList.isEmpty() && defaultSortBy != null) {
       orderByList.add(
           new OrderBy(defaultSortBy, OrderBy.Direction.valueOf(defaultOrder.toUpperCase())));
     }
     return orderByList;
+  }
+
+  private GeoQ getGeoQ(JsonObject requestBody) {
+    if (requestBody.containsKey("geoQ")) {
+      return new GeoQ(requestBody.getJsonObject("geoQ"));
+    }
+    return null;
   }
 }

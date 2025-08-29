@@ -386,6 +386,8 @@ paths:
                 - $ref: '#/components/schemas/SearchCriteriaRequest'
                 - $ref: '#/components/schemas/AutocompleteFuzzyTextSearchRequest'
                 - $ref: '#/components/schemas/ComplexSearchRequest'
+                - $ref: '#/components/schemas/AutocompleteFuzzyTextSearchRequest'
+                - $ref: '#/components/schemas/GeoSearchRequest'
       responses:
         '200':
           description: All the query parameters yielded results.
@@ -601,6 +603,57 @@ components:
       bearerFormat: JWT
       description: Keycloak issued Bearer token
   schemas:
+    GeoSearchRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        geoQ:
+          type: object
+          additionalProperties: false
+          properties:
+            geometry:
+              type: string
+              enum: [ point, Point, polygon, Polygon, LineString, linestring, bbox ]
+              default: ""
+              pattern: "^.*$"
+            coordinates:
+              anyOf:
+                - type: array
+                  maxItems: 2
+                  default: [ ]
+                  items:
+                    type: number
+                    default: 0.0
+                - type: array
+                  default: [ ]
+                  items:
+                    type: array
+                    default: [ ]
+                    items:
+                      type: array
+                      default: [ ]
+                      items:
+                        type: number
+                        default: 0.0
+                - type: array
+                  default: [ ]
+                  items:
+                    type: array
+                    default: [ ]
+                    items:
+                      type: number
+                      default: 0.0
+            georel:
+              type: string
+              minLength: 1
+              maxLength: 512
+              default: ""
+              pattern: "^.*$"
+            geoproperty:
+              type: string
+              enum: [ location ]
+              default: ""
+              pattern: "^.*$"
     TextSearchRequest:
       type: object
       additionalProperties: false
