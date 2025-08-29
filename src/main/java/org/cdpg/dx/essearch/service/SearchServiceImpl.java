@@ -144,7 +144,7 @@ public class SearchServiceImpl implements SearchService {
       SearchQuery searchQuery, String index) {
     try {
       String searchType = searchQuery.getSearchType();
-      LOGGER.info("search type {}", searchType);
+      LOGGER.info("search type {} in searchWithCountValidation", searchType);
       QueryModel queryModel = queryDecoder.postSearchQueryModel(searchQuery);
       if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
         Map<String, String> sortFields =

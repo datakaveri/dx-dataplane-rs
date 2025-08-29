@@ -27,7 +27,7 @@ public class PostSearchRequestBuilder {
   boolean isCountApi = false;
   boolean isAssetSearch = false;
   private RoutingContext routingContext;
-  private String defaultSortBy = "itemCreatedAt";
+  private String defaultSortBy = "observationDateTime";
   private String defaultOrder = "desc";
 
   public PostSearchRequestBuilder(RoutingContext routingContext) {
@@ -178,10 +178,6 @@ public class PostSearchRequestBuilder {
   private List<OrderBy> extractSortOrders() {
     List<OrderBy> orderByList = new ArrayList<>();
     MultiMap params = routingContext.request().params(true);
-    if (params.get("sort") == null) {
-      LOGGER.debug("No sort parameter found in request.");
-      return null;
-    }
     String sortParam = params.get("sort");
     final int MAX_SORT_FIELDS = 3;
 
@@ -211,7 +207,8 @@ public class PostSearchRequestBuilder {
 
         orderByList.add(new OrderBy(field, OrderBy.Direction.valueOf(direction.toUpperCase())));
       }
-    } else if (defaultSortBy != null) {
+    }
+    if (orderByList.isEmpty() && defaultSortBy != null) {
       orderByList.add(
           new OrderBy(defaultSortBy, OrderBy.Direction.valueOf(defaultOrder.toUpperCase())));
     }
