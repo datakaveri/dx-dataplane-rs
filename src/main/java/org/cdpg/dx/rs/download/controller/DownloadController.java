@@ -105,8 +105,15 @@ public class DownloadController implements ApiController {
     String time = routingContext.queryParams().get("time");
     String endTime = routingContext.queryParams().get("endTime");
     String timeRel = routingContext.queryParams().get("timeRel");
-    String sortBy = routingContext.queryParams().get("sort").split(":")[0];
-    String sortOrder = routingContext.queryParams().get("sort").split(":")[1];
+    String sort = routingContext.queryParams().get("sort");
+    String sortBy;
+    if (sort == null) {
+      sortBy = "observationDateTime:desc";
+    } else {
+      sortBy = sort;
+    }
+    String sortOrder = sortBy.split(":")[1];
+    sortBy = sortBy.split(":")[0];
 
     GetRequestModel getRequestModel =
         new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
