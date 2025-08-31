@@ -87,8 +87,15 @@ public class LatestController implements ApiController {
     String time = ctx.queryParams().get("time");
     String endTime = ctx.queryParams().get("endTime");
     String timeRel = ctx.queryParams().get("timeRel");
-    String sortBy = ctx.queryParams().get("sort").split(":")[0];
-    String sortOrder = ctx.queryParams().get("sort").split(":")[1];
+    String sort = ctx.queryParams().get("sort");
+    String sortBy;
+    if (sort == null) {
+      sortBy = "observationDateTime:desc";
+    } else {
+      sortBy = sort;
+    }
+    String sortOrder = sortBy.split(":")[1];
+    sortBy = sortBy.split(":")[0];
     GetRequestModel getRequestModel =
         new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
     latestService
