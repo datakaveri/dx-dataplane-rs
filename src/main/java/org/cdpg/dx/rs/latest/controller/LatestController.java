@@ -26,10 +26,11 @@ public class LatestController implements ApiController {
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
+
   /** Initializes the latest controller with required services and config. */
-  public LatestController(LatestService latestService,String controlPlaneDomain) {
+  public LatestController(LatestService latestService, String controlPlaneDomain) {
     this.latestService = latestService;
-    this.checkItemAccessHandler=new CheckItemAccessHandler(controlPlaneDomain);
+    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
   }
 
   @Override
@@ -86,7 +87,17 @@ public class LatestController implements ApiController {
     String time = ctx.queryParams().get("time");
     String endTime = ctx.queryParams().get("endTime");
     String timeRel = ctx.queryParams().get("timeRel");
-    GetRequestModel getRequestModel = new GetRequestModel(id, size, page, time, endTime, timeRel);
+    String sort = ctx.queryParams().get("sort");
+    String sortBy;
+    if (sort == null) {
+      sortBy = "observationDateTime:desc";
+    } else {
+      sortBy = sort;
+    }
+    String sortOrder = sortBy.split(":")[1];
+    sortBy = sortBy.split(":")[0];
+    GetRequestModel getRequestModel =
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
     latestService
         .getSearch(getRequestModel)
         .onSuccess(result -> sendResponse(ctx, result))

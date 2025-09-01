@@ -1,6 +1,6 @@
 package org.cdpg.dx.rs.latest.model;
 
-public record GetRequestModel(String id, int size, int page, String time, String endTime, String timeRel) {
+public record GetRequestModel(String id, int size, int page, String time, String endTime, String timeRel, String sortBy, String sortOrder) {
     @Override
     public String toString() {
         return "GetRequestModel{" +
@@ -10,6 +10,8 @@ public record GetRequestModel(String id, int size, int page, String time, String
                 ", time='" + time + '\'' +
                 ", endTime='" + endTime + '\'' +
                 ", timeRel='" + timeRel + '\'' +
+                ", sortBy='" + sortBy + '\'' +
+                ", sortOrder='" + sortOrder + '\'' +
                 '}';
     }
 }
