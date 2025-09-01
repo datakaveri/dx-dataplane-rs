@@ -89,7 +89,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         .whenComplete(
             (response, error) -> {
               if (error != null) {
-                LOGGER.error("Search failed: {}", error.getMessage(), error);
+                LOGGER.error("Search failed: {}", error.getMessage());
                 promise.fail(new DxInternalServerErrorException(error.getMessage(), error));
                 return;
               }
