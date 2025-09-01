@@ -48,7 +48,7 @@ pipeline {
         stage('Docker Swarm deployment') {
           steps {
             script {
-              sh "ssh azureuser@docker-swarm 'docker service update dataplane-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
+              sh "ssh azureuser@docker-swarm 'docker service update iudx-v2-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
               sh 'sleep 15'
               sh '''#!/bin/bash
               response_code=$(curl -s -o /dev/null -w \'%{http_code}\\n\' --connect-timeout 5 --retry 5 --retry-connrefused -XGET https://v2.dev.rs.iudx.io/apis)
