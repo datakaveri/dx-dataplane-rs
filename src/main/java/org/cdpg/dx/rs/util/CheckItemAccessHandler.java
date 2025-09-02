@@ -43,8 +43,8 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
         }
 
         isItemOpen(itemId, bearerToken)
-                .compose(accessPolicy -> {
-                    if (accessPolicy) {
+                .compose(isItemOpen -> {
+                    if (isItemOpen) {
                         LOGGER.debug("Item accessPolicy is OPEN. Skipping access check.");
                         return Future.succeededFuture();
                     } else {
