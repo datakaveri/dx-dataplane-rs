@@ -4,7 +4,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
@@ -43,9 +42,9 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
             return;
         }
 
-        fetchItemMetadata(itemId, bearerToken)
-                .compose(accessPolicy -> {
-                    if ("OPEN".equalsIgnoreCase(accessPolicy)) {
+        isItemOpen(itemId, bearerToken)
+                .compose(isItemOpen -> {
+                    if (isItemOpen) {
                         LOGGER.debug("Item accessPolicy is OPEN. Skipping access check.");
                         return Future.succeededFuture();
                     } else {
@@ -59,9 +58,9 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
                 });
     }
 
-    private Future<String> fetchItemMetadata(String itemId, String bearerToken) {
+    private Future<Boolean> isItemOpen(String itemId, String bearerToken) {
         LOGGER.debug("Fetching item metadata for itemId: {}", itemId);
-        Promise<String> promise = Promise.promise();
+        Promise<Boolean> promise = Promise.promise();
         HttpRequest<?> getRequest = webClient.getAbs(checkItemUrl);
         if (bearerToken != null) {
             LOGGER.debug("Token Provided, adding Authorization header");
@@ -73,13 +72,15 @@ public class CheckItemAccessHandler implements Handler<RoutingContext> {
                     LOGGER.debug("Item metadata fetch response status: {}", resp.statusCode());
                     if (resp.statusCode() == 200) {
                         JsonObject responseJson = resp.bodyAsJsonObject();
-                        JsonArray resultArray = responseJson.getJsonArray("result");
-
-                        String accessPolicy = "RESTRICTED";
-                        if (resultArray != null && !resultArray.isEmpty()) {
-                            accessPolicy = resultArray.getJsonObject(0).getString("accessPolicy", "RESTRICTED");
+                        JsonObject resultObj = responseJson.getJsonArray("result").getJsonObject(0);
+                        String accessPolicy = "OPEN";
+                        boolean isOpen=false;
+                        if (resultObj != null && !resultObj.isEmpty()) {
+                            isOpen=resultObj.containsKey("accessPolicy") && resultObj.getString("accessPolicy").equals(accessPolicy);
+                            accessPolicy= resultObj.getString("accessPolicy");
                         }
-                        promise.complete(accessPolicy);
+                        LOGGER.debug("Item accessPolicy: {}, isOpen: {}", accessPolicy, isOpen);
+                        promise.complete(isOpen);
                     } else {
                         promise.fail(new DxInternalServerErrorException(
                                 "Failed to fetch item metadata, status: " + resp.statusCode()));
