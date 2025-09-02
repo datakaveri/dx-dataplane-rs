@@ -16,9 +16,6 @@ import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
-import org.cdpg.dx.rs.admin.controller.ElasticOnboardingController;
-import org.cdpg.dx.rs.admin.service.OnboardingService;
-import org.cdpg.dx.rs.admin.service.OnboardingServiceImpl;
 import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
 public class ControllerFactory {
@@ -47,10 +44,8 @@ public class ControllerFactory {
 
     ApiController latestController = LatestControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
     ApiController downloadController = DownloadControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
-    OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
-    ApiController onboardingController = new ElasticOnboardingController(onboardingService,tenantPrefix);
     // TODO create other controllers
 
-    return List.of(latestController, downloadController, onboardingController);
+    return List.of(latestController, downloadController);
   }
 }
