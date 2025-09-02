@@ -87,7 +87,6 @@ public class ApiConstants {
   public static final String RESET_PASSWORD = "resetPassword";
   public static final String ASYNC_SEARCH = "asyncSearch";
   public static final String ASYNC_SEARCH_STATUS = "asyncSearchStatus";
-  public static final String ONBOARD_ELASTICSEARCH_INDEX = "onboardElasticsearchIndex";
 
   public static final String EVENT = "event";
   public static final String API_ENDPOINT = "apiEndpoint";

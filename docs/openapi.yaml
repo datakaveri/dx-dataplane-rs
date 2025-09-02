@@ -591,51 +591,6 @@ paths:
       responses:
         '200':
           description: Success
-  /admin/elasticsearch/createIndex:
-    post:
-      tags:
-        - Admin
-      summary: Onboard dataset index into Elasticsearch
-      description: Creates an Elasticsearch index using provided `indexName` and `dataDescriptor` (mappings/settings).
-      operationId: onboardElasticsearchIndex
-      security:
-        - authorization: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - dataDescriptor
-              properties:
-                id:
-                  type: string
-                  description: Dataset ID; final index will be TENANT__ID
-                dataDescriptor:
-                  type: object
-                  properties:
-                    mappings:
-                      type: object
-                      description: Elasticsearch index mappings object
-      responses:
-        '201':
-          description: Index created (or already existed)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: string
-                  index:
-                    type: string
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/standardBadRequestErrorResponse'
 components:
   securitySchemes:
     authorization:

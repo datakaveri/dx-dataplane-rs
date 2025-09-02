@@ -33,6 +33,4 @@ public interface ElasticsearchService {
   Future<Void> updateDocumentsByQuery(QueryModel queryModel, String docIndex);
 
   Future<Void> deleteByQuery(String index, QueryModel queryModel);
-
-  Future<Void> createIndex(String index, io.vertx.core.json.JsonObject mappings);
 }
