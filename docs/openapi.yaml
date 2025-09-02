@@ -591,7 +591,6 @@ paths:
       responses:
         '200':
           description: Success
-
 components:
   securitySchemes:
     authorization:

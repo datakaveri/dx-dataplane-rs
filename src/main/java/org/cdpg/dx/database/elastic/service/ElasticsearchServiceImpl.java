@@ -10,6 +10,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import co.elastic.clients.json.JsonData;
 import co.elastic.clients.json.JsonpMapper;
 import co.elastic.clients.json.JsonpMapperFeatures;
@@ -19,12 +20,15 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.json.stream.JsonGenerator;
+
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.exception.DxConflictException;
 import org.cdpg.dx.common.exception.DxInternalServerErrorException;
 import org.cdpg.dx.database.elastic.ElasticClient;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
@@ -89,7 +93,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         .whenComplete(
             (response, error) -> {
               if (error != null) {
-                LOGGER.error("Search failed: {}", error.getMessage(), error);
+                LOGGER.error("Search failed: {}", error.getMessage());
                 promise.fail(new DxInternalServerErrorException(error.getMessage(), error));
                 return;
               }
@@ -317,8 +321,6 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         .compose(v -> validateQueryModel(queryModel))
         .compose(v -> executeUpdateByQuery(index, queryModel));
   }
-
-  // Validation helpers
 
   private Future<Void> validateIndex(String index) {
     if (index == null || index.trim().isEmpty()) {
