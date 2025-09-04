@@ -2,11 +2,10 @@ package org.cdpg.dx.auth.authentication.util;
 
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.AuthenticationHandler;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxUnauthorizedException;
-
-import java.util.List;
 
 public record ChainedJwtAuthHandler(List<AuthenticationHandler> handlers) implements AuthenticationHandler {
     private static final Logger LOGGER = LogManager.getLogger(ChainedJwtAuthHandler.class);

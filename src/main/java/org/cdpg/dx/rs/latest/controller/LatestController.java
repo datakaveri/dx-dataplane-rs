@@ -11,6 +11,7 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
@@ -26,11 +27,14 @@ public class LatestController implements ApiController {
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
+  private final URNGenerator urnGenerator;
 
   /** Initializes the latest controller with required services and config. */
-  public LatestController(LatestService latestService, String controlPlaneDomain) {
+  public LatestController(
+      LatestService latestService, String controlPlaneDomain, URNGenerator urnGenerator) {
     this.latestService = latestService;
     this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.urnGenerator = urnGenerator;
   }
 
   @Override
@@ -65,7 +69,8 @@ public class LatestController implements ApiController {
                 ResponseBuilder.sendSuccess(
                     routingContext,
                     searchService.getElasticsearchResponses(),
-                    searchService.getPaginationInfo());
+                    searchService.getPaginationInfo(),
+                    urnGenerator);
               })
           .onFailure(
               err -> {
@@ -110,7 +115,10 @@ public class LatestController implements ApiController {
 
   private void sendResponse(RoutingContext ctx, ResponseModel responseModel) {
     ResponseBuilder.sendSuccess(
-        ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
+        ctx,
+        responseModel.getElasticsearchResponses(),
+        responseModel.getPaginationInfo(),
+        urnGenerator);
   }
 
   public int getSize(MultiMap params) {

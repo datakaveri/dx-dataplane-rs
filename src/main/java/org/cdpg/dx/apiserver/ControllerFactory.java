@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.catalogue.service.CatalogueService;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.database.postgres.service.PostgresService;
 import org.cdpg.dx.essearch.service.SearchService;
@@ -23,7 +24,8 @@ public class ControllerFactory {
 
   private ControllerFactory() {}
 
-  public static List<ApiController> createControllers(Vertx vertx, JsonObject config) {
+  public static List<ApiController> createControllers(
+      Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
     PostgresService pgService = PostgresService.createProxy(vertx, POSTGRES_SERVICE_ADDRESS);
     final UniqueAttributeService uniqueAttrService =
         UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
@@ -42,8 +44,11 @@ public class ControllerFactory {
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
 
-    ApiController latestController = LatestControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
-    ApiController downloadController = DownloadControllerFactory.create(searchService, timeLimit,controlPlaneDomain);
+    ApiController latestController =
+        LatestControllerFactory.create(searchService, timeLimit, controlPlaneDomain, urnGenerator);
+    ApiController downloadController =
+        DownloadControllerFactory.create(
+            searchService, timeLimit, controlPlaneDomain, urnGenerator);
     // TODO create other controllers
 
     return List.of(latestController, downloadController);
