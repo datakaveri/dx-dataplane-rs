@@ -14,13 +14,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.databroker.client.RabbitClient;
 import org.cdpg.dx.databroker.client.RabbitWebClient;
-
-import org.cdpg.dx.databroker.listeners.UniqueAttribQListener;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.databroker.service.DataBrokerServiceImpl;
 import org.cdpg.dx.databroker.util.Vhosts;
-
-import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
 public class DataBrokerVerticle extends AbstractVerticle {
 
@@ -47,6 +43,7 @@ public class DataBrokerVerticle extends AbstractVerticle {
   private RabbitMQClient iudxInternalRabbitMqClient;
   private int amqpPort;
   private String amqpUrl;
+
   /*private RevokedService revokedService;*/
   /*private UniqueAttributeService uniqueAttributeService;*/
 
@@ -66,6 +63,10 @@ public class DataBrokerVerticle extends AbstractVerticle {
     networkRecoveryInterval = config().getInteger("networkRecoveryInterval");
     amqpUrl = config().getString("brokerAmqpIp");
     amqpPort = config().getInteger("brokerAmqpPort");
+
+    // for rsp
+    RabbitClient.publishEx = config().getString("adapterQueryPublishExchange");
+    /*replyQueue = config().getString("adapterQueryReplyQueue");*/
 
     /* Configure the RabbitMQ Data Broker client with input from config files. */
     rabbitMQOptions = new RabbitMQOptions();
@@ -116,17 +117,17 @@ public class DataBrokerVerticle extends AbstractVerticle {
     iudxRabbitMqClient = RabbitMQClient.create(vertx, iudxConfig);
     iudxInternalRabbitMqClient = RabbitMQClient.create(vertx, iudxInternalConfig);
     rabbitClient =
-        new RabbitClient(rabbitWebClient, iudxInternalRabbitMqClient, iudxRabbitMqClient);
+        new RabbitClient(vertx, rabbitWebClient, iudxInternalRabbitMqClient, iudxRabbitMqClient);
     binder = new ServiceBinder(vertx);
 
     /* Create RabbitMQ listeners for revoke client queue, unique attribute queue and async query queue. */
     /*revokedService = RevokedService.createProxy(vertx, REVOKED_SERVICE_ADDRESS);*/
-   /* uniqueAttributeService =
-        UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);*/
+    /* uniqueAttributeService =
+    UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);*/
     /*RevokeClientQlistener revokeQlistener =
-        new RevokeClientQlistener(iudxInternalRabbitMqClient, revokedService);*/
+    new RevokeClientQlistener(iudxInternalRabbitMqClient, revokedService);*/
     /*UniqueAttribQListener uniqueAttrQlistener =
-        new UniqueAttribQListener(iudxInternalRabbitMqClient, uniqueAttributeService);*/
+    new UniqueAttribQListener(iudxInternalRabbitMqClient, uniqueAttributeService);*/
 
     /*revokeQlistener.start();*/
     /*uniqueAttrQlistener.start();*/
