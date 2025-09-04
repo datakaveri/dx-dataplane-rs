@@ -152,20 +152,24 @@ public class DataBrokerServiceImpl implements DataBrokerService {
   public Future<Void> deleteExchange(String exchangeId, String userId, Vhosts vhosts) {
     LOGGER.trace("Info : deleteExchange() started");
     Promise<Void> promise = Promise.promise();
-      rabbitClient
-              .getExchange(exchangeId, getVhost(vhosts))
-              .compose(exchange -> {
-                  LOGGER.debug("Exchange '{}' found, proceeding to delete.", exchangeId);
-                  return rabbitClient.deleteExchange(exchangeId, getVhost(vhosts));
-              })
-              .onSuccess(deletionResult -> {
-                  LOGGER.info("Exchange '{}' deleted successfully.", exchangeId);
-                  promise.complete();
-              })
-              .onFailure(error -> {
-                  LOGGER.error("Failed to delete exchange '{}': {}", exchangeId, error.getMessage(), error);
-                  promise.fail(error);
-              });
+    rabbitClient
+        .getExchange(exchangeId, getVhost(vhosts))
+        .compose(
+            exchange -> {
+              LOGGER.debug("Exchange '{}' found, proceeding to delete.", exchangeId);
+              return rabbitClient.deleteExchange(exchangeId, getVhost(vhosts));
+            })
+        .onSuccess(
+            deletionResult -> {
+              LOGGER.info("Exchange '{}' deleted successfully.", exchangeId);
+              promise.complete();
+            })
+        .onFailure(
+            error -> {
+              LOGGER.error(
+                  "Failed to delete exchange '{}': {}", exchangeId, error.getMessage(), error);
+              promise.fail(error);
+            });
 
     return promise.future();
   }
@@ -193,16 +197,26 @@ public class DataBrokerServiceImpl implements DataBrokerService {
       String userId, String queueOrExchangeName, PermissionOpType permissionType, Vhosts vhosts) {
     Promise<Void> promise = Promise.promise();
     LOGGER.trace("Info : updatePermission() started");
-      rabbitClient
-              .updateUserPermissions(getVhost(vhosts), userId, permissionType, queueOrExchangeName)
-              .onSuccess(result -> {
-                  LOGGER.info("Permissions updated successfully for user '{}', resource '{}'.", userId, queueOrExchangeName);
-                  promise.complete();
-              })
-              .onFailure(error -> {
-                  LOGGER.error("Failed to update permissions for user '{}', resource '{}': {}", userId, queueOrExchangeName, error.getMessage(), error);
-                  promise.fail(error);
-              });
+    rabbitClient
+        .updateUserPermissions(getVhost(vhosts), userId, permissionType, queueOrExchangeName)
+        .onSuccess(
+            result -> {
+              LOGGER.info(
+                  "Permissions updated successfully for user '{}', resource '{}'.",
+                  userId,
+                  queueOrExchangeName);
+              promise.complete();
+            })
+        .onFailure(
+            error -> {
+              LOGGER.error(
+                  "Failed to update permissions for user '{}', resource '{}': {}",
+                  userId,
+                  queueOrExchangeName,
+                  error.getMessage(),
+                  error);
+              promise.fail(error);
+            });
 
     return promise.future();
   }
@@ -239,11 +253,12 @@ public class DataBrokerServiceImpl implements DataBrokerService {
             })
         .onFailure(
             failure -> {
-                LOGGER.error("Fail : {}", failure.getMessage());
+              LOGGER.error("Fail : {}", failure.getMessage());
               promise.fail(failure);
             });
     return promise.future();
   }
+
   @Override
   public Future<String> resetPassword(String userId) {
     Promise<String> promise = Promise.promise();
@@ -277,6 +292,24 @@ public class DataBrokerServiceImpl implements DataBrokerService {
         .onFailure(
             publishFailure -> {
               LOGGER.debug("publishMessage failure");
+              promise.fail(publishFailure);
+            });
+    return promise.future();
+  }
+
+  @Override
+  public Future<JsonObject> executeAdapterQueryRPC(JsonObject request) {
+    Promise<JsonObject> promise = Promise.promise();
+    rabbitClient
+        .executeAdapterQueryRPC(request)
+        .onSuccess(
+            publishSuccess -> {
+              LOGGER.debug("publishMessage success");
+              promise.complete(publishSuccess);
+            })
+        .onFailure(
+            publishFailure -> {
+              LOGGER.error("publishMessage failure");
               promise.fail(publishFailure);
             });
     return promise.future();
