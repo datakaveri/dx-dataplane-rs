@@ -6,13 +6,19 @@ import static org.cdpg.dx.databroker.util.Constants.*;
 import static org.cdpg.dx.databroker.util.Util.encodeValue;
 import static org.cdpg.dx.databroker.util.Util.randomPassword;
 
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AMQP.Queue.DeclareOk;
+import com.rabbitmq.client.BasicProperties;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.rabbitmq.QueueOptions;
 import io.vertx.rabbitmq.RabbitMQClient;
+import io.vertx.rabbitmq.RabbitMQConsumer;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,14 +32,20 @@ import org.cdpg.dx.databroker.util.PermissionOpType;
 
 public class RabbitClient {
   private static final Logger LOGGER = LogManager.getLogger(RabbitClient.class);
+  public static String publishEx;
   private final RabbitWebClient rabbitWebClient;
   private final RabbitMQClient iudxInternalRabbitMqClient;
   private final RabbitMQClient iudxRabbitMqClient;
+  private final Vertx vertx;
+  private final QueueOptions queueOption =
+      new QueueOptions().setMaxInternalQueueSize(2).setAutoAck(false).setKeepMostRecent(true);
 
   public RabbitClient(
+      Vertx vertx,
       RabbitWebClient rabbitWebClient,
       RabbitMQClient iudxInternalRabbitMqClient,
       RabbitMQClient iudxRabbitMqClient) {
+    this.vertx = vertx;
     this.rabbitWebClient = rabbitWebClient;
     this.iudxRabbitMqClient = iudxRabbitMqClient;
     this.iudxInternalRabbitMqClient = iudxInternalRabbitMqClient;
@@ -153,8 +165,7 @@ public class RabbitClient {
                         } else {
                           LOGGER.error(
                               "Error : Error in user creation. Cause : " + handler.cause());
-                          promise.fail(
-                              new DxRabbitMqException(USER_CREATION_ERROR));
+                          promise.fail(new DxRabbitMqException(USER_CREATION_ERROR));
                         }
                       });
 
@@ -256,8 +267,7 @@ public class RabbitClient {
                         + " ] in vHost [ "
                         + vhost
                         + " ]");
-                promise.fail(
-                    new DxRabbitMqException(VHOST_PERMISSION_SET_ERROR));
+                promise.fail(new DxRabbitMqException(VHOST_PERMISSION_SET_ERROR));
               }
             });
     return promise.future();
@@ -291,12 +301,13 @@ public class RabbitClient {
                       promise.fail(new QueueAlreadyExistsException(QUEUE_ALREADY_EXISTS));
                     } else if (status == HttpStatus.SC_BAD_REQUEST) {
                       promise.fail(
-                          new QueueAlreadyExistsException(QUEUE_ALREADY_EXISTS_WITH_DIFFERENT_PROPERTIES));
+                          new QueueAlreadyExistsException(
+                              QUEUE_ALREADY_EXISTS_WITH_DIFFERENT_PROPERTIES));
                     }
                   }
                 } else {
                   LOGGER.error("Fail : Creation of Queue failed - ", ar.cause());
-                  promise.fail(new DxRabbitMqException( QUEUE_CREATE_ERROR));
+                  promise.fail(new DxRabbitMqException(QUEUE_CREATE_ERROR));
                 }
               });
     }
@@ -332,7 +343,7 @@ public class RabbitClient {
                     if (status == HttpStatus.SC_CREATED) {
                       promise.complete();
                     } else if (status == HttpStatus.SC_NOT_FOUND) {
-                      promise.fail(new QueueBindingFailedException( QUEUE_EXCHANGE_NOT_FOUND));
+                      promise.fail(new QueueBindingFailedException(QUEUE_EXCHANGE_NOT_FOUND));
                     }
                   }
                 } else {
@@ -369,16 +380,14 @@ public class RabbitClient {
                               LOGGER.debug("Permission updated");
                               promise.complete();
                             } else {
-                              promise.fail(
-                                  new DxRabbitMqException(rmqResponse.statusMessage()));
+                              promise.fail(new DxRabbitMqException(rmqResponse.statusMessage()));
                             }
                           } else {
-                            promise.fail(
-                                new DxRabbitMqException( BAD_REQUEST_ERROR));
+                            promise.fail(new DxRabbitMqException(BAD_REQUEST_ERROR));
                           }
                         });
               } else {
-                promise.fail(new DxRabbitMqGeneralException( INTERNAL_SERVER_ERROR));
+                promise.fail(new DxRabbitMqGeneralException(INTERNAL_SERVER_ERROR));
               }
             });
     return promise.future();
@@ -402,12 +411,10 @@ public class RabbitClient {
                   promise.fail(new DxRabbitMqException("user not exist."));
                 } else {
                   LOGGER.error(handler.cause());
-                  promise.fail(
-                      new DxRabbitMqException( "problem while getting user permissions"));
+                  promise.fail(new DxRabbitMqException("problem while getting user permissions"));
                 }
               } else {
-                promise.fail(
-                    new DxRabbitMqException(handler.cause().getLocalizedMessage()));
+                promise.fail(new DxRabbitMqException(handler.cause().getLocalizedMessage()));
               }
             });
     return promise.future();
@@ -468,7 +475,7 @@ public class RabbitClient {
                 } else if (statusCode == HttpStatus.SC_NO_CONTENT) {
                   promise.fail(new ExchangeRegistrationException(EXCHANGE_EXISTS));
                 } else if (statusCode == HttpStatus.SC_BAD_REQUEST) {
-                  promise.fail(new DxRabbitMqException( EXCHANGE_EXISTS));
+                  promise.fail(new DxRabbitMqException(EXCHANGE_EXISTS));
                 }
               } else {
                 promise.fail(new DxRabbitMqException(EXCHANGE_CREATE_ERROR));
@@ -523,7 +530,8 @@ public class RabbitClient {
                   promise.fail(new DxRabbitMqException(INTERNAL_SERVER_ERROR));
                 }
               } else {
-                promise.fail(new DxRabbitMqGeneralException(INTERNAL_SERVER_ERROR));              }
+                promise.fail(new DxRabbitMqGeneralException(INTERNAL_SERVER_ERROR));
+              }
             });
     return promise.future();
   }
@@ -569,7 +577,8 @@ public class RabbitClient {
                 }
               } else {
                 LOGGER.error("Fail : Listing of Exchange failed  ");
-                promise.fail(new DxRabbitMqException(INTERNAL_SERVER_ERROR));              }
+                promise.fail(new DxRabbitMqException(INTERNAL_SERVER_ERROR));
+              }
             });
 
     return promise.future();
@@ -598,7 +607,7 @@ public class RabbitClient {
                 }
               } else {
                 LOGGER.error("User creation failed :");
-                promise.fail(new DxRabbitMqException( CHECK_CREDENTIALS));
+                promise.fail(new DxRabbitMqException(CHECK_CREDENTIALS));
               }
             });
     return promise.future();
@@ -655,6 +664,104 @@ public class RabbitClient {
               LOGGER.error("Fail : " + failure.getMessage());
               promise.fail(new DxRabbitMqException(INTERNAL_SERVER_ERROR));
             });
+    return promise.future();
+  }
+
+  public Future<JsonObject> executeAdapterQueryRPC(JsonObject request) {
+    Promise<JsonObject> promise = Promise.promise();
+    final String corelationId = UUID.randomUUID().toString();
+    final String replyQueueName = UUID.randomUUID().toString();
+    Map<String, Object> map = new HashMap<>();
+    if (request.containsKey(HEADER_PUBLIC_KEY)) {
+      map.put(HEADER_PUBLIC_KEY, request.getValue(HEADER_PUBLIC_KEY));
+    }
+    Future<DeclareOk> replyQueueDeclareFuture =
+        iudxInternalRabbitMqClient.queueDeclare(replyQueueName, false, true, true);
+
+    LOGGER.debug("corelationid : {}", corelationId);
+    AMQP.BasicProperties props =
+        new AMQP.BasicProperties.Builder()
+            .correlationId(corelationId)
+            .replyTo(replyQueueName)
+            .headers(map)
+            .build();
+    LOGGER.debug("queue declared : {}", replyQueueName);
+    String routingKey =
+        request.containsKey("routingKey")
+            ? request.getString("routingKey")
+            : request.getJsonArray("id").getString(0);
+    LOGGER.debug("routing key : {}", routingKey);
+    Buffer buffer = Buffer.buffer(request.toString());
+    Future<Void> publishFut =
+        iudxInternalRabbitMqClient.basicPublish(publishEx, routingKey, props, buffer);
+
+    iudxInternalRabbitMqClient.basicConsumer(
+        replyQueueName,
+        queueOption,
+        rabbitMQConsumerResult -> {
+          LOGGER.debug("rabbitMQConsumerResult queue : {}", rabbitMQConsumerResult.succeeded());
+          if (rabbitMQConsumerResult.succeeded()) {
+            RabbitMQConsumer rmqConsumer = rabbitMQConsumerResult.result();
+            long timerId =
+                vertx.setTimer(
+                    300000,
+                    timeout -> {
+                      LOGGER.info("max wait time elapsed for consumer, cancelling consumer");
+                      rmqConsumer.cancel();
+                      promise.fail(
+                          new DxTimeOutException(
+                              "request timed out, request taking more than allocated time, please contact admin"));
+                    });
+
+            rmqConsumer.handler(
+                msg -> {
+                  LOGGER.debug("Got message: ");
+                  BasicProperties properties = msg.properties();
+                  String reply_correlationId = properties.getCorrelationId();
+                  String replyQueue = properties.getReplyTo();
+                  long deliveryTag = msg.envelope().getDeliveryTag();
+                  LOGGER.info(
+                      "message consumed corerelationId: {}, replyQ : {}, deliveryTag : {} ",
+                      reply_correlationId,
+                      replyQueue,
+                      deliveryTag);
+
+                  Buffer body = msg.body();
+                  if (body != null) {
+                    JsonObject json = new JsonObject(msg.body());
+                    LOGGER.debug("Got message: ");
+                    if (reply_correlationId.equals(corelationId)) {
+                      iudxInternalRabbitMqClient.basicAck(
+                          deliveryTag,
+                          false,
+                          asyncResult -> {
+                            LOGGER.info(
+                                "[ACK] Response received for correlationId : {}, cancelling consumer",
+                                corelationId);
+                            vertx.cancelTimer(timerId);
+                            rmqConsumer.cancel();
+                            promise.complete(json);
+                          });
+                    } else {
+                      iudxInternalRabbitMqClient.basicNack(
+                          deliveryTag,
+                          true,
+                          true,
+                          resultHandler -> {
+                            LOGGER.info("[Nack] corelationId : {}", reply_correlationId);
+                          });
+                      promise.fail(new DxTimeOutException("Failed to get the response"));
+                    }
+                  } else {
+                    LOGGER.info("Empty message received by adapter");
+                    promise.fail(new DxTimeOutException("Empty message received by adapter"));
+                  }
+                });
+          } else {
+            LOGGER.error("RabbitMQ consumer failed: {}", rabbitMQConsumerResult.cause());
+            promise.fail(rabbitMQConsumerResult.cause());
+          }
+        });
     return promise.future();
   }
 }

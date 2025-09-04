@@ -45,4 +45,6 @@ public interface DataBrokerService {
   Future<Void> publishMessageInternal(JsonObject body, String exchangeName, String routingKey);
 
   Future<String> publishMessageExternal(String exchangeName, String routingKey, JsonArray request);
+
+  Future<JsonObject> executeAdapterQueryRPC(JsonObject request);
 }
