@@ -1,14 +1,11 @@
 package org.cdpg.dx.common;
 
-
-
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.ParameterProcessorException;
 import io.vertx.ext.web.validation.RequestPredicateException;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.serviceproxy.HelperUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,16 +18,21 @@ import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 public class FailureHandler implements Handler<RoutingContext> {
 
   private static final Logger LOGGER = LogManager.getLogger(FailureHandler.class);
+  private final URNGenerator urnGenerator;
+
+  public FailureHandler(URNGenerator urnGenerator) {
+    this.urnGenerator = urnGenerator;
+  }
 
   public void handle(RoutingContext context) {
     Throwable failure = context.failure();
-//    failure.printStackTrace();
-    LOGGER.info("FailureHandler: {}", failure.getClass());
-    //LOGGER.error("error: {}", HelperUtils.convertStackTrace(failure));
+
     if (failure == null) {
-      LOGGER.warn("FailureHandler triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
+      LOGGER.warn(
+          "FailureHandler triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
       failure = new RuntimeException("Unknown server error");
     }
+    LOGGER.info("FailureHandler: {}", failure.getClass());
     /* exceptions from OpenAPI specification*/
     if (failure instanceof ValidationException
         || failure instanceof BodyProcessorException
@@ -46,7 +48,7 @@ public class FailureHandler implements Handler<RoutingContext> {
           .end(
               ResponseUtil.generateResponse(
                       HttpStatusCode.BAD_REQUEST,
-                      ResponseUrn.BAD_REQUEST_URN,
+                      urnGenerator.generateUrn(HttpStatusCode.BAD_REQUEST.getPath()),
                       "Missing or malformed request")
                   .toString());
       return;
@@ -64,15 +66,16 @@ public class FailureHandler implements Handler<RoutingContext> {
             ? failure.getMessage()
             : "An unexpected error occurred";
 
+    String urn = urnGenerator.generateUrn(statusCode.getPath());
+
     DxErrorResponse errorResponse =
-        new DxErrorResponse(statusCode.getUrn(), statusCode.getDescription(), safeDetail);
+        new DxErrorResponse(urn, statusCode.getDescription(), safeDetail);
 
     if (!context.response().ended()) {
       int status = statusCode.getValue();
       if (status < 400 || status > 599) {
         status = 500;
       }
-
 
       context
           .response()
@@ -85,4 +88,3 @@ public class FailureHandler implements Handler<RoutingContext> {
     }
   }
 }
-

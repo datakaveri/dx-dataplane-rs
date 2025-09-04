@@ -13,6 +13,7 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
@@ -25,9 +26,11 @@ public class DownloadController implements ApiController {
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
+  private final URNGenerator urnGenerator;
 
-  public DownloadController(DownloadService downloadService, String controlPlaneDomain) {
+  public DownloadController(DownloadService downloadService, String controlPlaneDomain, URNGenerator urnGenerator) {
     this.downloadService = downloadService;
+    this.urnGenerator = urnGenerator;
     this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
   }
 

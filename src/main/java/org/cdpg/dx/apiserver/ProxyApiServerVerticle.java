@@ -31,7 +31,7 @@ import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.util.BlockingExecutionUtil;
 
-public class ApiServerVerticle extends AbstractVerticle {
+public class ProxyApiServerVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger(ApiServerVerticle.class);
   private int port;
   private HttpServer server;
