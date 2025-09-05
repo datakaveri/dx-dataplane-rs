@@ -30,9 +30,10 @@ import org.cdpg.dx.common.FailureHandler;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.util.BlockingExecutionUtil;
+import org.cdpg.dx.rs.entities.controller.ControllerFactoryProxy;
 
 public class ProxyApiServerVerticle extends AbstractVerticle {
-  private static final Logger LOGGER = LogManager.getLogger(ApiServerVerticle.class);
+  private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);
   private int port;
   private HttpServer server;
   private Router router;
@@ -67,12 +68,12 @@ public class ProxyApiServerVerticle extends AbstractVerticle {
     DatabindCodec.prettyMapper()
         .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
 
-    Future<RouterBuilder> routerFuture = RouterBuilder.create(vertx, "docs/openapi.yaml");
+    Future<RouterBuilder> routerFuture = RouterBuilder.create(vertx, "docs/openapiForGateway.yaml");
 
     // Init shared worker executor for this verticle
     BlockingExecutionUtil.initialize(vertx);
 
-    List<ApiController> controllers =
+    List<ApiController> controllers = ControllerFactoryProxy.createControllers(vertx, config(), this.urnGenerator);
         ControllerFactory.createControllers(vertx, config(), this.urnGenerator);
 
     routerFuture
@@ -124,7 +125,7 @@ public class ProxyApiServerVerticle extends AbstractVerticle {
                 router
                     .get(ROUTE_STATIC_SPEC)
                     .produces(APPLICATION_JSON)
-                    .handler(ctx -> ctx.response().sendFile("docs/openapi.yaml"));
+                    .handler(ctx -> ctx.response().sendFile("docs/openapiForGateway.yaml"));
 
                 router
                     .get(ROUTE_DOC)
