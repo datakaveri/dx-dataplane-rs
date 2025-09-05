@@ -13,6 +13,7 @@ import io.vertx.core.Future;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -240,7 +241,7 @@ public class ApiServerVerticle extends AbstractVerticle {
       String keystorePassword = config().getString("keystorePassword");
       serverOptions
           .setSsl(true)
-          .setKeyCertOptions(new KeyStoreOptions().setPath(keystore).setPassword(keystorePassword));
+          .setKeyCertOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
     } else {
       LOGGER.info("Info: Starting HTTP server");
       serverOptions.setSsl(false);

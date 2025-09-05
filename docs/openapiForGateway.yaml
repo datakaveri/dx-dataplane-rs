@@ -101,8 +101,6 @@ servers:
     description: 'Development Server URL'
 
 
-
-
 paths:
   /ngsi-ld/v1/entities:
     get:
@@ -116,8 +114,6 @@ paths:
           required: false
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: id
           in: query
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
@@ -344,14 +340,12 @@ paths:
       summary: Temporal Search
       operationId: get-temporal-entity-search
       parameters:
-        - name: token
+        - name: Authorization
           in: header
           description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
           required: true
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: id
           in: query
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
@@ -596,14 +590,12 @@ paths:
       summary: post spatial search
       operationId: post-spatial-complex-query
       parameters:
-        - name: token
+        - name: Authorization
           in: header
           description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
           required: true
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
       x-codeSamples:
         - lang: 'cURL'
           label: 'Spatial complex query'
@@ -737,14 +729,12 @@ paths:
       summary: Spatial + temporal search
       operationId: post-spatial-temporal-complex-query
       parameters:
-        - name: token
+        - name: Authorization
           in: header
           description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
           required: true
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
       x-codeSamples:
         - lang: 'cURL'
           label: 'Spatial + temporal complex query'
@@ -890,15 +880,13 @@ paths:
       summary: Search
       operationId: get-async-search
       parameters:
-        - name: token
+        - name: Authorization
           in: header
           description: 'data exchange auth token for accessing the API'
           required: true
           style: simple
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: id
           in: query
           description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
@@ -1016,15 +1004,13 @@ paths:
       summary: Async search-status
       operationId: get-async-search-status
       parameters:
-        - name: token
+        - name: Authorization
           in: header
           description: 'data exchange auth token for accessing the API'
           required: true
           style: simple
           schema:
             type: string
-            maxLength: 512
-            pattern: '^[a-zA-Z0-9\/\@\.]*$'
         - name: searchId
           in: query
           description: 'searchId returned while submitting request through `/async/search`'
