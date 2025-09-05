@@ -343,7 +343,7 @@ paths:
         - name: Authorization
           in: header
           description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
-          required: true
+          required: false
           schema:
             type: string
         - name: id
@@ -593,7 +593,7 @@ paths:
         - name: Authorization
           in: header
           description: A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .
-          required: true
+          required: false
           schema:
             type: string
       x-codeSamples:
@@ -618,7 +618,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/complex-geo-circle-filterrequest'
+              $ref: '#/components/schemas/postEntitiesSchema'
             example:
               type: Query
               entities:
@@ -732,7 +732,7 @@ paths:
         - name: Authorization
           in: header
           description: 'A <b> valid data exchange Auth token </b> to process the request. <br/> This field is <b> mandatory </b> for accessing a <b> resource </b> .  <br/> If not provided with a valid token, user will be responded with <b> 401 Unauthorized </b> .'
-          required: true
+          required: false
           schema:
             type: string
       x-codeSamples:
@@ -757,7 +757,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/complex-geo-circle-time-filterrequest'
+              $ref: '#/components/schemas/postTemporalSchema'
             example:
               type: Query
               entities:
@@ -1058,6 +1058,179 @@ paths:
 components:
 
   schemas:
+    postEntitiesSchema:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ "Query" ]
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+                pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                maxLength: 36
+            required: [ "id" ]
+            additionalProperties: false
+        geoQ:
+          type: object
+          properties:
+            geometry:
+              type: string
+              pattern: "^.*$"
+              enum: [ "point", "Point", "polygon", "Polygon", "LineString", "linestring", "bbox" ]
+            coordinates:
+              oneOf:
+                - type: array
+                  maxItems: 2
+                  items:
+                    type: number
+                    default: 0.0
+                - type: array
+                  items:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        default: 0.0
+                - type: array
+                  items:
+                    type: array
+                    items:
+                      type: number
+                      default: 0.0
+            georel:
+              type: string
+              minLength: 1
+              maxLength: 1024
+              pattern: "^.*$"
+            geoproperty:
+              type: string
+              pattern: "^.*$"
+              enum: [ "location" ]
+          additionalProperties: false
+        q:
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: "^.*$"
+        options:
+          type: string
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+          enum: [ "count" ]
+        attrs:
+          type: string
+          description: The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the data exchange Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.
+          maxLength: 512
+          minLength: 1
+          pattern: "^.*$"
+      required: [ "entities", "type" ]
+      additionalProperties: false
+
+    postTemporalSchema:
+      type: object
+      properties:
+        type:
+          type: string
+          maxLength: 1024
+          enum: [ "Query" ]
+        entities:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+                pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                maxLength: 36
+            required: [ "id" ]
+            additionalProperties: false
+        geoQ:
+          type: object
+          properties:
+            geometry:
+              type: string
+              pattern: "^.*$"
+              enum: [ "point", "Point", "polygon", "Polygon", "LineString", "linestring", "bbox" ]
+            coordinates:
+              oneOf:
+                - type: array
+                  maxItems: 2
+                  items:
+                    type: number
+                    default: 0.0
+                - type: array
+                  items:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        default: 0.0
+                - type: array
+                  items:
+                    type: array
+                    items:
+                      type: number
+                      default: 0.0
+            georel:
+              type: string
+              minLength: 1
+              maxLength: 512
+              pattern: "^.*$"
+            geoproperty:
+              type: string
+              pattern: "^.*$"
+              enum: [ "location" ]
+          additionalProperties: false
+        temporalQ:
+          type: object
+          properties:
+            timerel:
+              type: string
+              pattern: "^.*$"
+              enum: [ "after", "before", "during", "between" ]
+            time:
+              type: string
+              format: "date-time"
+              pattern: "^.*$"
+            endtime:
+              type: string
+              format: "date-time"
+              pattern: "^.*$"
+            timeProperty:
+              type: string
+              maxLength: 512
+              pattern: "^.*$"
+              enum: [ "observationDateTime" ]
+          additionalProperties: false
+        q:
+          type: string
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+          minLength: 1
+          maxLength: 2048
+          pattern: "^.*$"
+        options:
+          type: string
+          description: 'The <b>options</b> parameter is used for obtaining the <b>number of hits</b> for a spatial query. <br/> It should be used along with the <b> valid temporal query</b> or a <b> valid complex query</b>. <br/> It <b>cannot</b> be used along with a <b>attrs</b> filter. The value should be equal to `count` and it is <b>case sensitive</b>'
+          pattern: "^.*$"
+          enum: [ "count" ]
+        attrs:
+          type: string
+          description: 'The attrs parameter is used as an <b>application filter</b>. <br/> This is an optional parameter. It can be used to provide the list of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+          maxLength: 512
+          minLength: 1
+          pattern: "^.*$"
+      required: [ "entities", "type" ]
+      additionalProperties: false
+
     geospatial-circlerequest:
       title: geospatial-circlerequest
       required:
