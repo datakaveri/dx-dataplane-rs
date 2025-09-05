@@ -1,7 +1,6 @@
-package org.cdpg.dx.rs.entities.controller;
+package org.cdpg.dx.rs.rsp.entities.controller;
 
-import static org.cdpg.dx.apiserver.config.ApiConstants.POST_SPATIAL_SEARCH;
-import static org.cdpg.dx.rs.entities.controller.config.*;
+import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;

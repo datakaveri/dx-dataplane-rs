@@ -14,7 +14,6 @@ import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.KeyStoreOptions;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
@@ -31,7 +30,7 @@ import org.cdpg.dx.common.FailureHandler;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.util.BlockingExecutionUtil;
-import org.cdpg.dx.rs.entities.controller.ControllerFactoryProxy;
+import org.cdpg.dx.rs.rsp.entities.controller.ControllerFactoryProxy;
 
 public class ProxyApiServerVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);

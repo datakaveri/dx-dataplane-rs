@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.entities.controller;
+package org.cdpg.dx.rs.rsp.entities.controller;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
