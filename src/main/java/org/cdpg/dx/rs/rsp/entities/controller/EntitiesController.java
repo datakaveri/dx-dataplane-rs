@@ -69,6 +69,7 @@ public class EntitiesController implements ApiController {
 
       // Validate Q-type attributes if present
       paramsValidator.validateQ(params.get("q"));
+      paramsValidator.validateAttrs(params.get("attrs"));
 
     } catch (DxBadRequestException e) {
       ctx.fail(e);
@@ -123,6 +124,9 @@ public class EntitiesController implements ApiController {
       // Q-type validation
       if (body.containsKey("q")) {
         paramsValidator.validateQ(body.getString("q"));
+      }
+      if (body.containsKey("attrs")) {
+        paramsValidator.validateAttrs(body.getString("attrs"));
       }
 
     } catch (DxBadRequestException e) {
