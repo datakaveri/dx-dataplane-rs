@@ -51,4 +51,6 @@ public class DxErrorCodes {
   public static final int RABBIT_MQ_QUEUE_REGISTRATION_FAILED = 44002;
   public static final int RABBIT_MQ_QUEUE_BINDING_FAILED = 44003;
 
+  public static final int TIMEOUT_ERROR = 60000;
+
 }

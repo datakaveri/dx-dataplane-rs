@@ -73,8 +73,9 @@ public class ProxyApiServerVerticle extends AbstractVerticle {
     // Init shared worker executor for this verticle
     BlockingExecutionUtil.initialize(vertx);
 
-    List<ApiController> controllers = ControllerFactoryProxy.createControllers(vertx, config(), this.urnGenerator);
-        ControllerFactory.createControllers(vertx, config(), this.urnGenerator);
+    List<ApiController> controllers =
+        ControllerFactoryProxy.createControllers(vertx, config(), this.urnGenerator);
+    ControllerFactory.createControllers(vertx, config(), this.urnGenerator);
 
     routerFuture
         .onSuccess(
@@ -150,7 +151,7 @@ public class ProxyApiServerVerticle extends AbstractVerticle {
                         http -> {
                           if (http.succeeded()) {
                             printDeployedEndpoints(router);
-                            LOGGER.info("ApiServerVerticle deployed on port: {}", port);
+                            LOGGER.info("ProxyApiServerVerticle deployed on port: {}", port);
                           } else {
                             LOGGER.error(
                                 "HTTP server failed to start: {}",

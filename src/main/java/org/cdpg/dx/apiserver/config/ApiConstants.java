@@ -8,6 +8,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class ApiConstants {
+
+    public static final String GEO_QUERY = "geo-query";
+
+
   // Header params
   public static final String HEADER_ACCEPT = "Accept";
   public static final String HEADER_CONTENT_LENGTH = "Content-Length";
@@ -157,6 +161,7 @@ public class ApiConstants {
   public static final String NGSILDQUERY_TIME_PROPERTY = "timeProperty";
   public static final String NGSILDQUERY_FROM = "offset";
   public static final String NGSILDQUERY_SIZE = "limit";
+    public static final String IUDX_SEARCH_TYPE = "searchType";
 
   // json fields
   public static final String JSON_INSTANCEID = "instanceID";
