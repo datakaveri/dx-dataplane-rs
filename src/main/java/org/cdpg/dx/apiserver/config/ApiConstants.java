@@ -9,8 +9,7 @@ import java.util.regex.Pattern;
 
 public class ApiConstants {
 
-    public static final String GEO_QUERY = "geo-query";
-
+  public static final String GEO_QUERY = "geo-query";
 
   // Header params
   public static final String HEADER_ACCEPT = "Accept";
@@ -75,6 +74,7 @@ public class ApiConstants {
   public static final String DOWNLOAD_ID_ENTITY_DATA = "downloadIdEntityData";
   public static final String DOWNLOAD_PUT_SEARCH_DATA = "downloadPutSearchData";
   public static final String TEMPORAL_SEARCH = "temporalSearch";
+  public static final String TEMPORAL_QUERY = "temporal-query";
   public static final String POST_TEMPORAL_SEARCH = "postTemporalSearch";
   public static final String POST_SPATIAL_SEARCH = "postSpatialSearch";
   public static final String GET_ADAPTER_EXCHANGE = "getAdapterexchange";
@@ -161,7 +161,7 @@ public class ApiConstants {
   public static final String NGSILDQUERY_TIME_PROPERTY = "timeProperty";
   public static final String NGSILDQUERY_FROM = "offset";
   public static final String NGSILDQUERY_SIZE = "limit";
-    public static final String IUDX_SEARCH_TYPE = "searchType";
+  public static final String IUDX_SEARCH_TYPE = "searchType";
 
   // json fields
   public static final String JSON_INSTANCEID = "instanceID";
