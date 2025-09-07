@@ -126,6 +126,8 @@ public class ParamsValidator {
   public void validateGeometry(String geom, String coordinates) {
     if (geom == null && coordinates == null) return;
 
+    LOGGER.debug("Validating geometry: geom={}, coordinates={}", geom, coordinates);
+
     try {
       JsonObject json = new JsonObject();
       json.put("coordinates", new JsonArray(coordinates));
@@ -156,23 +158,41 @@ public class ParamsValidator {
   }
 
   public void validateDistance(String georel) {
-    if (georel == null || !georel.contains("maxDistance")) return;
+    LOGGER.debug("Georel : {}", georel);
+
+    if (georel == null) return;
+
     try {
       String[] parts = georel.split(";");
-      if (parts.length != 2)
-        throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
-      String[] kv = parts[1].split("=");
-      if (kv.length != 2 || !"maxDistance".equalsIgnoreCase(kv[0]))
-        throw new DxBadRequestException("Invalid maxDistance format");
-      double value = Double.parseDouble(kv[1]);
-      if (value < 0 || value > MAX_DISTANCE)
+        double value = getValue(parts);
+        if (value < 0 || value > MAX_DISTANCE) {
         throw new DxBadRequestException("maxDistance must be between 0 and " + MAX_DISTANCE);
+      }
     } catch (NumberFormatException e) {
       throw new DxBadRequestException("maxDistance must be a valid number");
     }
   }
 
-  /**
+    private static double getValue(String[] parts) {
+        if (parts.length != 2) {
+          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+        }
+
+        String[] kv = parts[1].split("=");
+        if (kv.length != 2) {
+          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+        }
+
+        String key = kv[0].trim().toLowerCase(); // normalize case
+        if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
+          throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
+        }
+
+        double value = Double.parseDouble(kv[1].trim());
+        return value;
+    }
+
+    /**
    * Validate temporal query parameters.
    *
    * @param isTemporalApi true if /temporal/entity API, false if /entity API
@@ -198,8 +218,9 @@ public class ParamsValidator {
 
     if (!timeRel.equalsIgnoreCase("before")
         && !timeRel.equalsIgnoreCase("after")
-        && !timeRel.equalsIgnoreCase("between")) {
-      throw new DxBadRequestException("Invalid timeRel. Allowed: before, after, between");
+        && !timeRel.equalsIgnoreCase("between")
+        && !timeRel.equalsIgnoreCase("during")) {
+      throw new DxBadRequestException("Invalid timeRel. Allowed: before, after, between, during");
     }
 
     ZonedDateTime start;
@@ -291,10 +312,16 @@ public class ParamsValidator {
   }
 
   private void validatePolygon(JsonObject json) {
+
+    LOGGER.debug("Validating Polygon: {}", json.encodePrettily());
+
     Geometry geom = readGeometry(json);
+    LOGGER.debug("Parsed geometry type: {}", geom.getGeometryType());
     if (!"Polygon".equalsIgnoreCase(geom.getGeometryType()))
       throw new DxBadRequestException("Invalid Polygon geometry");
     Coordinate[] coords = geom.getCoordinates();
+    LOGGER.debug("Polygon coordinates count: {}", coords.length);
+
     if (coords.length < MIN_POLYGON_COORDS || coords.length > MAX_POLYGON_COORDS)
       throw new DxBadRequestException(
           "Polygon must have between "
@@ -323,15 +350,28 @@ public class ParamsValidator {
   }
 
   private void validateBbox(String coordinates) {
-    String clean = coordinates.replaceAll("\\[", "").replaceAll("\\]", "");
-    String[] parts = clean.split(",");
-    if (parts.length != 4)
-      throw new DxBadRequestException(
-          "BBox must have exactly 2 coordinate pairs [[lon1,lat1],[lon2,lat2]]");
     try {
-      for (String part : parts) Double.parseDouble(part.trim());
-    } catch (NumberFormatException e) {
-      throw new DxBadRequestException("BBox coordinates must be valid numbers");
+      JsonArray array = new JsonArray(coordinates);
+      if (array.size() != 2) {
+        throw new DxBadRequestException(
+            "BBox must have exactly 2 coordinate pairs [[lon1,lat1],[lon2,lat2]]");
+      }
+      for (int i = 0; i < 2; i++) {
+        JsonArray pair = array.getJsonArray(i);
+        if (pair.size() != 2) {
+          throw new DxBadRequestException(
+              "Each BBox coordinate must have exactly 2 values [lon,lat]");
+        }
+        double lon = pair.getDouble(0);
+        double lat = pair.getDouble(1);
+        if (!DECIMAL_PATTERN.matcher(Double.toString(lon)).matches()
+            || !DECIMAL_PATTERN.matcher(Double.toString(lat)).matches()) {
+          throw new DxBadRequestException(
+              "BBox coordinate precision must not exceed 6 decimal places");
+        }
+      }
+    } catch (Exception e) {
+      throw new DxBadRequestException("Invalid BBox coordinates: " + e.getMessage());
     }
   }
 

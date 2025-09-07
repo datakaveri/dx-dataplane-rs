@@ -74,7 +74,7 @@ public class QueryMapper {
       temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
       temporal.put(JSON_ENDTIME, params.getTemporalRelation().getEndTime());
       temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
-      json.put(TEMPORAL_SEARCH, temporal);
+      json.put(TEMPORAL_QUERY, temporal);
     }
 
     // Attribute query (q)
