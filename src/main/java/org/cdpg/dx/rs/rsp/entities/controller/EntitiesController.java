@@ -1,5 +1,6 @@
 package org.cdpg.dx.rs.rsp.entities.controller;
 
+import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.MultiMap;
@@ -18,6 +19,8 @@ import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ParamsValidator;
+import org.cdpg.dx.validations.filter.ApplicableFilter;
+import org.cdpg.dx.validations.idhandler.GetIdFromParams;
 
 public class EntitiesController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(EntitiesController.class);
@@ -25,6 +28,8 @@ public class EntitiesController implements ApiController {
   private final DataBrokerService dataBrokerService;
   private final ParamsValidator paramsValidator;
   private final URNGenerator urnGenerator;
+  private final ApplicableFilter applicableFilterHandler;
+  private final GetIdFromParams getIdFromParams = new GetIdFromParams();
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
@@ -33,12 +38,17 @@ public class EntitiesController implements ApiController {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
+    this.applicableFilterHandler = new ApplicableFilter("https://controlplane.tgdex.iudx.io");
   }
 
   @Override
   public void register(RouterBuilder builder) {
     // GET endpoints
-    builder.operation(GET_SPATIAL_SEARCH).handler(ctx -> handleGet(ctx, false));
+    builder
+        .operation(GET_SPATIAL_SEARCH)
+        .handler(getIdFromParams)
+        .handler(applicableFilterHandler)
+        .handler(ctx -> handleGet(ctx, false));
     builder.operation(GET_TEMPORAL_ENTITY_SEARCH).handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -48,6 +58,8 @@ public class EntitiesController implements ApiController {
 
   private void handleGet(RoutingContext ctx, boolean isTemporalApi) {
     MultiMap params = ctx.request().params(true);
+    String instanceId = ctx.request().getHeader(HEADER_HOST);
+    String publicKey = ctx.request().getHeader(HEADER_PUBLIC_KEY);
     LOGGER.debug("Handling GET {} with query params: {}", ctx.request().path(), params);
 
     try {
@@ -78,10 +90,13 @@ public class EntitiesController implements ApiController {
 
     QueryRequest queryRequest = Util.queryRequestFromParams(params);
     NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(queryRequest);
-    JsonObject JsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
+    JsonObject jsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
+    jsonQuery.put(JSON_INSTANCEID, instanceId);
+    jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
 
+    LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
-        .executeAdapterQueryRPC(JsonQuery)
+        .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
             rpcResponse -> {
               LOGGER.debug("Data broker RPC response: {}", rpcResponse.encode());
@@ -125,6 +140,7 @@ public class EntitiesController implements ApiController {
       if (body.containsKey("q")) {
         paramsValidator.validateQ(body.getString("q"));
       }
+      // Attrs validation
       if (body.containsKey("attrs")) {
         paramsValidator.validateAttrs(body.getString("attrs"));
       }

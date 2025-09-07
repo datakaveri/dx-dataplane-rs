@@ -24,6 +24,7 @@ public final class RoutingContextHelper {
   private static final String AUDITING_LOG = "auditingLog";
   private static final String API_ENDPOINT = "apiEndpoint";
   private static final String RESPONSE_SIZE = "responseSize";
+  private static final String ID = "id";
 
   private RoutingContextHelper() {
     // Prevent instantiation
