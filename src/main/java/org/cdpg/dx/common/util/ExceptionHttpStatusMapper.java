@@ -9,6 +9,7 @@ public class ExceptionHttpStatusMapper {
 
   public static HttpStatusCode map(Throwable throwable) {
     return switch (throwable) {
+      case DxTimeOutException e -> HttpStatusCode.REQUEST_TIMEOUT;
       case NoRowFoundException e -> HttpStatusCode.NOT_FOUND;
       case InvalidColumnNameException e -> HttpStatusCode.BAD_REQUEST;
       case UniqueConstraintViolationException e -> HttpStatusCode.CONFLICT;

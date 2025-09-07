@@ -9,8 +9,10 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
-import org.cdpg.dx.apiserver.ProxyApiServerVerticle;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.response.ResponseBuilder;
+import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.query.NGSILDQueryParams;
 import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
@@ -18,10 +20,20 @@ import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ParamsValidator;
 
 public class EntitiesController implements ApiController {
+  private static final Logger LOGGER = LogManager.getLogger(EntitiesController.class);
 
-  private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);
+  private final DataBrokerService dataBrokerService;
+  private final ParamsValidator paramsValidator;
+  private final URNGenerator urnGenerator;
 
-  private final ParamsValidator validator = new ParamsValidator(30, 90); // example limits
+  public EntitiesController(
+      DataBrokerService dataBrokerService,
+      ParamsValidator paramsValidator,
+      URNGenerator urnGenerator) {
+    this.dataBrokerService = dataBrokerService;
+    this.paramsValidator = paramsValidator;
+    this.urnGenerator = urnGenerator;
+  }
 
   @Override
   public void register(RouterBuilder builder) {
@@ -32,10 +44,6 @@ public class EntitiesController implements ApiController {
     // POST endpoints
     builder.operation(POST_SPATIAL_COMPLEX_QUERY).handler(ctx -> handlePost(ctx, false));
     builder.operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY).handler(ctx -> handlePost(ctx, true));
-
-    // Async endpoints
-    builder.operation(GET_ASYNC_SEARCH).handler(this::handleGetAsyncSearch);
-    builder.operation(GET_ASYNC_SEARCH_STATUS).handler(this::handleGetAsyncSearchStatus);
   }
 
   private void handleGet(RoutingContext ctx, boolean isTemporalApi) {
@@ -43,18 +51,24 @@ public class EntitiesController implements ApiController {
     LOGGER.debug("Handling GET {} with query params: {}", ctx.request().path(), params);
 
     try {
-      // Extract temporal params
-      String timeRel = params.get("timerel");
-      String time = params.get("time");
-      String endTime = params.get("endtime");
-      String timeProperty = params.get("timeproperty");
 
-      // Validate temporal fields according to API type
-      validator.validateTemporal(timeRel, time, endTime, timeProperty, false, isTemporalApi);
+      paramsValidator.validateQueryParams(params);
 
-      // Validate geo params if present
-      validator.validateGeometry(params.get("geometry"), params.get("coordinates"));
-      validator.validateDistance(params.get("georel"));
+      // Validate temporal fields
+      paramsValidator.validateTemporal(
+          params.get("timerel"),
+          params.get("time"),
+          params.get("endtime"),
+          params.get("timeproperty"),
+          false,
+          isTemporalApi);
+
+      // Validate geo fields
+      paramsValidator.validateGeometry(params.get("geometry"), params.get("coordinates"));
+      paramsValidator.validateDistance(params.get("georel"));
+
+      // Validate Q-type attributes if present
+      paramsValidator.validateQ(params.get("q"));
 
     } catch (DxBadRequestException e) {
       ctx.fail(e);
@@ -63,13 +77,20 @@ public class EntitiesController implements ApiController {
 
     QueryRequest queryRequest = Util.queryRequestFromParams(params);
     NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(queryRequest);
+    JsonObject JsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
 
-    QueryMapper queryMapper = new QueryMapper();
-    JsonObject json = queryMapper.toJson(ngsildQuery, isTemporalApi);
-
-    ctx.response()
-        .putHeader("content-type", "application/json")
-        .end(new JsonObject().put("queryJson", json).put("path", ctx.request().path()).encode());
+    dataBrokerService
+        .executeAdapterQueryRPC(JsonQuery)
+        .onSuccess(
+            rpcResponse -> {
+              LOGGER.debug("Data broker RPC response: {}", rpcResponse.encode());
+              ResponseBuilder.sendSuccess(ctx, rpcResponse, null, urnGenerator);
+            })
+        .onFailure(
+            err -> {
+              LOGGER.error("Data broker query failed: {}", err.getClass(), err);
+              ctx.fail(err);
+            });
   }
 
   private void handlePost(RoutingContext ctx, boolean isTemporalApi) {
@@ -77,16 +98,32 @@ public class EntitiesController implements ApiController {
     LOGGER.debug("Handling POST {} with body: {}", ctx.request().path(), body.encodePrettily());
 
     try {
-      // Extract temporal fields from body if present
-      String timeRel = body.getString("timerel");
-      String time = body.getString("time");
-      String endTime = body.getString("endtime");
-      String timeProperty = body.getString("timeproperty");
 
-      validator.validateTemporal(timeRel, time, endTime, timeProperty, false, isTemporalApi);
+      paramsValidator.validateBodyParams(body);
 
-      validator.validateGeometry(body.getString("geometry"), body.getString("coordinates"));
-      validator.validateDistance(body.getString("georel"));
+      // Temporal validation
+      if (body.containsKey("temporalQ")) {
+        JsonObject temporalQ = body.getJsonObject("temporalQ");
+        paramsValidator.validateTemporal(
+            temporalQ.getString("timerel"),
+            temporalQ.getString("time"),
+            temporalQ.getString("endtime"),
+            temporalQ.getString("timeproperty"),
+            false,
+            isTemporalApi);
+      }
+
+      // Geo validation
+      if (body.containsKey("geoQ")) {
+        JsonObject geoQ = body.getJsonObject("geoQ");
+        paramsValidator.validateGeometry(geoQ.getString("geometry"), geoQ.getString("coordinates"));
+        paramsValidator.validateDistance(geoQ.getString("georel"));
+      }
+
+      // Q-type validation
+      if (body.containsKey("q")) {
+        paramsValidator.validateQ(body.getString("q"));
+      }
 
     } catch (DxBadRequestException e) {
       ctx.fail(e);
@@ -95,28 +132,18 @@ public class EntitiesController implements ApiController {
 
     QueryRequest queryRequest = Util.queryRequestFromBody(body);
     NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(queryRequest);
+    JsonObject JsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
 
-    QueryMapper queryMapper = new QueryMapper();
-    JsonObject json = queryMapper.toJson(ngsildQuery, isTemporalApi);
-
-    ctx.response()
-        .putHeader("content-type", "application/json")
-        .end(new JsonObject().put("queryJson", json).put("path", ctx.request().path()).encode());
-  }
-
-  private void handleGetAsyncSearch(RoutingContext ctx) {
-    JsonObject response =
-        new JsonObject()
-            .put("queryParams", ctx.queryParams().entries())
-            .put("path", ctx.request().path());
-    ctx.response().putHeader("content-type", "application/json").end(response.encode());
-  }
-
-  private void handleGetAsyncSearchStatus(RoutingContext ctx) {
-    JsonObject response =
-        new JsonObject()
-            .put("queryParams", ctx.queryParams().entries())
-            .put("path", ctx.request().path());
-    ctx.response().putHeader("content-type", "application/json").end(response.encode());
+    dataBrokerService
+        .executeAdapterQueryRPC(JsonQuery)
+        .onSuccess(
+            rpcResponse -> {
+              LOGGER.debug("Data broker RPC response: {}", rpcResponse.encode());
+              ResponseBuilder.sendSuccess(ctx, rpcResponse, null, urnGenerator);
+            })
+        .onFailure(
+            err -> {
+              ctx.fail(err);
+            });
   }
 }
