@@ -2,7 +2,6 @@ package org.cdpg.dx.rs.query;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
 import java.net.URI;
 import java.util.List;
 
@@ -98,8 +97,9 @@ public class QueryRequest {
     this.size = size;
   }
 
-  public JsonObject toJson() throws NoSuchMethodException {
+  public JsonObject toJson() {
     JsonObject json = new JsonObject();
+
     if (id != null) {
       JsonArray arr = new JsonArray();
       for (URI uri : id) arr.add(uri.toString());
@@ -109,46 +109,14 @@ public class QueryRequest {
     if (attributes != null) json.put("attributes", new JsonArray(attributes));
     if (idPattern != null) json.put("idPattern", new JsonArray(idPattern));
     if (q != null) json.put("q", q);
-    if (temporalQ != null && temporalQ instanceof TemporalQuery) {
-      if (temporalQ.getClass().getMethod("toJson") != null) {
-        json.put("temporalQ", ((TemporalQuery) temporalQ).toJson());
-      } else {
-        // fallback: manual
-        JsonObject tJson = new JsonObject();
-        if (temporalQ.getTimerel() != null) tJson.put("timerel", temporalQ.getTimerel());
-        if (temporalQ.getTime() != null) tJson.put("time", temporalQ.getTime());
-        if (temporalQ.getEndtime() != null) tJson.put("endtime", temporalQ.getEndtime());
-        if (temporalQ.getTimeProperty() != null)
-          tJson.put("timeProperty", temporalQ.getTimeProperty());
-        json.put("temporalQ", tJson);
-      }
-    }
-    if (geoQ != null && geoQ instanceof GeoQuery) {
-      if (geoQ.getClass().getMethod("toJson") != null) {
-        json.put("geoQ", ((GeoQuery) geoQ).toJson());
-      } else {
-        // fallback: manual
-        JsonObject gJson = new JsonObject();
-        if (geoQ.getGeometry() != null) gJson.put("geometry", geoQ.getGeometry());
-        if (geoQ.getCoordinates() != null)
-          gJson.put("coordinates", new JsonArray(geoQ.getCoordinates()));
-        if (geoQ.getGeoproperty() != null) gJson.put("geoproperty", geoQ.getGeoproperty());
-        if (geoQ.getGeorel() != null) {
-          JsonObject grJson = new JsonObject();
-          if (geoQ.getGeorel().getRelation() != null)
-            grJson.put("relation", geoQ.getGeorel().getRelation());
-          if (geoQ.getGeorel().getMaxDistance() != null)
-            grJson.put("maxDistance", geoQ.getGeorel().getMaxDistance());
-          if (geoQ.getGeorel().getMinDistance() != null)
-            grJson.put("minDistance", geoQ.getGeorel().getMinDistance());
-          gJson.put("georel", grJson);
-        }
-        json.put("geoQ", gJson);
-      }
-    }
+
+    if (temporalQ != null) json.put("temporalQ", temporalQ.toJson());
+    if (geoQ != null) json.put("geoQ", geoQ.toJson());
+
     if (options != null) json.put("options", options);
     if (from != null) json.put("from", from);
     if (size != null) json.put("size", size);
+
     return json;
   }
 }

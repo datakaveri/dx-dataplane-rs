@@ -3,13 +3,9 @@ package org.cdpg.dx.rs.query;
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Util {
@@ -68,17 +64,22 @@ public class Util {
         || params.contains("georel")) {
       GeoQuery gq = new GeoQuery();
       gq.setGeometry(params.get("geometry"));
+
       String coords = params.get("coordinates");
       if (coords != null) {
-        // attempts to parse comma separated doubles or JSON array like [x,y]
-        String clean = coords.replaceAll("[\\[\\]\\s]", "");
         try {
+          // Try parsing as full JSON (nested allowed)
+          JsonArray arr = new JsonArray(coords);
+          gq.setCoordinates(arr);
+        } catch (Exception e) {
+          // fallback: simple comma-separated doubles
+          String clean = coords.replaceAll("[\\[\\]\\s]", "");
           List<Double> lst =
               Arrays.stream(clean.split(",")).map(Double::parseDouble).collect(Collectors.toList());
-          gq.setCoordinates(lst);
-        } catch (Exception ignored) {
+          gq.setCoordinates(new JsonArray(lst));
         }
       }
+
       gq.setGeoproperty(params.get("geoproperty"));
 
       if (params.get("georel") != null) {
@@ -97,6 +98,7 @@ public class Util {
         }
         gq.setGeorel(gr);
       }
+
       req.setGeoQ(gq);
     }
 
@@ -154,15 +156,12 @@ public class Util {
       JsonObject g = body.getJsonObject("geoQ");
       GeoQuery gq = new GeoQuery();
       gq.setGeometry(g.getString("geometry"));
+
       if (g.containsKey("coordinates")) {
-        JsonArray arr = g.getJsonArray("coordinates");
-        List<Double> coords =
-            arr.stream()
-                .map(Object::toString)
-                .map(Double::parseDouble)
-                .collect(Collectors.toList());
-        gq.setCoordinates(coords);
+        // keep nested arrays intact
+        gq.setCoordinates(g.getJsonArray("coordinates"));
       }
+
       gq.setGeoproperty(g.getString("geoproperty"));
 
       if (g.containsKey("georel")) {
@@ -181,6 +180,7 @@ public class Util {
         }
         gq.setGeorel(gr);
       }
+
       req.setGeoQ(gq);
     }
 

@@ -3,13 +3,11 @@ package org.cdpg.dx.rs.query;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.util.List;
-
 public class GeoQuery {
-  private String geometry;
-  private List<Double> coordinates;
-  private String geoproperty;
-  private GeoRelation georel;
+  private String geometry; // Point, LineString, Polygon, etc.
+  private JsonArray coordinates; // Use JsonArray for nested flexibility
+  private String geoproperty; // Default is usually "location"
+  private GeoRelation georel; // Relation + optional distance constraints
 
   public String getGeometry() {
     return geometry;
@@ -19,11 +17,11 @@ public class GeoQuery {
     this.geometry = geometry;
   }
 
-  public List<Double> getCoordinates() {
+  public JsonArray getCoordinates() {
     return coordinates;
   }
 
-  public void setCoordinates(List<Double> coordinates) {
+  public void setCoordinates(JsonArray coordinates) {
     this.coordinates = coordinates;
   }
 
@@ -46,7 +44,7 @@ public class GeoQuery {
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
     if (geometry != null) json.put("geometry", geometry);
-    if (coordinates != null) json.put("coordinates", new JsonArray(coordinates));
+    if (coordinates != null) json.put("coordinates", coordinates);
     if (geoproperty != null) json.put("geoproperty", geoproperty);
     if (georel != null) {
       JsonObject grJson = new JsonObject();
