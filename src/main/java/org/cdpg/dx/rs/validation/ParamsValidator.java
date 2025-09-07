@@ -28,6 +28,10 @@ public class ParamsValidator {
   private static final int MAX_LINESTRING_COORDS = 10;
   private static final int MIN_LINESTRING_COORDS = 2;
 
+  private static final int MAX_ATTRS_ITEMS = 5; // same as VALIDATION_MAX_ATTRS
+  private static final int MAX_ATTR_LENGTH = 100; // same as VALIDATIONS_MAX_ATTR_LENGTH
+  private static final Pattern ATTRS_REGEX = Pattern.compile("^[a-zA-Z0-9_]+$");
+
   private static final Pattern DECIMAL_PATTERN =
       Pattern.compile("^-?\\d{1,3}\\.\\d{1,6}$|^-?\\d{1,3}$");
   private static final Pattern VALIDATION_Q_ATTR_PATTERN = Pattern.compile("^[a-zA-Z0-9_.]+$");
@@ -82,6 +86,25 @@ public class ParamsValidator {
     this.maxDaysAsync = maxDaysAsync;
   }
 
+  private static double getValue(String[] parts) {
+    if (parts.length != 2) {
+      throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+    }
+
+    String[] kv = parts[1].split("=");
+    if (kv.length != 2) {
+      throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+    }
+
+    String key = kv[0].trim().toLowerCase(); // normalize case
+    if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
+      throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
+    }
+
+    double value = Double.parseDouble(kv[1].trim());
+    return value;
+  }
+
   /* ===== Unified recursive parameter validation ===== */
   private void validateParamsRecursive(Object value) {
     if (value instanceof JsonObject obj) {
@@ -112,6 +135,8 @@ public class ParamsValidator {
     validateParamsRecursive(body);
   }
 
+  /* ---- Public validation methods ---- */
+
   /* ===== Header validation ===== */
   private void validateHeaders(MultiMap headers) {
     for (String headerName : headers.names()) {
@@ -120,8 +145,6 @@ public class ParamsValidator {
       }
     }
   }
-
-  /* ---- Public validation methods ---- */
 
   public void validateGeometry(String geom, String coordinates) {
     if (geom == null && coordinates == null) return;
@@ -164,8 +187,8 @@ public class ParamsValidator {
 
     try {
       String[] parts = georel.split(";");
-        double value = getValue(parts);
-        if (value < 0 || value > MAX_DISTANCE) {
+      double value = getValue(parts);
+      if (value < 0 || value > MAX_DISTANCE) {
         throw new DxBadRequestException("maxDistance must be between 0 and " + MAX_DISTANCE);
       }
     } catch (NumberFormatException e) {
@@ -173,26 +196,7 @@ public class ParamsValidator {
     }
   }
 
-    private static double getValue(String[] parts) {
-        if (parts.length != 2) {
-          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
-        }
-
-        String[] kv = parts[1].split("=");
-        if (kv.length != 2) {
-          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
-        }
-
-        String key = kv[0].trim().toLowerCase(); // normalize case
-        if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
-          throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
-        }
-
-        double value = Double.parseDouble(kv[1].trim());
-        return value;
-    }
-
-    /**
+  /**
    * Validate temporal query parameters.
    *
    * @param isTemporalApi true if /temporal/entity API, false if /entity API
@@ -296,6 +300,34 @@ public class ParamsValidator {
       return true;
     } catch (NumberFormatException e) {
       return false;
+    }
+  }
+
+  public void validateAttrs(String attrs) {
+    LOGGER.debug("Validating attrs param : {} ", attrs);
+
+    // Required but missing
+    if (attrs == null || attrs.isBlank()) {
+      return;
+    }
+    // Split by commas
+    String[] attrList = attrs.split(",");
+    if (attrList.length > MAX_ATTRS_ITEMS) {
+      throw new DxBadRequestException("Too many attributes, maximum allowed = " + MAX_ATTRS_ITEMS);
+    }
+
+    for (String attr : attrList) {
+      String trimmed = attr.trim();
+
+      // Length check
+      if (trimmed.length() > MAX_ATTR_LENGTH) {
+        throw new DxBadRequestException("Attribute too long: " + trimmed);
+      }
+
+      // Pattern check
+      if (!ATTRS_REGEX.matcher(trimmed).matches()) {
+        throw new DxBadRequestException("Invalid attribute name: " + trimmed);
+      }
     }
   }
 
