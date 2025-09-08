@@ -100,7 +100,7 @@ tags:
 
     '
 servers:
-  - url: https://example-proxy.com/ngsi-ld/v1
+  - url: https://example-proxy.com
     description: Development Server URL
 paths:
   /ngsi-ld/v1/entities:
