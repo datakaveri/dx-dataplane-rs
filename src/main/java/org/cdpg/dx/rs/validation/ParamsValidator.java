@@ -7,10 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -154,7 +151,7 @@ public class ParamsValidator {
 
     try {
       validateGeoRel(geom, geoRel);
-     // validateCoordinates(geom, coordinates);
+      // validateCoordinates(geom, coordinates);
       JsonObject json = new JsonObject();
       json.put("coordinates", new JsonArray(coordinates));
 
@@ -307,13 +304,13 @@ public class ParamsValidator {
   }
 
   public void validateAttrs(String attrs) {
-    LOGGER.debug("Validating attrs param : {} ", attrs);
 
     // Required but missing
     if (attrs == null || attrs.isBlank()) {
       return;
     }
     // Split by commas
+    LOGGER.debug("Validating attrs param : {} ", attrs);
     String[] attrList = attrs.split(",");
     if (attrList.length > MAX_ATTRS_ITEMS) {
       throw new DxBadRequestException("Too many attributes, maximum allowed = " + MAX_ATTRS_ITEMS);
@@ -583,5 +580,49 @@ public class ParamsValidator {
       case "bbox" -> "Expected BBox coordinates: [[lon1,lat1],[lon2,lat2]]";
       default -> "Unsupported geometry type: " + geom;
     };
+  }
+
+  public void isValidQueryWithFilters(MultiMap paramsMap, JsonArray applicableFilters) {
+    LOGGER.info("validation filters " + applicableFilters);
+    if (isTemporalQuery(paramsMap) && !applicableFilters.contains("TEMPORAL")) {
+      throw new DxBadRequestException("Temporal parameters are not supported by RS Item.");
+    }
+    if (isAttributeQuery(paramsMap) && !applicableFilters.contains("ATTR")) {
+      throw new DxBadRequestException("Attribute parameters are not supported by RS Item.");
+    }
+    if (isSpatialQuery(paramsMap) && !applicableFilters.contains("SPATIAL")) {
+      throw new DxBadRequestException("Spatial parameters are not supported by RS Item.");
+    }
+  }
+
+  public void isValidQueryWithFilters(String searchType, JsonArray applicableFilters) {
+    LOGGER.info("validation filters " + applicableFilters);
+    if (searchType.contains("temporalSearch") && !applicableFilters.contains("TEMPORAL")) {
+      throw new DxBadRequestException("Temporal parameters are not supported by RS Item.");
+    }
+    if (searchType.contains("attributeSearch") && !applicableFilters.contains("ATTR")) {
+      throw new DxBadRequestException("Attribute parameters are not supported by RS Item.");
+    }
+    if (searchType.contains("geoSearch") && !applicableFilters.contains("SPATIAL")) {
+      throw new DxBadRequestException("Spatial parameters are not supported by RS Item.");
+    }
+  }
+
+  private Boolean isTemporalQuery(MultiMap params) {
+    return params.contains(NGSILDQUERY_TIMEREL)
+        || params.contains(NGSILDQUERY_TIME)
+        || params.contains(NGSILDQUERY_ENDTIME)
+        || params.contains(NGSILDQUERY_TIME_PROPERTY);
+  }
+
+  private Boolean isAttributeQuery(MultiMap params) {
+    return params.contains(NGSILDQUERY_ATTRIBUTE);
+  }
+
+  private Boolean isSpatialQuery(MultiMap params) {
+    return params.contains(NGSILDQUERY_GEOREL)
+        || params.contains(NGSILDQUERY_GEOMETRY)
+        || params.contains(NGSILDQUERY_GEOPROPERTY)
+        || params.contains(NGSILDQUERY_COORDINATES);
   }
 }
