@@ -31,7 +31,7 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.GIT_BRANCH == 'origin/main';
+            return env.GIT_BRANCH == 'origin/dev';
           }
         }
       }
