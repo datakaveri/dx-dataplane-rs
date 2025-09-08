@@ -20,6 +20,7 @@ import org.cdpg.dx.rs.query.NGSILDQueryParams;
 import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
+import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.rs.validation.ParamsValidator;
 import org.cdpg.dx.validations.filter.ApplicableFilter;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
@@ -34,6 +35,7 @@ public class EntitiesController implements ApiController {
   private final ApplicableFilter applicableFilterHandler;
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
+  private final CheckItemAccessHandler checkItemAccessHandler;
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
@@ -44,6 +46,7 @@ public class EntitiesController implements ApiController {
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
     this.applicableFilterHandler = new ApplicableFilter(controlPlaneDomain);
+    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
   }
 
   @Override
@@ -52,11 +55,13 @@ public class EntitiesController implements ApiController {
     builder
         .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
+        .handler(checkItemAccessHandler)
         .handler(applicableFilterHandler)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
+        .handler(checkItemAccessHandler)
         .handler(applicableFilterHandler)
         .handler(ctx -> handleGet(ctx, true));
 
@@ -64,11 +69,13 @@ public class EntitiesController implements ApiController {
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
+        .handler(checkItemAccessHandler)
         .handler(applicableFilterHandler)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
+        .handler(checkItemAccessHandler)
         .handler(applicableFilterHandler)
         .handler(ctx -> handlePost(ctx, true));
   }
