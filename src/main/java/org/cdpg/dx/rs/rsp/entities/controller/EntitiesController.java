@@ -64,11 +64,12 @@ public class EntitiesController implements ApiController {
           isTemporalApi);
 
       // Validate geo fields
-      paramsValidator.validateGeometry(params.get("geometry"), params.get("coordinates"));
-      paramsValidator.validateDistance(params.get("georel"));
+      paramsValidator.validateGeometry(
+          params.get("geometry"), params.get("georel"), params.get("coordinates"));
 
       // Validate Q-type attributes if present
       paramsValidator.validateQ(params.get("q"));
+      paramsValidator.validateAttrs(params.get("attrs"));
 
     } catch (DxBadRequestException e) {
       ctx.fail(e);
@@ -116,13 +117,16 @@ public class EntitiesController implements ApiController {
       // Geo validation
       if (body.containsKey("geoQ")) {
         JsonObject geoQ = body.getJsonObject("geoQ");
-        paramsValidator.validateGeometry(geoQ.getString("geometry"), geoQ.getString("coordinates"));
-        paramsValidator.validateDistance(geoQ.getString("georel"));
+        paramsValidator.validateGeometry(
+            geoQ.getString("geometry"), geoQ.getString("georel"), geoQ.getString("coordinates"));
       }
 
       // Q-type validation
       if (body.containsKey("q")) {
         paramsValidator.validateQ(body.getString("q"));
+      }
+      if (body.containsKey("attrs")) {
+        paramsValidator.validateAttrs(body.getString("attrs"));
       }
 
     } catch (DxBadRequestException e) {

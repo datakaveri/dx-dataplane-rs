@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +28,10 @@ public class ParamsValidator {
   private static final int MIN_POLYGON_COORDS = 4;
   private static final int MAX_LINESTRING_COORDS = 10;
   private static final int MIN_LINESTRING_COORDS = 2;
+
+  private static final int MAX_ATTRS_ITEMS = 5; // same as VALIDATION_MAX_ATTRS
+  private static final int MAX_ATTR_LENGTH = 100; // same as VALIDATIONS_MAX_ATTR_LENGTH
+  private static final Pattern ATTRS_REGEX = Pattern.compile("^[a-zA-Z0-9_]+$");
 
   private static final Pattern DECIMAL_PATTERN =
       Pattern.compile("^-?\\d{1,3}\\.\\d{1,6}$|^-?\\d{1,3}$");
@@ -82,6 +87,25 @@ public class ParamsValidator {
     this.maxDaysAsync = maxDaysAsync;
   }
 
+  private static double getValue(String[] parts) {
+    if (parts.length != 2) {
+      throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+    }
+
+    String[] kv = parts[1].split("=");
+    if (kv.length != 2) {
+      throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
+    }
+
+    String key = kv[0].trim().toLowerCase(); // normalize case
+    if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
+      throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
+    }
+
+    double value = Double.parseDouble(kv[1].trim());
+    return value;
+  }
+
   /* ===== Unified recursive parameter validation ===== */
   private void validateParamsRecursive(Object value) {
     if (value instanceof JsonObject obj) {
@@ -112,6 +136,8 @@ public class ParamsValidator {
     validateParamsRecursive(body);
   }
 
+  /* ---- Public validation methods ---- */
+
   /* ===== Header validation ===== */
   private void validateHeaders(MultiMap headers) {
     for (String headerName : headers.names()) {
@@ -121,21 +147,21 @@ public class ParamsValidator {
     }
   }
 
-  /* ---- Public validation methods ---- */
-
-  public void validateGeometry(String geom, String coordinates) {
-    if (geom == null && coordinates == null) return;
-
-    LOGGER.debug("Validating geometry: geom={}, coordinates={}", geom, coordinates);
+  public void validateGeometry(String geom, String geoRel, String coordinates) {
+    LOGGER.debug(
+        "Validating geometry: geom={}, geoRel= {} coordinates={}", geom, geoRel, coordinates);
+    if (geom == null && geoRel == null && coordinates == null) return;
 
     try {
+      validateGeoRel(geom, geoRel);
+     // validateCoordinates(geom, coordinates);
       JsonObject json = new JsonObject();
       json.put("coordinates", new JsonArray(coordinates));
 
-      switch (geom.toLowerCase()) {
+      switch (Objects.requireNonNull(geom).toLowerCase()) {
         case "point":
           json.put("type", "Point");
-          validatePoint(json);
+          validatePoint(json, geoRel);
           break;
         case "polygon":
           json.put("type", "Polygon");
@@ -149,7 +175,7 @@ public class ParamsValidator {
           validateBbox(coordinates);
           break;
         default:
-          throw new DxBadRequestException("Unsupported geometry type: " + geom);
+          throw new DxBadRequestException(expectedFormatMessage(geom));
       }
     } catch (Exception e) {
       LOGGER.error("Invalid geo parameters: {}", e.getMessage());
@@ -164,8 +190,8 @@ public class ParamsValidator {
 
     try {
       String[] parts = georel.split(";");
-        double value = getValue(parts);
-        if (value < 0 || value > MAX_DISTANCE) {
+      double value = getValue(parts);
+      if (value < 0 || value > MAX_DISTANCE) {
         throw new DxBadRequestException("maxDistance must be between 0 and " + MAX_DISTANCE);
       }
     } catch (NumberFormatException e) {
@@ -173,26 +199,7 @@ public class ParamsValidator {
     }
   }
 
-    private static double getValue(String[] parts) {
-        if (parts.length != 2) {
-          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
-        }
-
-        String[] kv = parts[1].split("=");
-        if (kv.length != 2) {
-          throw new DxBadRequestException("Invalid georel format. Expected near;maxDistance=<value>");
-        }
-
-        String key = kv[0].trim().toLowerCase(); // normalize case
-        if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
-          throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
-        }
-
-        double value = Double.parseDouble(kv[1].trim());
-        return value;
-    }
-
-    /**
+  /**
    * Validate temporal query parameters.
    *
    * @param isTemporalApi true if /temporal/entity API, false if /entity API
@@ -231,9 +238,9 @@ public class ParamsValidator {
     }
 
     ZonedDateTime end = null;
-    if ("between".equalsIgnoreCase(timeRel)) {
+    if ("between".equalsIgnoreCase(timeRel) || "during".equalsIgnoreCase(timeRel)) {
       if (endTime == null)
-        throw new DxBadRequestException("endTime is mandatory when timeRel=between");
+        throw new DxBadRequestException("endTime is mandatory when timeRel=between or during");
       try {
         end = ZonedDateTime.parse(endTime);
         if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after time");
@@ -299,26 +306,205 @@ public class ParamsValidator {
     }
   }
 
+  public void validateAttrs(String attrs) {
+    LOGGER.debug("Validating attrs param : {} ", attrs);
+
+    // Required but missing
+    if (attrs == null || attrs.isBlank()) {
+      return;
+    }
+    // Split by commas
+    String[] attrList = attrs.split(",");
+    if (attrList.length > MAX_ATTRS_ITEMS) {
+      throw new DxBadRequestException("Too many attributes, maximum allowed = " + MAX_ATTRS_ITEMS);
+    }
+
+    for (String attr : attrList) {
+      String trimmed = attr.trim();
+
+      // Length check
+      if (trimmed.length() > MAX_ATTR_LENGTH) {
+        throw new DxBadRequestException("Attribute too long: " + trimmed);
+      }
+
+      // Pattern check
+      if (!ATTRS_REGEX.matcher(trimmed).matches()) {
+        throw new DxBadRequestException("Invalid attribute name: " + trimmed);
+      }
+    }
+  }
+
   /* ---- Private helpers for geometry ---- */
 
-  private void validatePoint(JsonObject json) {
+  public void validateGeoRel(String geom, String georel) {
+
+    if (georel == null || geom == null) return;
+
+    if (geom.equalsIgnoreCase("polygon")
+        || geom.equalsIgnoreCase("linestring")
+        || geom.equalsIgnoreCase("bbox")) {
+      if (!georel.equalsIgnoreCase("within") && !georel.equalsIgnoreCase("intersects")) {
+        throw new DxBadRequestException("georel must be within or intersects for geometry " + geom);
+      }
+    } else if (geom.equalsIgnoreCase("point")) {
+      if (!georel.toLowerCase().startsWith("near;")) {
+        throw new DxBadRequestException("georel must start with near; for geometry Point");
+      }
+    } else {
+      throw new DxBadRequestException("Unsupported geometry type: " + geom);
+    }
+  }
+
+  public void validateCoordinates(String geom, String coordinates) {
+    if (geom == null || coordinates == null) return;
+
+    try {
+      JsonArray array = new JsonArray(coordinates);
+
+      LOGGER.error("Coordinates array: {}", array.encodePrettily());
+
+      switch (geom.toLowerCase()) {
+        case "point":
+          if (array.size() != 2) {
+            throw new DxBadRequestException(
+                "Point must have exactly 2 values: [lon, lat]. " + expectedFormatMessage("point"));
+          }
+          double lon = array.getDouble(0);
+          double lat = array.getDouble(1);
+          if (!DECIMAL_PATTERN.matcher(Double.toString(lon)).matches()
+              || !DECIMAL_PATTERN.matcher(Double.toString(lat)).matches()) {
+            throw new DxBadRequestException(
+                "Point coordinate precision must not exceed 6 decimal places. "
+                    + expectedFormatMessage("point"));
+          }
+          break;
+
+        case "linestring":
+          if (array.size() < MIN_LINESTRING_COORDS || array.size() > MAX_LINESTRING_COORDS) {
+            throw new DxBadRequestException(
+                "LineString must have between "
+                    + MIN_LINESTRING_COORDS
+                    + " and "
+                    + MAX_LINESTRING_COORDS
+                    + " points. "
+                    + expectedFormatMessage("linestring"));
+          }
+          for (int i = 0; i < array.size(); i++) {
+            if (!array.getValue(i).getClass().equals(JsonArray.class)) {
+              throw new DxBadRequestException(
+                  "Each LineString coordinate must be an array: [lon, lat]. "
+                      + expectedFormatMessage("linestring"));
+            }
+            JsonArray pair = array.getJsonArray(i);
+            if (pair.size() != 2) {
+              throw new DxBadRequestException(
+                  "Each LineString coordinate must have 2 values: [lon, lat]. "
+                      + expectedFormatMessage("linestring"));
+            }
+            validatePairPrecision(pair);
+          }
+          break;
+
+        case "polygon":
+          if (array.size() > MIN_POLYGON_COORDS || array.size() > MAX_POLYGON_COORDS) {
+            throw new DxBadRequestException(
+                "Polygon must have between "
+                    + MIN_POLYGON_COORDS
+                    + " and "
+                    + MAX_POLYGON_COORDS
+                    + " points. "
+                    + expectedFormatMessage("polygon"));
+          }
+          for (int i = 0; i < array.size(); i++) {
+            JsonArray pair = array.getJsonArray(i);
+            if (pair.size() != 2) {
+              throw new DxBadRequestException(
+                  "Each Polygon coordinate must have 2 values: [lon, lat]. "
+                      + expectedFormatMessage("polygon"));
+            }
+            validatePairPrecision(pair);
+          }
+          // Optional: check if first and last points match
+          if (!array.getJsonArray(0).equals(array.getJsonArray(array.size() - 1))) {
+            throw new DxBadRequestException(
+                "Polygon must be closed (first and last point must match). "
+                    + expectedFormatMessage("polygon"));
+          }
+          break;
+
+        case "bbox":
+          LOGGER.warn("Validating BBox: {} . size {} ", array.encodePrettily(), array.size());
+          if (array.size() != 2) {
+            throw new DxBadRequestException(
+                "BBox must have exactly 2 coordinate pairs. " + expectedFormatMessage("bbox"));
+          }
+          for (int i = 0; i < 2; i++) {
+            if (array.getValue(i) instanceof Double) {
+              throw new DxBadRequestException(
+                  "Each BBox coordinate must have 2 values: [lon, lat]. "
+                      + expectedFormatMessage("bbox"));
+            }
+            JsonArray pair = array.getJsonArray(i);
+            if (pair.size() != 2) {
+              throw new DxBadRequestException(
+                  "Each BBox coordinate must have 2 values: [lon, lat]. "
+                      + expectedFormatMessage("bbox"));
+            }
+
+            validatePairPrecision(pair);
+          }
+          break;
+
+        default:
+          throw new DxBadRequestException("Unsupported geometry type: " + geom);
+      }
+
+    } catch (Exception e) {
+      throw new DxBadRequestException(
+          "Invalid coordinates for geometry " + geom + ": " + e.getMessage());
+    }
+  }
+
+  private void validatePairPrecision(JsonArray pair) {
+    double lon = pair.getDouble(0);
+    double lat = pair.getDouble(1);
+    if (!DECIMAL_PATTERN.matcher(Double.toString(lon)).matches()
+        || !DECIMAL_PATTERN.matcher(Double.toString(lat)).matches()) {
+      throw new DxBadRequestException("Coordinate precision must not exceed 6 decimal places");
+    }
+  }
+
+  private void validatePoint(JsonObject json, String georel) {
     Geometry geom = readGeometry(json);
-    if (!"Point".equalsIgnoreCase(geom.getGeometryType()))
+    if (!"Point".equalsIgnoreCase(geom.getGeometryType())) {
       throw new DxBadRequestException("Invalid Point geometry");
+    }
+
     Coordinate[] coords = geom.getCoordinates();
-    if (coords.length != 1)
+    if (coords.length != 1) {
       throw new DxBadRequestException("Point must have exactly one coordinate pair");
+    }
+
     validatePrecision(coords);
+
+    // Validate distance when georel is given
+    if (georel != null) {
+      validateDistance(georel);
+    } else {
+      throw new DxBadRequestException("georel with distance is required for Point geometry");
+    }
   }
 
   private void validatePolygon(JsonObject json) {
-
     LOGGER.debug("Validating Polygon: {}", json.encodePrettily());
 
     Geometry geom = readGeometry(json);
     LOGGER.debug("Parsed geometry type: {}", geom.getGeometryType());
-    if (!"Polygon".equalsIgnoreCase(geom.getGeometryType()))
-      throw new DxBadRequestException("Invalid Polygon geometry");
+    if (!"Polygon".equalsIgnoreCase(geom.getGeometryType())) {
+      throw new DxBadRequestException(
+          "Invalid Polygon geometry. " + expectedFormatMessage("polygon"));
+    }
+
     Coordinate[] coords = geom.getCoordinates();
     LOGGER.debug("Polygon coordinates count: {}", coords.length);
 
@@ -387,5 +573,15 @@ public class ParamsValidator {
         throw new DxBadRequestException("Coordinate precision must not exceed 6 decimal places");
       }
     }
+  }
+
+  private String expectedFormatMessage(String geom) {
+    return switch (geom.toLowerCase()) {
+      case "point" -> "Expected Point coordinates: [lon, lat]";
+      case "polygon" -> "Expected Polygon coordinates: [[[lon,lat],[lon,lat],...,[lon,lat]]]";
+      case "linestring" -> "Expected LineString coordinates: [[lon,lat],[lon,lat],...,[lon,lat]]";
+      case "bbox" -> "Expected BBox coordinates: [[lon1,lat1],[lon2,lat2]]";
+      default -> "Unsupported geometry type: " + geom;
+    };
   }
 }
