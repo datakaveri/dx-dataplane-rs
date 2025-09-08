@@ -15,6 +15,7 @@ public class EntityControllerfactory {
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
     ParamsValidator validator = new ParamsValidator(maxDaysSync, maxDaysAsync);
 
-    return new EntitiesController(dataBrokerService, validator, urnGenerator);
+    return new EntitiesController(
+        dataBrokerService, validator, urnGenerator, config.getString("controlPlaneDomain"));
   }
 }
