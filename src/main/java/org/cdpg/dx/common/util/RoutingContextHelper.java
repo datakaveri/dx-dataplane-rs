@@ -2,6 +2,7 @@ package org.cdpg.dx.common.util;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.ID;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ public final class RoutingContextHelper {
   private static final String AUDITING_LOG = "auditingLog";
   private static final String API_ENDPOINT = "apiEndpoint";
   private static final String RESPONSE_SIZE = "responseSize";
+  private static final String ID = "id";
+  private static final String APPLICABLE_FILTER = "applicableFilter";
 
   private RoutingContextHelper() {
     // Prevent instantiation
@@ -88,6 +91,14 @@ public final class RoutingContextHelper {
 
   public static String getId(RoutingContext event) {
     return event.get(ID);
+  }
+
+  public static void setApplicableFilter(RoutingContext event, JsonArray filter) {
+    event.put(APPLICABLE_FILTER, filter);
+  }
+
+  public static JsonArray getApplicableFilter(RoutingContext event) {
+    return event.get(APPLICABLE_FILTER);
   }
 
   public static String getRequestPath(RoutingContext routingContext) {
