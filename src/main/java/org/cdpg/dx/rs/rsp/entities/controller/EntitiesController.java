@@ -117,8 +117,10 @@ public class EntitiesController implements ApiController {
     JsonObject jsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
     jsonQuery.put(JSON_INSTANCEID, instanceId);
     jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
+    jsonQuery.put("api", ctx.normalizedPath());
     String searchType = jsonQuery.getString("searchType");
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
+    jsonQuery.put("applicableFilters", applicableFilter);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
         .executeAdapterQueryRPC(jsonQuery)
@@ -182,8 +184,11 @@ public class EntitiesController implements ApiController {
     JsonObject jsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
     jsonQuery.put(JSON_INSTANCEID, instanceId);
     jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
+    jsonQuery.put("api", ctx.normalizedPath());
     String searchType = jsonQuery.getString("searchType");
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
+    jsonQuery.put("applicableFilters", applicableFilter);
+    LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
         .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
