@@ -94,4 +94,14 @@ public class ResponseBuilder {
   public static void sendProcessing(RoutingContext ctx, String detail, URNGenerator urnGenerator) {
     send(ctx, HttpStatusCode.PROCESSING, detail, null, null, urnGenerator);
   }
+
+  public static void sendError(
+      RoutingContext ctx, HttpStatusCode status, URNGenerator urnGenerator) {
+    send(ctx, status, status.getDescription(), null, null, urnGenerator);
+  }
+
+  public static void sendError(
+      RoutingContext ctx, HttpStatusCode status, String detail, URNGenerator urnGenerator) {
+    send(ctx, status, detail, null, null, urnGenerator);
+  }
 }
