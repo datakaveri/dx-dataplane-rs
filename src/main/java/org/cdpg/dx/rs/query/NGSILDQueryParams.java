@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.apiserver.config.ApiConstants;
 
 /** NGSILDQueryParams Class to parse query parameters from HTTP request. */
 public class NGSILDQueryParams {
@@ -33,8 +34,8 @@ public class NGSILDQueryParams {
   private String coordinates;
   private String geoProperty;
   private String relation;
-  private String pageFrom;
-  private String pageSize;
+  private int pageFrom;
+  private int pageSize;
 
   public NGSILDQueryParams() {}
 
@@ -93,10 +94,10 @@ public class NGSILDQueryParams {
       this.options = request.getOptions();
     }
     if (request.getFrom() != null) {
-      this.pageFrom = request.getFrom();
+      this.pageFrom = Integer.parseInt(request.getFrom());
     }
     if (request.getSize() != null) {
-      this.pageSize = request.getSize();
+      this.pageSize = Integer.parseInt(request.getSize());
     }
 
     TemporalQuery tq = request.getTemporalQ();
@@ -105,7 +106,7 @@ public class NGSILDQueryParams {
       this.temporalRelation.setTime(tq.getTime());
       this.temporalRelation.setEndTime(tq.getEndtime());
       // if TemporalRelation has a timeProperty field, set it here (not present in original flow)
-      // this.temporalRelation.setTimeProperty(tq.getTimeProperty());
+       this.temporalRelation.setTimeProperty(tq.getTimeProperty());
     }
 
     GeoQuery gq = request.getGeoQ();
@@ -142,10 +143,10 @@ public class NGSILDQueryParams {
         case NGSILDQUERY_TIMEREL:
           this.temporalRelation.setTimeRel(entry.getValue());
           break;
-        case NGSILDQUERY_TIME:
+        case NGSILDQUERY_TIMEAT:
           this.temporalRelation.setTime(entry.getValue());
           break;
-        case NGSILDQUERY_ENDTIME:
+        case NGSILDQUERY_ENDTIMEAT:
           this.temporalRelation.setEndTime(entry.getValue());
           break;
         case NGSILDQUERY_Q:
@@ -155,10 +156,10 @@ public class NGSILDQueryParams {
           this.options = entry.getValue();
           break;
         case NGSILDQUERY_SIZE:
-          this.pageSize = entry.getValue();
+          this.pageSize = Integer.parseInt(entry.getValue());
           break;
         case NGSILDQUERY_FROM:
-          this.pageFrom = entry.getValue();
+          this.pageFrom = Integer.parseInt(entry.getValue());
           break;
         case NGSILDQUERY_GEOREL:
           String georel = entry.getValue();
@@ -206,8 +207,8 @@ public class NGSILDQueryParams {
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_TEMPORALQ)) {
             JsonObject temporalJson = requestJson.getJsonObject(entry.getKey());
             this.temporalRelation.setTimeRel(temporalJson.getString(NGSILDQUERY_TIMEREL));
-            this.temporalRelation.setTime(temporalJson.getString(NGSILDQUERY_TIME));
-            this.temporalRelation.setEndTime(temporalJson.getString(NGSILDQUERY_ENDTIME));
+            this.temporalRelation.setTime(temporalJson.getString(NGSILDQUERY_TIMEAT));
+            this.temporalRelation.setEndTime(temporalJson.getString(NGSILDQUERY_ENDTIMEAT));
           } else if (entry.getKey().equalsIgnoreCase(JSON_ENTITIES)) {
             JsonArray array = new JsonArray(entry.getValue().toString());
             Iterator<?> iter = array.iterator();
@@ -245,9 +246,9 @@ public class NGSILDQueryParams {
               }
             }
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_FROM)) {
-            this.pageFrom = requestJson.getString(entry.getKey());
+            this.pageFrom = Integer.parseInt(requestJson.getString(entry.getKey()));
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_SIZE)) {
-            this.pageSize = requestJson.getString(NGSILDQUERY_SIZE);
+            this.pageSize = Integer.parseInt(requestJson.getString(ApiConstants.NGSILDQUERY_SIZE));
           }
         });
   }
@@ -358,11 +359,11 @@ public class NGSILDQueryParams {
     this.relation = relation;
   }
 
-  public String getPageFrom() {
+  public int getPageFrom() {
     return pageFrom;
   }
 
-  public String getPageSize() {
+  public int getPageSize() {
     return pageSize;
   }
 
@@ -390,6 +391,10 @@ public class NGSILDQueryParams {
         + temporalRelation
         + ", options="
         + options
+        + ", pageFrom="
+        + pageFrom
+        + ", pageSize="
+        + pageSize
         + "]";
   }
 }
