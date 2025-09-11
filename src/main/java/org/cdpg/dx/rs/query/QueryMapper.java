@@ -74,6 +74,7 @@ public class QueryMapper {
       temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
       temporal.put(JSON_ENDTIME, params.getTemporalRelation().getEndTime());
       temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
+      temporal.put(JSON_TIMEPROPERTY, params.getTemporalRelation().getTimeProperty());
       json.put(TEMPORAL_QUERY, temporal);
     }
 
@@ -86,11 +87,15 @@ public class QueryMapper {
     if (params.getOptions() != null) {
       json.put(IUDXQUERY_OPTIONS, params.getOptions());
     }
-    if (params.getPageFrom() != null) {
+    if (params.getPageFrom() >= 0) {
       json.put(NGSILDQUERY_FROM, params.getPageFrom());
+    } else {
+      json.put(NGSILDQUERY_FROM, DEFAULT_PAGE_FROM);
     }
-    if (params.getPageSize() != null) {
+    if (params.getPageSize() > 0) {
       json.put(NGSILDQUERY_SIZE, params.getPageSize());
+    } else {
+      json.put(NGSILDQUERY_SIZE, DEFAULT_PAGE_SIZE);
     }
 
     // Search type flags
@@ -107,6 +112,9 @@ public class QueryMapper {
     }
     if (params.getQ() != null) {
       searchType.append(JSON_ATTRIBUTE_SEARCH);
+    }
+    if (params.getAttrs() != null) {
+      searchType.append(JSON_RESPONSE_FILTER_SEARCH);
     }
     if (params.getGeoRel().getRelation() != null
         || params.getCoordinates() != null

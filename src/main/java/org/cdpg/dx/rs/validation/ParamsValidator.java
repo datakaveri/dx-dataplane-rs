@@ -51,9 +51,9 @@ public class ParamsValidator {
     validParams.add(NGSILDQUERY_COORDINATES);
     validParams.add(NGSILDQUERY_GEOPROPERTY);
     validParams.add(NGSILDQUERY_TIMEPROPERTY);
-    validParams.add(NGSILDQUERY_TIME);
+    validParams.add(NGSILDQUERY_TIMEAT);
     validParams.add(NGSILDQUERY_TIMEREL);
-    validParams.add(NGSILDQUERY_ENDTIME);
+    validParams.add(NGSILDQUERY_ENDTIMEAT);
     validParams.add(NGSILDQUERY_ENTITIES);
     validParams.add(NGSILDQUERY_GEOQ);
     validParams.add(NGSILDQUERY_TEMPORALQ);
@@ -95,8 +95,8 @@ public class ParamsValidator {
     }
 
     String key = kv[0].trim().toLowerCase(); // normalize case
-    if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
-      throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
+    if (!"maxdistance".equals(key)) {
+      throw new DxBadRequestException("Invalid distance key. Must be maxDistance");
     }
 
     double value = Double.parseDouble(kv[1].trim());
@@ -151,7 +151,7 @@ public class ParamsValidator {
 
     try {
       validateGeoRel(geom, geoRel);
-      // validateCoordinates(geom, coordinates);
+      validateCoordinates(geom, coordinates);
       JsonObject json = new JsonObject();
       json.put("coordinates", new JsonArray(coordinates));
 
@@ -203,21 +203,21 @@ public class ParamsValidator {
    */
   public void validateTemporal(
       String timeRel,
-      String time,
+      String timeAt,
       String endTime,
       String timeProperty,
       boolean isAsync,
       boolean isTemporalApi) {
 
     if (!isTemporalApi) {
-      if (timeRel != null || time != null || endTime != null || timeProperty != null) {
+      if (timeRel != null || timeAt != null || endTime != null || timeProperty != null) {
         throw new DxBadRequestException("/entity API does not support temporal parameters");
       }
       return;
     }
 
-    if (timeRel == null || time == null) {
-      throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
+    if (timeRel == null || timeAt == null) {
+      throw new DxBadRequestException("timerel and timeAt are mandatory for temporal queries");
     }
 
     if (!timeRel.equalsIgnoreCase("before")
@@ -229,9 +229,9 @@ public class ParamsValidator {
 
     ZonedDateTime start;
     try {
-      start = ZonedDateTime.parse(time);
+      start = ZonedDateTime.parse(timeAt);
     } catch (Exception e) {
-      throw new DxBadRequestException("time must be in ISO 8601 format");
+      throw new DxBadRequestException("timeAt must be in ISO 8601 format");
     }
 
     ZonedDateTime end = null;
@@ -240,22 +240,28 @@ public class ParamsValidator {
         throw new DxBadRequestException("endTime is mandatory when timeRel=between or during");
       try {
         end = ZonedDateTime.parse(endTime);
-        if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after time");
+        if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after timeAt");
       } catch (Exception e) {
         throw new DxBadRequestException("endTime must be in ISO 8601 format");
       }
     }
+    // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
+    /*
+        Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
 
-    if (timeProperty != null && !timeProperty.equals("observedAt")) {
-      throw new DxBadRequestException("Unsupported timeProperty: " + timeProperty);
-    }
+        if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
+          String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
+          throw new DxBadRequestException(
+              "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
+        }
+    */
 
     if (end != null) {
       long days = Duration.between(start, end).toDays();
       int limit = isAsync ? maxDaysAsync : maxDaysSync;
       if (days > limit) {
         throw new DxBadRequestException(
-            "time interval greater than "
+            "timeAt interval greater than "
                 + limit
                 + " days is not allowed for "
                 + (isAsync ? "async" : "sync")
@@ -355,13 +361,24 @@ public class ParamsValidator {
   public void validateCoordinates(String geom, String coordinates) {
     if (geom == null || coordinates == null) return;
 
+    JsonArray array;
     try {
-      JsonArray array = new JsonArray(coordinates);
+      array = new JsonArray(coordinates);
+    } catch (Exception ex) {
+      throw new DxBadRequestException(
+          "Malformed coordinates: must be a valid JSON array. " + expectedFormatMessage(geom));
+    }
 
-      LOGGER.error("Coordinates array: {}", array.encodePrettily());
+    if (array.isEmpty()) {
+      throw new DxBadRequestException(
+          geom + " coordinates cannot be empty. " + expectedFormatMessage(geom));
+    }
 
+    LOGGER.debug("Validating coordinates for {}: {}", geom, array.encodePrettily());
+
+    try {
       switch (geom.toLowerCase()) {
-        case "point":
+        case "point" -> {
           if (array.size() != 2) {
             throw new DxBadRequestException(
                 "Point must have exactly 2 values: [lon, lat]. " + expectedFormatMessage("point"));
@@ -374,9 +391,9 @@ public class ParamsValidator {
                 "Point coordinate precision must not exceed 6 decimal places. "
                     + expectedFormatMessage("point"));
           }
-          break;
+        }
 
-        case "linestring":
+        case "linestring" -> {
           if (array.size() < MIN_LINESTRING_COORDS || array.size() > MAX_LINESTRING_COORDS) {
             throw new DxBadRequestException(
                 "LineString must have between "
@@ -387,12 +404,11 @@ public class ParamsValidator {
                     + expectedFormatMessage("linestring"));
           }
           for (int i = 0; i < array.size(); i++) {
-            if (!array.getValue(i).getClass().equals(JsonArray.class)) {
+            if (!(array.getValue(i) instanceof JsonArray pair)) {
               throw new DxBadRequestException(
                   "Each LineString coordinate must be an array: [lon, lat]. "
                       + expectedFormatMessage("linestring"));
             }
-            JsonArray pair = array.getJsonArray(i);
             if (pair.size() != 2) {
               throw new DxBadRequestException(
                   "Each LineString coordinate must have 2 values: [lon, lat]. "
@@ -400,10 +416,18 @@ public class ParamsValidator {
             }
             validatePairPrecision(pair);
           }
-          break;
+        }
 
-        case "polygon":
-          if (array.size() > MIN_POLYGON_COORDS || array.size() > MAX_POLYGON_COORDS) {
+        case "polygon" -> {
+          if (array.size() < 1) {
+            throw new DxBadRequestException(
+                "Polygon must have at least one LinearRing. " + expectedFormatMessage("polygon"));
+          }
+
+          // First element = outer ring
+          JsonArray outerRing = array.getJsonArray(0);
+
+          if (outerRing.size() < MIN_POLYGON_COORDS || outerRing.size() > MAX_POLYGON_COORDS) {
             throw new DxBadRequestException(
                 "Polygon must have between "
                     + MIN_POLYGON_COORDS
@@ -412,8 +436,13 @@ public class ParamsValidator {
                     + " points. "
                     + expectedFormatMessage("polygon"));
           }
-          for (int i = 0; i < array.size(); i++) {
-            JsonArray pair = array.getJsonArray(i);
+
+          for (int i = 0; i < outerRing.size(); i++) {
+            if (!(outerRing.getValue(i) instanceof JsonArray pair)) {
+              throw new DxBadRequestException(
+                  "Each Polygon coordinate must be an array: [lon, lat]. "
+                      + expectedFormatMessage("polygon"));
+            }
             if (pair.size() != 2) {
               throw new DxBadRequestException(
                   "Each Polygon coordinate must have 2 values: [lon, lat]. "
@@ -421,44 +450,42 @@ public class ParamsValidator {
             }
             validatePairPrecision(pair);
           }
-          // Optional: check if first and last points match
-          if (!array.getJsonArray(0).equals(array.getJsonArray(array.size() - 1))) {
+
+          // Polygon must be closed
+          if (!outerRing.getJsonArray(0).equals(outerRing.getJsonArray(outerRing.size() - 1))) {
             throw new DxBadRequestException(
                 "Polygon must be closed (first and last point must match). "
                     + expectedFormatMessage("polygon"));
           }
-          break;
+        }
 
-        case "bbox":
-          LOGGER.warn("Validating BBox: {} . size {} ", array.encodePrettily(), array.size());
+        case "bbox" -> {
           if (array.size() != 2) {
             throw new DxBadRequestException(
                 "BBox must have exactly 2 coordinate pairs. " + expectedFormatMessage("bbox"));
           }
           for (int i = 0; i < 2; i++) {
-            if (array.getValue(i) instanceof Double) {
+            if (!(array.getValue(i) instanceof JsonArray pair)) {
               throw new DxBadRequestException(
-                  "Each BBox coordinate must have 2 values: [lon, lat]. "
+                  "Each BBox coordinate must be an array: [lon, lat]. "
                       + expectedFormatMessage("bbox"));
             }
-            JsonArray pair = array.getJsonArray(i);
             if (pair.size() != 2) {
               throw new DxBadRequestException(
                   "Each BBox coordinate must have 2 values: [lon, lat]. "
                       + expectedFormatMessage("bbox"));
             }
-
             validatePairPrecision(pair);
           }
-          break;
+        }
 
-        default:
-          throw new DxBadRequestException("Unsupported geometry type: " + geom);
+        default -> throw new DxBadRequestException("Unsupported geometry type: " + geom);
       }
-
+    } catch (DxBadRequestException e) {
+      throw e; // preserve original validation message
     } catch (Exception e) {
       throw new DxBadRequestException(
-          "Invalid coordinates for geometry " + geom + ": " + e.getMessage());
+          "Invalid coordinates for geometry " + geom + ": Malformed input.");
     }
   }
 
@@ -610,8 +637,8 @@ public class ParamsValidator {
 
   private Boolean isTemporalQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_TIMEREL)
-        || params.contains(NGSILDQUERY_TIME)
-        || params.contains(NGSILDQUERY_ENDTIME)
+        || params.contains(NGSILDQUERY_TIMEAT)
+        || params.contains(NGSILDQUERY_ENDTIMEAT)
         || params.contains(NGSILDQUERY_TIME_PROPERTY);
   }
 

@@ -147,11 +147,12 @@ public class ApiConstants {
   public static final String NGSILDQUERY_ATTRIBUTE = "attrs";
   public static final String NGSILDQUERY_GEOREL = "georel";
   public static final String NGSILDQUERY_TIMEREL = "timerel";
-  public static final String NGSILDQUERY_TIME = "time";
-  public static final String NGSILDQUERY_ENDTIME = "endtime";
+  public static final String NGSILDQUERY_TIMEAT = "time";
+  public static final String NGSILDQUERY_ENDTIMEAT = "endtime";
   public static final String NGSILDQUERY_Q = "q";
+  public static final String NGSILD_OPTIONS = "options";
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
-  public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
+  public static final String NGSILDQUERY_TIMEPROPERTY = "timeProperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
   public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
@@ -164,7 +165,7 @@ public class ApiConstants {
   public static final String IUDX_SEARCH_TYPE = "searchType";
 
   // json fields
-  public static final String JSON_INSTANCEID = "instanceID";
+  public static final String IUDX_INSTANCEID = "instanceID";
   public static final String JSON_CONSUMER = "consumer";
 
   public static final String JSON_TYPE = "type";
@@ -189,6 +190,7 @@ public class ApiConstants {
   public static final String JSON_TIME = "time";
   public static final String JSON_ENDTIME = "endtime";
   public static final String JSON_TIMEREL = "timerel";
+  public static final String JSON_TIMEPROPERTY = "timeproperty";
   public static final String JSON_ATTR_QUERY = "attr-query";
   public static final String JSON_GEOPROPERTY = "geoproperty";
   public static final String JSON_ATTRIBUTE = "attribute";
@@ -314,4 +316,7 @@ public class ApiConstants {
   public static final String EVENTTYPE_DELETED = "SUBS_DELETED";
   public static final String EVENTTYPE_APPEND = "SUBS_APPEND";
   public static final String EVENTTYPE_UPDATE = "SUBS_UPDATED";
+
+  public static final String DEFAULT_PAGE_FROM = "0";
+  public static final String DEFAULT_PAGE_SIZE = "5000";
 }

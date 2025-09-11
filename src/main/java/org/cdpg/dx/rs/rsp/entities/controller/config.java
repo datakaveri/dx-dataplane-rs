@@ -10,4 +10,8 @@ public class config {
 
   public static String GET_ASYNC_SEARCH = "get-async-search";
   public static String GET_ASYNC_SEARCH_STATUS = "get-async-search-status";
+
+    public static String DEFAULT_AUDITING_EXCHANGE = "auditing";
+    public static String DEFAULT_AUDITING_ROUTING_KEY = "##";
+
 }

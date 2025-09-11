@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.rsp.entities.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
+import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_PUBLIC_KEY;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.MultiMap;
@@ -11,6 +12,8 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
@@ -36,17 +39,20 @@ public class EntitiesController implements ApiController {
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
+  private final AuditingHandler auditingHandler;
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
       ParamsValidator paramsValidator,
       URNGenerator urnGenerator,
-      String controlPlaneDomain) {
+      String controlPlaneDomain,
+      AuditingHandler auditingHandler) {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
     this.applicableFilterHandler = new ApplicableFilter(controlPlaneDomain);
     this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.auditingHandler = auditingHandler;
   }
 
   @Override
@@ -92,20 +98,22 @@ public class EntitiesController implements ApiController {
 
       // Validate temporal fields
       paramsValidator.validateTemporal(
-          params.get("timerel"),
-          params.get("time"),
-          params.get("endtime"),
-          params.get("timeproperty"),
+          params.get(NGSILDQUERY_TIMEREL),
+          params.get(NGSILDQUERY_TIMEAT),
+          params.get(NGSILDQUERY_ENDTIMEAT),
+          params.get(NGSILDQUERY_TIMEPROPERTY),
           false,
           isTemporalApi);
 
       // Validate geo fields
       paramsValidator.validateGeometry(
-          params.get("geometry"), params.get("georel"), params.get("coordinates"));
+          params.get(NGSILDQUERY_GEOMETRY),
+          params.get(NGSILDQUERY_GEOREL),
+          params.get(NGSILDQUERY_COORDINATES));
 
       // Validate Q-type attributes if present
-      paramsValidator.validateQ(params.get("q"));
-      paramsValidator.validateAttrs(params.get("attrs"));
+      paramsValidator.validateQ(params.get(NGSILDQUERY_Q));
+      paramsValidator.validateAttrs(params.get(NGSILDQUERY_ATTRIBUTE));
 
     } catch (DxBadRequestException e) {
       ctx.fail(e);
@@ -114,11 +122,12 @@ public class EntitiesController implements ApiController {
 
     QueryRequest queryRequest = Util.queryRequestFromParams(params);
     NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(queryRequest);
+    LOGGER.debug("Constructed NGSILDQueryParams: {}", ngsildQuery);
     JsonObject jsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
-    jsonQuery.put(JSON_INSTANCEID, instanceId);
+    jsonQuery.put(IUDX_INSTANCEID, instanceId);
     jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
     jsonQuery.put("api", ctx.normalizedPath());
-    String searchType = jsonQuery.getString("searchType");
+    String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
@@ -126,12 +135,20 @@ public class EntitiesController implements ApiController {
         .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
             rpcResponse -> {
-              LOGGER.debug("Data broker RPC response: {}", rpcResponse.encode());
-              ResponseBuilder.sendSuccess(ctx, rpcResponse, null, urnGenerator);
+              int statusCode = rpcResponse.getInteger("statusCode", 200);
+
+              if (statusCode >= 200 && statusCode < 300) {
+                // success
+                ResponseBuilder.sendSuccess(ctx, rpcResponse, urnGenerator);
+              } else {
+                // remote service failure
+                HttpStatusCode status = HttpStatusCode.getByValue(statusCode);
+                ResponseBuilder.sendError(ctx, status, urnGenerator);
+              }
             })
         .onFailure(
             err -> {
-              LOGGER.error("Data broker query failed: {}", err.getClass(), err);
+              LOGGER.error("Data broker RPC failed", err);
               ctx.fail(err);
             });
   }
@@ -143,35 +160,36 @@ public class EntitiesController implements ApiController {
     String publicKey = ctx.request().getHeader(HEADER_PUBLIC_KEY);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(ctx);
     try {
-
       paramsValidator.validateBodyParams(body);
 
       // Temporal validation
-      if (body.containsKey("temporalQ")) {
-        JsonObject temporalQ = body.getJsonObject("temporalQ");
+      if (body.containsKey(NGSILDQUERY_TEMPORALQ)) {
+        JsonObject temporalQ = body.getJsonObject(NGSILDQUERY_TEMPORALQ);
         paramsValidator.validateTemporal(
-            temporalQ.getString("timerel"),
-            temporalQ.getString("time"),
-            temporalQ.getString("endtime"),
-            temporalQ.getString("timeproperty"),
+            temporalQ.getString(NGSILDQUERY_TIMEREL),
+            temporalQ.getString(NGSILDQUERY_TIMEAT),
+            temporalQ.getString(NGSILDQUERY_ENDTIMEAT),
+            temporalQ.getString(NGSILDQUERY_TIMEPROPERTY),
             false,
             isTemporalApi);
       }
 
       // Geo validation
-      if (body.containsKey("geoQ")) {
-        JsonObject geoQ = body.getJsonObject("geoQ");
+      if (body.containsKey(NGSILDQUERY_GEOQ)) {
+        JsonObject geoQ = body.getJsonObject(NGSILDQUERY_GEOQ);
         paramsValidator.validateGeometry(
-            geoQ.getString("geometry"), geoQ.getString("georel"), geoQ.getString("coordinates"));
+            geoQ.getString(NGSILDQUERY_GEOMETRY),
+            geoQ.getString(NGSILDQUERY_GEOREL),
+            geoQ.getString(NGSILDQUERY_COORDINATES));
       }
 
       // Q-type validation
-      if (body.containsKey("q")) {
-        paramsValidator.validateQ(body.getString("q"));
+      if (body.containsKey(NGSILDQUERY_Q)) {
+        paramsValidator.validateQ(body.getString(NGSILDQUERY_Q));
       }
       // Attrs validation
-      if (body.containsKey("attrs")) {
-        paramsValidator.validateAttrs(body.getString("attrs"));
+      if (body.containsKey(NGSILDQUERY_ATTRIBUTE)) {
+        paramsValidator.validateAttrs(body.getString(NGSILDQUERY_ATTRIBUTE));
       }
 
     } catch (DxBadRequestException e) {
@@ -182,10 +200,10 @@ public class EntitiesController implements ApiController {
     QueryRequest queryRequest = Util.queryRequestFromBody(body);
     NGSILDQueryParams ngsildQuery = new NGSILDQueryParams(queryRequest);
     JsonObject jsonQuery = new QueryMapper().toJson(ngsildQuery, isTemporalApi);
-    jsonQuery.put(JSON_INSTANCEID, instanceId);
+    jsonQuery.put(IUDX_INSTANCEID, instanceId);
     jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
     jsonQuery.put("api", ctx.normalizedPath());
-    String searchType = jsonQuery.getString("searchType");
+    String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
@@ -193,11 +211,20 @@ public class EntitiesController implements ApiController {
         .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
             rpcResponse -> {
-              LOGGER.debug("Data broker RPC response: {}", rpcResponse.encode());
-              ResponseBuilder.sendSuccess(ctx, rpcResponse, null, urnGenerator);
+              int statusCode = rpcResponse.getInteger("statusCode", 200);
+
+              if (statusCode >= 200 && statusCode < 300) {
+                // success
+                ResponseBuilder.sendSuccess(ctx, rpcResponse, urnGenerator);
+              } else {
+                // remote service failure
+                HttpStatusCode status = HttpStatusCode.getByValue(statusCode);
+                ResponseBuilder.sendError(ctx, status, urnGenerator);
+              }
             })
         .onFailure(
             err -> {
+              LOGGER.error("Data broker RPC failed", err);
               ctx.fail(err);
             });
   }
