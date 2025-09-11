@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.model.DxUser;
 import org.cdpg.dx.common.model.JwtData;
@@ -30,6 +31,16 @@ public final class RoutingContextHelper {
 
   private RoutingContextHelper() {
     // Prevent instantiation
+  }
+
+  public static Optional<List<AuditLog>> getAuditingLog(RoutingContext routingContext) {
+    return Optional.ofNullable(routingContext.get(AUDITING_LOG));
+  }
+
+  public static void setAuditingLog(RoutingContext routingContext, AuditLog auditingLog) {
+    List<AuditLog> logs = getAuditingLog(routingContext).orElseGet(ArrayList::new);
+    logs.add(auditingLog);
+    routingContext.put(AUDITING_LOG, logs);
   }
 
   public static void setUser(RoutingContext routingContext, User user) {

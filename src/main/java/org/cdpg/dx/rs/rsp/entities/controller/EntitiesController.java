@@ -12,6 +12,7 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
@@ -38,17 +39,20 @@ public class EntitiesController implements ApiController {
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   private final CheckItemAccessHandler checkItemAccessHandler;
+  private final AuditingHandler auditingHandler;
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
       ParamsValidator paramsValidator,
       URNGenerator urnGenerator,
-      String controlPlaneDomain) {
+      String controlPlaneDomain,
+      AuditingHandler auditingHandler) {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
     this.applicableFilterHandler = new ApplicableFilter(controlPlaneDomain);
     this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.auditingHandler = auditingHandler;
   }
 
   @Override
@@ -57,14 +61,14 @@ public class EntitiesController implements ApiController {
     builder
         .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
-        // .handler(checkItemAccessHandler)
-        //  .handler(applicableFilterHandler)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterHandler)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
-        // .handler(checkItemAccessHandler)
-        // .handler(applicableFilterHandler)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterHandler)
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -103,7 +107,7 @@ public class EntitiesController implements ApiController {
 
       // Validate geo fields
       paramsValidator.validateGeometry(
-          params.get(NGSILDQUERY_GEOREL),
+          params.get(NGSILDQUERY_GEOMETRY),
           params.get(NGSILDQUERY_GEOREL),
           params.get(NGSILDQUERY_COORDINATES));
 
@@ -124,7 +128,7 @@ public class EntitiesController implements ApiController {
     jsonQuery.put(HEADER_PUBLIC_KEY, publicKey);
     jsonQuery.put("api", ctx.normalizedPath());
     String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
-    // paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
+    paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
@@ -165,7 +169,7 @@ public class EntitiesController implements ApiController {
             temporalQ.getString(NGSILDQUERY_TIMEREL),
             temporalQ.getString(NGSILDQUERY_TIMEAT),
             temporalQ.getString(NGSILDQUERY_ENDTIMEAT),
-            temporalQ.getString(NGSILDQUERY_TIME_PROPERTY),
+            temporalQ.getString(NGSILDQUERY_TIMEPROPERTY),
             false,
             isTemporalApi);
       }

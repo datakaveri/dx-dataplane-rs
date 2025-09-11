@@ -95,8 +95,8 @@ public class ParamsValidator {
     }
 
     String key = kv[0].trim().toLowerCase(); // normalize case
-    if (!"maxdistance".equals(key) && !"mindistance".equals(key)) {
-      throw new DxBadRequestException("Invalid distance key. Must be maxDistance or minDistance");
+    if (!"maxdistance".equals(key)) {
+      throw new DxBadRequestException("Invalid distance key. Must be maxDistance");
     }
 
     double value = Double.parseDouble(kv[1].trim());
@@ -245,14 +245,16 @@ public class ParamsValidator {
         throw new DxBadRequestException("endTime must be in ISO 8601 format");
       }
     }
+    // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
+    /*
+        Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
 
-    Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
-
-    if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
-      String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
-      throw new DxBadRequestException(
-          "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
-    }
+        if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
+          String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
+          throw new DxBadRequestException(
+              "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
+        }
+    */
 
     if (end != null) {
       long days = Duration.between(start, end).toDays();

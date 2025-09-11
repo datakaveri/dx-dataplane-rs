@@ -147,12 +147,12 @@ public class ApiConstants {
   public static final String NGSILDQUERY_ATTRIBUTE = "attrs";
   public static final String NGSILDQUERY_GEOREL = "georel";
   public static final String NGSILDQUERY_TIMEREL = "timerel";
-  public static final String NGSILDQUERY_TIMEAT = "timeAt";
-  public static final String NGSILDQUERY_ENDTIMEAT = "endtimeAt";
+  public static final String NGSILDQUERY_TIMEAT = "time";
+  public static final String NGSILDQUERY_ENDTIMEAT = "endtime";
   public static final String NGSILDQUERY_Q = "q";
   public static final String NGSILD_OPTIONS = "options";
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
-  public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
+  public static final String NGSILDQUERY_TIMEPROPERTY = "timeProperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
   public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
@@ -318,5 +318,5 @@ public class ApiConstants {
   public static final String EVENTTYPE_UPDATE = "SUBS_UPDATED";
 
   public static final String DEFAULT_PAGE_FROM = "0";
-  public static final String DEFAULT_PAGE_SIZE = "20";
+  public static final String DEFAULT_PAGE_SIZE = "5000";
 }
