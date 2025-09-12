@@ -13,6 +13,9 @@ import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.database.postgres.service.PostgresService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
+import org.cdpg.dx.rs.admin.controller.ElasticOnboardingController;
+import org.cdpg.dx.rs.admin.service.OnboardingService;
+import org.cdpg.dx.rs.admin.service.OnboardingServiceImpl;
 import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
@@ -41,6 +44,8 @@ public class ControllerFactory {
     String tenantPrefix = config.getString("tenantPrefix");
     String timeLimit = config.getString("timeLimit");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
+      OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
+      ApiController onboardingController = new ElasticOnboardingController(onboardingService,tenantPrefix,urnGenerator);
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
 
@@ -51,6 +56,6 @@ public class ControllerFactory {
             searchService, timeLimit, controlPlaneDomain, urnGenerator);
     // TODO create other controllers
 
-    return List.of(latestController, downloadController);
+    return List.of(latestController, downloadController,onboardingController);
   }
 }

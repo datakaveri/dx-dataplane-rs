@@ -62,7 +62,9 @@ public class OnboardingServiceImpl implements OnboardingService {
                     properties.put(field, new JsonObject().put("type", "float"));
                     break;
                 case "iudx:DateTime":
-                    properties.put(field, new JsonObject().put("type", "date"));
+                    properties.put(field, new JsonObject()
+                            .put("type", "date")
+                            .put("format", "dd/MM/yyyy||MM/dd/yyyy||strict_date_optional_time||epoch_millis"));
                     break;
                 default:
                     properties.put(field, textWithKeyword());
