@@ -9,17 +9,20 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.rs.admin.service.OnboardingService;
 
 public class ElasticOnboardingController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(ElasticOnboardingController.class);
-  private final OnboardingService onboardingService;
+  private final     OnboardingService onboardingService;
   private final String tenantPrefix;
+    private final URNGenerator urnGenerator;
 
-  public ElasticOnboardingController(OnboardingService onboardingService,String tenantPrefix) {
+  public ElasticOnboardingController(OnboardingService onboardingService,String tenantPrefix,URNGenerator urnGenerator) {
     this.onboardingService = onboardingService;
     this.tenantPrefix=tenantPrefix;
+    this.urnGenerator=urnGenerator;
   }
 
   @Override
@@ -48,7 +51,7 @@ public class ElasticOnboardingController implements ApiController {
           .createDatasetIndex(resourceId, dataDescriptor)
           .onSuccess(
               v -> {
-                ResponseBuilder.sendCreated(ctx,  "Index created successfully");
+                ResponseBuilder.sendCreated(ctx,  "Index created successfully",urnGenerator);
               })
           .onFailure(ctx::fail);
     } catch (Exception e) {

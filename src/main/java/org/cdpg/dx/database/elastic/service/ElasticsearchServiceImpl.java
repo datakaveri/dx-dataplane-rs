@@ -322,6 +322,68 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
         .compose(v -> executeUpdateByQuery(index, queryModel));
   }
 
+    @Override
+    public Future<Void> createIndex(String index, JsonObject mappings) {
+        Promise<Void> promise = Promise.promise();
+        validateIndex(index)
+                .onFailure(promise::fail)
+                .onSuccess(
+                        v -> {
+                            LOGGER.debug("Creating index: {} with mappings: {}", index, mappings);
+                            try {
+                                // Build create index request directly. If it already exists, treat as success.
+                                CreateIndexRequest.Builder reqBuilder = new CreateIndexRequest.Builder().index(index);
+                                try {
+                                    if (mappings != null && !mappings.isEmpty()) {
+                                        // Unwrap if the provided JSON already has a top-level "mappings" key
+                                        JsonObject typeMapping =
+                                                mappings.containsKey("mappings") && mappings.getValue("mappings") instanceof JsonObject
+                                                        ? mappings.getJsonObject("mappings")
+                                                        : mappings;
+                                        String mappingsJson = typeMapping.encode();
+                                        reqBuilder.mappings(m -> m.withJson(new StringReader(mappingsJson)));
+                                    }
+                                } catch (Exception e) {
+                                    LOGGER.error("Failed to apply mappings JSON", e);
+                                    promise.fail(new DxBadRequestException("Invalid mappings JSON"));
+                                    return;
+                                }
+
+                                CreateIndexRequest createReq = reqBuilder.build();
+                                asyncClient
+                                        .indices()
+                                        .create(createReq)
+                                        .whenComplete(
+                                                (createResp, createErr) -> {
+                                                    LOGGER.debug("RESPONSE {} ",createResp);
+                                                    if (createErr != null) {
+                                                        String message = createErr.getMessage() != null ? createErr.getMessage() : "";
+                                                        LOGGER.error("HERE 2 "+message);
+                                                        // If index already exists, consider it a no-op success
+                                                        if (message.contains("resource_already_exists_exception")
+                                                                || message.contains("index_already_exists_exception")
+                                                                || message.contains("already exists")) {
+                                                            LOGGER.debug("Index {} already exists ", index);
+                                                            promise.fail(new DxConflictException("Index already exists"));
+                                                            return;
+                                                        }
+                                                        LOGGER.error("Create index failed: {}", message, createErr);
+                                                        promise.fail(new DxInternalServerErrorException("Create index failed", createErr));
+                                                    } else if (!createResp.acknowledged()) {
+                                                        LOGGER.error("Create index not acknowledged for index {}", index);
+                                                        promise.fail(new DxInternalServerErrorException("Create index not acknowledged"));
+                                                    } else {
+                                                        LOGGER.debug("Index {} created", index);
+                                                        promise.complete();
+                                                    }
+                                                });
+                            } catch (Exception e) {
+                                promise.fail(new DxInternalServerErrorException("Unexpected error creating index", e));
+                            }
+                        });
+        return promise.future();
+    }
+
   private Future<Void> validateIndex(String index) {
     if (index == null || index.trim().isEmpty()) {
       String msg = "Index cannot be null or empty";
