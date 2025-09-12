@@ -55,10 +55,8 @@ public class OnboardingServiceImpl implements OnboardingService {
             }
 
             switch (schema) {
-                case "iudx:Text":
-                    properties.put(field, textWithKeyword());
-                    break;
                 case "iudx:Number":
+                case "iudx:Point":
                     properties.put(field, new JsonObject().put("type", "float"));
                     break;
                 case "iudx:DateTime":
