@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class ApiConstants {
+
+  public static final String GEO_QUERY = "geo-query";
+
   // Header params
   public static final String HEADER_ACCEPT = "Accept";
   public static final String HEADER_CONTENT_LENGTH = "Content-Length";
@@ -71,6 +74,7 @@ public class ApiConstants {
   public static final String DOWNLOAD_ID_ENTITY_DATA = "downloadIdEntityData";
   public static final String DOWNLOAD_PUT_SEARCH_DATA = "downloadPutSearchData";
   public static final String TEMPORAL_SEARCH = "temporalSearch";
+  public static final String TEMPORAL_QUERY = "temporal-query";
   public static final String POST_TEMPORAL_SEARCH = "postTemporalSearch";
   public static final String POST_SPATIAL_SEARCH = "postSpatialSearch";
   public static final String GET_ADAPTER_EXCHANGE = "getAdapterexchange";
@@ -143,11 +147,12 @@ public class ApiConstants {
   public static final String NGSILDQUERY_ATTRIBUTE = "attrs";
   public static final String NGSILDQUERY_GEOREL = "georel";
   public static final String NGSILDQUERY_TIMEREL = "timerel";
-  public static final String NGSILDQUERY_TIME = "time";
-  public static final String NGSILDQUERY_ENDTIME = "endtime";
+  public static final String NGSILDQUERY_TIMEAT = "time";
+  public static final String NGSILDQUERY_ENDTIMEAT = "endtime";
   public static final String NGSILDQUERY_Q = "q";
+  public static final String NGSILD_OPTIONS = "options";
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
-  public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
+  public static final String NGSILDQUERY_TIMEPROPERTY = "timeProperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
   public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
@@ -157,9 +162,10 @@ public class ApiConstants {
   public static final String NGSILDQUERY_TIME_PROPERTY = "timeProperty";
   public static final String NGSILDQUERY_FROM = "offset";
   public static final String NGSILDQUERY_SIZE = "limit";
+  public static final String IUDX_SEARCH_TYPE = "searchType";
 
   // json fields
-  public static final String JSON_INSTANCEID = "instanceID";
+  public static final String IUDX_INSTANCEID = "instanceID";
   public static final String JSON_CONSUMER = "consumer";
 
   public static final String JSON_TYPE = "type";
@@ -184,6 +190,7 @@ public class ApiConstants {
   public static final String JSON_TIME = "time";
   public static final String JSON_ENDTIME = "endtime";
   public static final String JSON_TIMEREL = "timerel";
+  public static final String JSON_TIMEPROPERTY = "timeproperty";
   public static final String JSON_ATTR_QUERY = "attr-query";
   public static final String JSON_GEOPROPERTY = "geoproperty";
   public static final String JSON_ATTRIBUTE = "attribute";
@@ -309,4 +316,7 @@ public class ApiConstants {
   public static final String EVENTTYPE_DELETED = "SUBS_DELETED";
   public static final String EVENTTYPE_APPEND = "SUBS_APPEND";
   public static final String EVENTTYPE_UPDATE = "SUBS_UPDATED";
+
+  public static final String DEFAULT_PAGE_FROM = "0";
+  public static final String DEFAULT_PAGE_SIZE = "5000";
 }
