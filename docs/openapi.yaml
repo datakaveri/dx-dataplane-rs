@@ -598,7 +598,8 @@ paths:
       summary: Onboard dataset index into Elasticsearch
       description: Creates an Elasticsearch index using provided `indexName` and `dataDescriptor` (mappings/settings).
       operationId: onboardElasticsearchIndex
-
+      security:
+        - authorization: [ ]
       requestBody:
         required: true
         content:
