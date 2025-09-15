@@ -153,7 +153,7 @@ public class ApiConstants {
   public static final String NGSILDQUERY_Q = "q";
   public static final String NGSILD_OPTIONS = "options";
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";
-  public static final String NGSILDQUERY_TIMEPROPERTY = "timeProperty";
+  public static final String NGSILDQUERY_TIMEPROPERTY = "timeproperty";
   public static final String NGSILDQUERY_MAXDISTANCE = "maxdistance";
   public static final String NGSILDQUERY_MINDISTANCE = "mindistance";
   public static final String IUDXQUERY_OPTIONS = "options";
