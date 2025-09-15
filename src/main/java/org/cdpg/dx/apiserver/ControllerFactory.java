@@ -20,7 +20,6 @@ import org.cdpg.dx.rs.authorization.handler.ResourcePolicyAuthorizationHandler;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
-import org.cdpg.dx.uniqueattribute.service.UniqueAttributeService;
 
 public class ControllerFactory {
   private static final Logger LOGGER = LogManager.getLogger(ControllerFactory.class);
@@ -30,8 +29,6 @@ public class ControllerFactory {
   public static List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
     PostgresService pgService = PostgresService.createProxy(vertx, POSTGRES_SERVICE_ADDRESS);
-    final UniqueAttributeService uniqueAttrService =
-        UniqueAttributeService.createProxy(vertx, UNIQUE_ATTRIBUTE_SERVICE_ADDRESS);
     final CatalogueService catService =
         CatalogueService.createProxy(vertx, CATALOGUE_SERVICE_ADDRESS);
     final ResourcePolicyAuthorizationHandler policyAuthHandler =
@@ -44,8 +41,9 @@ public class ControllerFactory {
     String tenantPrefix = config.getString("tenantPrefix");
     String timeLimit = config.getString("timeLimit");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
-      OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
-      ApiController onboardingController = new ElasticOnboardingController(onboardingService,tenantPrefix,urnGenerator);
+    OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
+    ApiController onboardingController =
+        new ElasticOnboardingController(onboardingService, tenantPrefix, urnGenerator);
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
 
@@ -56,6 +54,6 @@ public class ControllerFactory {
             searchService, timeLimit, controlPlaneDomain, urnGenerator);
     // TODO create other controllers
 
-    return List.of(latestController, downloadController,onboardingController);
+    return List.of(latestController, downloadController, onboardingController);
   }
 }
