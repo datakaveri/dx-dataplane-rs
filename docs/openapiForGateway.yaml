@@ -90,6 +90,8 @@ tags:
 servers:
   - url: https://example-proxy.com
     description: Development Server URL
+security:
+  - authorization: [ ]
 paths:
   /ngsi-ld/v1/entities:
     get:
@@ -700,6 +702,11 @@ paths:
         \ be equal to `count` and it is **case sensitive**\n"
       deprecated: false
 components:
+  securitySchemes:
+    authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     postEntitiesSchema:
       type: object
