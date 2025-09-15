@@ -1,0 +1,12 @@
+{
+  "host": "",
+  "management_port": 24567,
+  "username": "",
+  "password": "",
+  "user_id": "testuser",
+  "asset_id": "asset123",
+  "vhost": "",
+  "database_queue": "",
+  "subscription_queue": ""
+}
+
