@@ -139,7 +139,7 @@ public class EntitiesController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
-                ResponseBuilder.sendSuccess(ctx, rpcResponse, urnGenerator);
+                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 // remote service failure
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());
@@ -216,7 +216,7 @@ public class EntitiesController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
-                ResponseBuilder.sendSuccess(ctx, rpcResponse, urnGenerator);
+                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());
                 // remote service failure
