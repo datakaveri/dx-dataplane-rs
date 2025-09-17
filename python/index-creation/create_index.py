@@ -9,10 +9,10 @@ URL = config["url"]
 TOKEN = config["token"]
 payload = config["payload"]
 
-url = f"http://{URL}/admin/elasticsearch/createIndex"
+url = f"https://{URL}/admin/elasticsearch/createIndex"
 headers = {
     "Content-Type": "application/json",
-    "Authorization": f"bearer {TOKEN}"
+    "Authorization": f"Bearer {TOKEN}"
 }
 
 try:
