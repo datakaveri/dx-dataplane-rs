@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 
 public class OnboardingServiceImpl implements OnboardingService {
@@ -38,10 +39,9 @@ public class OnboardingServiceImpl implements OnboardingService {
         for (String field : dataDescriptor.fieldNames()) {
             Object v = dataDescriptor.getValue(field);
 
-            if (!(v instanceof JsonObject)) {
+            if (!(v instanceof JsonObject cfg)) {
                 continue;
             }
-            JsonObject cfg = (JsonObject) v;
             JsonArray typeArr = cfg.getJsonArray("type");
 
             if (typeArr == null || !typeArr.contains("ValueDescriptor")) {
@@ -54,19 +54,39 @@ public class OnboardingServiceImpl implements OnboardingService {
                 continue;
             }
 
-            switch (schema) {
-                case "iudx:Number":
-                case "iudx:Point":
-                    properties.put(field, new JsonObject().put("type", "float"));
-                    break;
-                case "iudx:DateTime":
-                    properties.put(field, new JsonObject()
-                            .put("type", "date")
-                            .put("format", "dd/MM/yyyy||MM/dd/yyyy||strict_date_optional_time||epoch_millis"));
-                    break;
-                default:
-                    properties.put(field, textWithKeyword());
+            String normalized = schema.trim();
+            if (normalized.toLowerCase().startsWith("iudx:")) {
+                normalized = normalized.substring(5);
             }
+            else {
+                throw new DxBadRequestException(
+                        "Invalid dataSchema for field '" + field + "': '" + schema + "'");
+            }
+            normalized = normalized.toLowerCase();
+
+            JsonObject fieldMapping = switch (normalized) {
+                case "boolean" -> new JsonObject().put("type", "boolean");
+                case "keyword" -> new JsonObject().put("type", "keyword");
+                case "text" -> new JsonObject().put("type", "text");
+                case "binary" -> new JsonObject().put("type", "binary");
+                case "version" -> new JsonObject().put("type", "version");
+                case "datetime", "date", "time" ->
+                        new JsonObject()
+                                .put("type", "date")
+                                .put("format", "dd/MM/yyyy||MM/dd/yyyy||strict_date_optional_time||epoch_millis");
+                case "object" -> new JsonObject().put("type", "object");
+                case "nested" -> new JsonObject().put("type", "nested");
+                case "ip" -> new JsonObject().put("type", "ip");
+                case "geopoint" -> new JsonObject().put("type", "geo_point");
+                case "geoshape" -> new JsonObject().put("type", "geo_shape");
+                case "shape" -> new JsonObject().put("type", "shape");
+                case "number" -> pickNumericMapping(cfg);
+                case "point" -> new JsonObject().put("type", "float");
+                default -> throw new DxBadRequestException(
+                        "Invalid dataSchema for field '" + field + "': '" + schema + "'");
+            };
+
+            properties.put(field, fieldMapping);
         }
 
         return new JsonObject()
@@ -80,7 +100,28 @@ public class OnboardingServiceImpl implements OnboardingService {
                 .put("type", "text")
                 .put("fields", new JsonObject()
                         .put("keyword", new JsonObject()
-                                .put("type", "keyword")));
+                                .put("type", "keyword").put("ignore_above", 256)));
+    }
+
+    private static JsonObject pickNumericMapping(JsonObject cfg) {
+        String category = cfg.getString("numberCategory", "float");
+         {
+             return switch (category) {
+                 case "byte" -> new JsonObject().put("type", "byte");
+                 case "short" -> new JsonObject().put("type", "short");
+                 case "integer" -> new JsonObject().put("type", "integer");
+                 case "long" -> new JsonObject().put("type", "long");
+                 case "float" -> new JsonObject().put("type", "float");
+                 case "half_float" -> new JsonObject().put("type", "half_float");
+                 case "scaled_float" -> new JsonObject().put("type", "scaled_float")
+                         .put("scaling_factor", cfg.getInteger("scaling_factor", 100));
+                 case "double" -> new JsonObject().put("type", "double");
+                 case "unsigned_long" -> new JsonObject().put("type", "unsigned_long");
+                 default -> throw new DxBadRequestException(
+                         "Invalid dataSchema for number " + category);
+             };
+
+        }
     }
 
 }
