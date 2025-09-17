@@ -57,8 +57,6 @@ public class ParamsValidator {
     validParams.add(NGSILDQUERY_ENTITIES);
     validParams.add(NGSILDQUERY_GEOQ);
     validParams.add(NGSILDQUERY_TEMPORALQ);
-    // Need to check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
-    validParams.add(NGSILDQUERY_TIME_PROPERTY);
     validParams.add(NGSILDQUERY_FROM);
     validParams.add(NGSILDQUERY_SIZE);
 
@@ -217,27 +215,27 @@ public class ParamsValidator {
     }
 
     if (timeRel == null || timeAt == null) {
-      throw new DxBadRequestException("timerel and timeAt are mandatory for temporal queries");
+      throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
     }
 
     if (!timeRel.equalsIgnoreCase("before")
         && !timeRel.equalsIgnoreCase("after")
         && !timeRel.equalsIgnoreCase("between")
         && !timeRel.equalsIgnoreCase("during")) {
-      throw new DxBadRequestException("Invalid timeRel. Allowed: before, after, between, during");
+      throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between, during");
     }
 
     ZonedDateTime start;
     try {
       start = ZonedDateTime.parse(timeAt);
     } catch (Exception e) {
-      throw new DxBadRequestException("timeAt must be in ISO 8601 format");
+      throw new DxBadRequestException("time must be in ISO 8601 format");
     }
 
     ZonedDateTime end = null;
     if ("between".equalsIgnoreCase(timeRel) || "during".equalsIgnoreCase(timeRel)) {
       if (endTime == null)
-        throw new DxBadRequestException("endTime is mandatory when timeRel=between or during");
+        throw new DxBadRequestException("endTime is mandatory when timerel=between or during");
       try {
         end = ZonedDateTime.parse(endTime);
         if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after timeAt");
@@ -261,7 +259,7 @@ public class ParamsValidator {
       int limit = isAsync ? maxDaysAsync : maxDaysSync;
       if (days > limit) {
         throw new DxBadRequestException(
-            "timeAt interval greater than "
+            "time interval greater than "
                 + limit
                 + " days is not allowed for "
                 + (isAsync ? "async" : "sync")

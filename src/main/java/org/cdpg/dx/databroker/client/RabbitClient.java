@@ -690,7 +690,7 @@ public class RabbitClient {
         request.containsKey("routingKey")
             ? request.getString("routingKey")
             : request.getJsonArray("id").getString(0);
-    LOGGER.debug("routing key : {}", routingKey);
+    LOGGER.info("Message pubishing on exchange:  {} with routingKey: {}", publishEx, routingKey);
     Buffer buffer = Buffer.buffer(request.toString());
     Future<Void> publishFut =
         iudxInternalRabbitMqClient.basicPublish(publishEx, routingKey, props, buffer);
