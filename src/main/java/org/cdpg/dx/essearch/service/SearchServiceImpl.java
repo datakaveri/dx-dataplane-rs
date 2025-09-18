@@ -254,8 +254,6 @@ public class SearchServiceImpl implements SearchService {
           .compose(
               count -> {
                 LOGGER.info("Count query result: {}", count);
-
-                // Check if count exceeds the maximum limit
                 if (count > MAX_SEARCH_RESULT_LIMIT) {
                   LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
                   return Future.failedFuture(
@@ -265,8 +263,6 @@ public class SearchServiceImpl implements SearchService {
                               + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
                               + MAX_SEARCH_RESULT_LIMIT));
                 }
-
-                // Execute search query
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
                     .map(

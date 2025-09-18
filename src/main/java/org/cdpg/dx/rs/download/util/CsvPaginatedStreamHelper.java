@@ -23,10 +23,15 @@ public class CsvPaginatedStreamHelper {
           private Handler<Buffer> dataHandler;
           private Handler<Void> endHandler;
           private Handler<Throwable> exceptionHandler;
-          private int page = startPage;
           private boolean writeHeader = true;
           private boolean ended = false;
           private Set<String> headers;
+          private List<Object> lastSortValues = null;
+          private List<Object> prevSortValues = null;
+          private boolean isFirstPage = true;
+          private int pageCount = 0;
+          private static final int MAX_PAGES = 10000; // Failsafe
+          private String prevLastDocId = null;
 
           @Override
           public ReadStream<Buffer> handler(Handler<Buffer> handler) {
@@ -66,33 +71,70 @@ public class CsvPaginatedStreamHelper {
             if (ended) return;
             QueryModel query = baseQuery;
             query.setLimit(String.valueOf(size));
-            query.setOffset(String.valueOf((page - 1) * size));
-            elasticsearchService
-                .search(index, query, "_source")
-                .onComplete(
-                    ar -> {
-                      if (ar.failed()) {
-                        if (exceptionHandler != null) exceptionHandler.handle(ar.cause());
-                        if (endHandler != null) endHandler.handle(null);
-                        ended = true;
-                        return;
-                      }
-                      List<ElasticsearchResponse> results = ar.result();
-                      if (results == null || results.isEmpty()) {
-                        if (endHandler != null) endHandler.handle(null);
-                        ended = true;
-                        return;
-                      }
-                      if (headers == null) {
-                        headers = new LinkedHashSet<>();
-                        results.forEach(resp -> headers.addAll(resp.getSource().fieldNames()));
-                      }
-                      Buffer csvBuffer = CsvStreamUtil.toCsvBuffer(results, headers, writeHeader);
-                      writeHeader = false;
-                      if (dataHandler != null) dataHandler.handle(csvBuffer);
-                      page++;
-                      fetchAndStream();
-                    });
+            Future<List<ElasticsearchResponse>> searchFuture;
+            if (isFirstPage) {
+              searchFuture = ((org.cdpg.dx.database.elastic.service.ElasticsearchServiceImpl)elasticsearchService).search(index, query, "_source", (List<Object>) null);
+              isFirstPage = false;
+            } else {
+              searchFuture = ((org.cdpg.dx.database.elastic.service.ElasticsearchServiceImpl)elasticsearchService).search(index, query, "_source", lastSortValues);
+            }
+            searchFuture.onComplete(
+                ar -> {
+                  if (ar.failed()) {
+                    if (exceptionHandler != null) exceptionHandler.handle(ar.cause());
+                    if (endHandler != null) endHandler.handle(null);
+                    ended = true;
+                    return;
+                  }
+                  List<ElasticsearchResponse> results = ar.result();
+                  if (results == null || results.isEmpty()) {
+                    if (endHandler != null) endHandler.handle(null);
+                    ended = true;
+                    return;
+                  }
+                  // Log IDs and sort values for this page
+                  StringBuilder ids = new StringBuilder();
+                  for (ElasticsearchResponse resp : results) {
+                    ids.append(resp.getId()).append(",");
+                  }
+                  System.out.println("[CsvPaginatedStreamHelper] Page: " + (pageCount+1) + ", IDs: " + ids);
+                  System.out.println("[CsvPaginatedStreamHelper] lastSortValues: " + lastSortValues);
+                  if (headers == null) {
+                    headers = new LinkedHashSet<>();
+                    results.forEach(resp -> headers.addAll(resp.getSource().fieldNames()));
+                  }
+                  Buffer csvBuffer = CsvStreamUtil.toCsvBuffer(results, headers, writeHeader);
+                  writeHeader = false;
+                  if (dataHandler != null) dataHandler.handle(csvBuffer);
+                  // Prepare search_after for next page
+                  ElasticsearchResponse last = results.get(results.size() - 1);
+                  prevSortValues = lastSortValues;
+                  lastSortValues = last.getSortValues();
+                  pageCount++;
+                  // Infinite loop protection: if sort values don't change, break
+                  if (prevSortValues != null && lastSortValues != null && prevSortValues.equals(lastSortValues)) {
+                    System.err.println("[CsvPaginatedStreamHelper] Detected repeated sort values, breaking to avoid infinite loop.");
+                    if (endHandler != null) endHandler.handle(null);
+                    ended = true;
+                    return;
+                  }
+                  // Infinite loop protection: if last doc ID is repeated, break
+                  String lastDocId = last.getId();
+                  if (prevLastDocId != null && prevLastDocId.equals(lastDocId)) {
+                    System.err.println("[CsvPaginatedStreamHelper] Detected repeated last doc ID (" + lastDocId + "), breaking to avoid infinite loop.");
+                    if (endHandler != null) endHandler.handle(null);
+                    ended = true;
+                    return;
+                  }
+                  prevLastDocId = lastDocId;
+                  if (pageCount > MAX_PAGES) {
+                    System.err.println("[CsvPaginatedStreamHelper] Max page limit reached, breaking to avoid runaway loop.");
+                    if (endHandler != null) endHandler.handle(null);
+                    ended = true;
+                    return;
+                  }
+                  fetchAndStream();
+                });
           }
         });
   }

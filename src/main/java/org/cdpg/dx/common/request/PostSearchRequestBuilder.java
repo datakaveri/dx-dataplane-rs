@@ -67,7 +67,7 @@ public class PostSearchRequestBuilder {
   }
 
   public int getSize(MultiMap params) {
-    return params.get(SIZE_KEY) != null ? Integer.parseInt(params.get(SIZE_KEY)) : 3000;
+    return params.get(SIZE_KEY) != null ? Integer.parseInt(params.get(SIZE_KEY)) : 30000;
   }
 
   public int getPage(MultiMap params) {

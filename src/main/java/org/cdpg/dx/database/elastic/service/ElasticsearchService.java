@@ -1,6 +1,5 @@
 package org.cdpg.dx.database.elastic.service;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
@@ -13,7 +12,6 @@ import org.cdpg.dx.database.elastic.model.QueryModel;
 @ProxyGen
 public interface ElasticsearchService {
 
-  @GenIgnore
   static ElasticsearchService createProxy(Vertx vertx, String address) {
     return new ElasticsearchServiceVertxEBProxy(vertx, address);
   }

@@ -729,8 +729,12 @@ public class QueryModel {
     if (sortFields == null || sortFields.isEmpty()) {
       return null; // Returns null if there are no sorting rules
     }
-
-    return sortFields.entrySet().stream()
+    // Ensure _id is always the last sort field for deep pagination
+    LinkedHashMap<String, String> effectiveSortFields = new LinkedHashMap<>(sortFields);
+    if (!effectiveSortFields.containsKey("_id")) {
+      effectiveSortFields.put("_id", "asc"); // or "desc" as needed
+    }
+    return effectiveSortFields.entrySet().stream()
         .map(
             entry ->
                 SortOptions.of(

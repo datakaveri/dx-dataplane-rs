@@ -53,8 +53,110 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
   }
 
   @Override
+  public Future<List<ElasticsearchResponse>> search(String index, QueryModel queryModel, String options) {
+    // This is the interface method, does not support deep pagination
+    Promise<List<ElasticsearchResponse>> promise = Promise.promise();
+    Map<String, Aggregation> aggregations = new HashMap<>();
+    if (queryModel.getAggregations() != null) {
+      queryModel.getAggregations().forEach(
+        agg -> aggregations.put(agg.getAggregationName(), agg.toElasticsearchAggregations()));
+    }
+    SearchRequest.Builder requestBuilder = new SearchRequest.Builder().index(index);
+    QueryModel queries = queryModel.getQueries();
+    if (queries != null && queries.toElasticsearchQuery() != null) {
+      requestBuilder.query(queries.toElasticsearchQuery());
+    }
+    if (!aggregations.isEmpty()) {
+      requestBuilder.aggregations(aggregations);
+    }
+    int limit = parseSize(options, queryModel);
+    requestBuilder.size(limit);
+    if (queryModel.getOffset() != null) {
+      requestBuilder.from(Integer.parseInt(queryModel.getOffset()));
+    }
+    if (queryModel.toSourceConfig() != null) {
+      requestBuilder.source(queryModel.toSourceConfig());
+    }
+    if (queryModel.toSortOptions() != null) {
+      LOGGER.debug("Sort options: {}", queryModel.toSortOptions());
+      requestBuilder.sort(queryModel.toSortOptions());
+    }
+    SearchRequest request = requestBuilder.build();
+    LOGGER.debug("Request: " + request.toString());
+    asyncClient
+        .search(request, ObjectNode.class)
+        .whenComplete(
+            (response, error) -> {
+              if (error != null) {
+                LOGGER.error("Search failed: {}", error.getMessage());
+                promise.fail(new DxInternalServerErrorException(error.getMessage(), error));
+                return;
+              }
+              try {
+                List<ElasticsearchResponse> esResponses = new ArrayList<>();
+                JsonObject aggregationsJson = new JsonObject();
+                LOGGER.debug("Total :: {}", response.hits().hits().size());
+                // 1. Handle hits if needed
+                if (!options.startsWith(AGGREGATION_ONLY)) {
+                  for (var hit : response.hits().hits()) {
+                    String id = hit.id();
+                    JsonObject source =
+                        hit.source() != null
+                            ? new JsonObject(hit.source().toString())
+                            : new JsonObject();
+                    JsonObject result = new JsonObject();
+                    switch (options) {
+                      case DOC_IDS_ONLY:
+                        result.put(ID, id);
+                        break;
+                      case SOURCE_AND_ID:
+                        result.put(ID, id).put(SOURCE, source);
+                        break;
+                      case SOURCE_AND_ID_GEOQUERY:
+                        source.put("doc_id", id);
+                        result.mergeIn(source);
+                        break;
+                      case SOURCE_ONLY:
+                        source.remove(SUMMARY_KEY);
+                        source.remove(WORD_VECTOR_KEY);
+                        result = source;
+                        break;
+                      default:
+                        result = source;
+                        break;
+                    }
+
+                    esResponses.add(new ElasticsearchResponse(id, result));
+                  }
+
+                  long totalHits =
+                      response.hits().total() != null ? response.hits().total().value() : 0;
+                  ElasticsearchResponse.setTotalHits((int) totalHits);
+                }
+
+                // 2. Handle aggregations if needed
+                if (options.startsWith(AGGREGATION_ONLY)
+                    || options.equals(COUNT_AGGREGATION_ONLY)) {
+                  aggregationsJson = parseAggregations(response, options);
+                }
+
+                if (!aggregationsJson.isEmpty()) {
+                  ElasticsearchResponse.setAggregations(aggregationsJson);
+                }
+
+                promise.complete(esResponses);
+              } catch (Exception e) {
+                LOGGER.error("Failed to parse search response", e);
+                promise.fail(
+                    new DxInternalServerErrorException("Failed to parse search result", e));
+              }
+            });
+
+    return promise.future();
+  }
+
   public Future<List<ElasticsearchResponse>> search(
-      String index, QueryModel queryModel, String options) {
+          String index, QueryModel queryModel, String options, List<Object> lastSortValues) {
     Promise<List<ElasticsearchResponse>> promise = Promise.promise();
 
     Map<String, Aggregation> aggregations = new HashMap<>();
@@ -90,6 +192,13 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
     if (queryModel.toSortOptions() != null) {
       LOGGER.debug("Sort options: {}", queryModel.toSortOptions());
       requestBuilder.sort(queryModel.toSortOptions());
+    }
+    // Set search_after for deep pagination
+    if (lastSortValues != null && !lastSortValues.isEmpty()) {
+      List<co.elastic.clients.elasticsearch._types.FieldValue> fieldValues = lastSortValues.stream()
+        .map(co.elastic.clients.elasticsearch._types.FieldValue::of)
+        .collect(java.util.stream.Collectors.toList());
+      requestBuilder.searchAfter(fieldValues);
     }
 
     SearchRequest request = requestBuilder.build();
@@ -167,6 +276,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
 
     return promise.future();
   }
+
 
   private int parseSize(String options, QueryModel model) {
     if (options.startsWith(AGGREGATION_ONLY)) {
