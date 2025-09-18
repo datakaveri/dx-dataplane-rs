@@ -358,7 +358,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
                                                     LOGGER.debug("RESPONSE {} ",createResp);
                                                     if (createErr != null) {
                                                         String message = createErr.getMessage() != null ? createErr.getMessage() : "";
-                                                        LOGGER.error("HERE 2 "+message);
+                                                        LOGGER.error("failed to create index {} ",message);
                                                         // If index already exists, consider it a no-op success
                                                         if (message.contains("resource_already_exists_exception")
                                                                 || message.contains("index_already_exists_exception")
