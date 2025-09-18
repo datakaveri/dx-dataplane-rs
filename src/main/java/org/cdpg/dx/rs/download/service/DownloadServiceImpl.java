@@ -5,10 +5,14 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.database.elastic.service.ElasticsearchScrollService;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
+import org.cdpg.dx.rs.download.util.CsvScrollStreamHelper;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 
 public class DownloadServiceImpl implements DownloadService {
@@ -16,9 +20,25 @@ public class DownloadServiceImpl implements DownloadService {
   private final SearchService searchService;
   private final String timeLimit;
 
+  // Add reference to ElasticsearchService for scroll streaming
+  // Reference to ElasticsearchScrollService for scroll streaming
+  private final ElasticsearchService elasticsearchService;
+  private final ElasticsearchScrollService elasticsearchScrollService;
+
   public DownloadServiceImpl(SearchService searchService, String timeLimit) {
     this.searchService = searchService;
     this.timeLimit = timeLimit;
+    if (searchService instanceof org.cdpg.dx.essearch.service.SearchServiceImpl) {
+      this.elasticsearchService = ((org.cdpg.dx.essearch.service.SearchServiceImpl) searchService).getElasticsearchService();
+      if (this.elasticsearchService instanceof ElasticsearchScrollService &&
+          !this.elasticsearchService.getClass().getSimpleName().contains("VertxEBProxy")) {
+        this.elasticsearchScrollService = (ElasticsearchScrollService) this.elasticsearchService;
+      } else {
+        this.elasticsearchScrollService = null;
+      }
+    } else {
+      throw new IllegalArgumentException("SearchService must be SearchServiceImpl for download scroll streaming");
+    }
   }
 
   @Override
@@ -56,5 +76,57 @@ public class DownloadServiceImpl implements DownloadService {
     return searchService
         .streamPostData(searchQuery, index)
         .onFailure(err -> LOGGER.error("Error:: {}", err.getMessage()));
+  }
+
+  @Override
+  public Future<ReadStream<Buffer>> streamElasticDataCsvScroll(GetRequestModel getRequestModel) {
+    String index = IndexNameCreation.createIndex(getRequestModel.id());
+    QueryModel queryModel;
+    if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
+      queryModel = new QueryModel();
+      queryModel.setQueryType(org.cdpg.dx.database.elastic.util.QueryType.MATCH_ALL);
+    } else {
+      TemporalQueryRequestModel temporal = new TemporalQueryRequestModel(
+        getRequestModel.timeRel(),
+        getRequestModel.time(),
+        getRequestModel.endTime(),
+        timeLimit,
+        getRequestModel.size(),
+        getRequestModel.page()
+      );
+      queryModel = new org.cdpg.dx.essearch.model.QueryDecoder().getTemporalQueryBasedOnObservationDateTime(temporal, getRequestModel.sortBy(), getRequestModel.sortOrder());
+    }
+    LOGGER.debug("elasticsearchScrollService class: {}", elasticsearchScrollService != null ? elasticsearchScrollService.getClass().getName() : "null");
+    LOGGER.debug("elasticsearchService class: {}", elasticsearchService != null ? elasticsearchService.getClass().getName() : "null");
+    if (elasticsearchScrollService != null) {
+      return CsvScrollStreamHelper.streamCsvScroll(elasticsearchScrollService, index, queryModel);
+    } else {
+      // Fallback: use paginated streaming if scroll is not available
+      return org.cdpg.dx.rs.download.util.CsvPaginatedStreamHelper.streamCsvPaginated(elasticsearchService, index, queryModel, getRequestModel.size(), getRequestModel.page());
+    }
+  }
+
+  @Override
+  public Future<ReadStream<Buffer>> streamElasticDataCsvScroll(SearchQuery searchQuery, String id) {
+    String index = IndexNameCreation.createIndex(id);
+    org.cdpg.dx.essearch.model.QueryDecoder decoder = new org.cdpg.dx.essearch.model.QueryDecoder();
+    QueryModel queryModel = decoder.postSearchQueryModel(searchQuery);
+    if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
+      java.util.Map<String, String> sortFields =
+        searchQuery.getSort().stream()
+          .collect(java.util.stream.Collectors.toMap(
+            org.cdpg.dx.essearch.model.OrderBy::getColumn,
+            sort -> sort.getDirection().toString()
+          ));
+      queryModel.setSortFields(sortFields);
+    }
+    LOGGER.debug("elasticsearchScrollService class: {}", elasticsearchScrollService != null ? elasticsearchScrollService.getClass().getName() : "null");
+    LOGGER.debug("elasticsearchService class: {}", elasticsearchService != null ? elasticsearchService.getClass().getName() : "null");
+    if (elasticsearchScrollService != null) {
+      return CsvScrollStreamHelper.streamCsvScroll(elasticsearchScrollService, index, queryModel);
+    } else {
+      // Fallback: use paginated streaming if scroll is not available
+      return org.cdpg.dx.rs.download.util.CsvPaginatedStreamHelper.streamCsvPaginated(elasticsearchService, index, queryModel, searchQuery.getSize(), searchQuery.getPage());
+    }
   }
 }

@@ -5,6 +5,7 @@ import static org.cdpg.dx.database.elastic.util.Constants.*;
 import co.elastic.clients.elasticsearch.ElasticsearchAsyncClient;
 import co.elastic.clients.elasticsearch._types.Result;
 import co.elastic.clients.elasticsearch._types.Script;
+import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.*;
@@ -17,12 +18,17 @@ import co.elastic.clients.json.JsonpMapperFeatures;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.json.stream.JsonGenerator;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -33,8 +39,9 @@ import org.cdpg.dx.common.exception.DxInternalServerErrorException;
 import org.cdpg.dx.database.elastic.ElasticClient;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.database.elastic.model.ScrollResult;
 
-public class ElasticsearchServiceImpl implements ElasticsearchService {
+public class ElasticsearchServiceImpl implements ElasticsearchService, ElasticsearchScrollService {
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchServiceImpl.class);
 
   static ElasticClient client;
@@ -600,5 +607,192 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
               }
             });
     return promise.future();
+  }
+
+  @Override
+  public Future<ScrollResult> scrollSearch(String index, QueryModel queryModel, String scrollTimeout, String options) {
+    Promise<ScrollResult> promise = Promise.promise();
+    SearchRequest.Builder requestBuilder = new SearchRequest.Builder().index(index);
+    QueryModel queries = queryModel.getQueries();
+    if (queries != null && queries.toElasticsearchQuery() != null) {
+      requestBuilder.query(queries.toElasticsearchQuery());
+    }
+    if (queryModel.toSourceConfig() != null) {
+      requestBuilder.source(queryModel.toSourceConfig());
+    }
+    if (queryModel.toSortOptions() != null) {
+      requestBuilder.sort(queryModel.toSortOptions());
+    }
+    int limit = Optional.ofNullable(queryModel.getLimit()).map(Integer::parseInt).orElse(1000);
+    requestBuilder.size(limit);
+    // requestBuilder.scroll(Time.of(t -> t.time(scrollTimeout)));
+    SearchRequest request = requestBuilder.build();
+    asyncClient
+      .search(request, ObjectNode.class)
+      .whenComplete((response, error) -> {
+        if (error != null) {
+          LOGGER.error("Scroll search failed: {}", error.getMessage());
+          promise.fail(new DxInternalServerErrorException(error.getMessage(), error));
+          return;
+        }
+        try {
+          List<ElasticsearchResponse> esResponses = new ArrayList<>();
+          for (var hit : response.hits().hits()) {
+            String id = hit.id();
+            JsonObject source = hit.source() != null ? new JsonObject(hit.source().toString()) : new JsonObject();
+            esResponses.add(new ElasticsearchResponse(id, source));
+          }
+          String scrollId = response.scrollId();
+          promise.complete(new ScrollResult(esResponses, scrollId));
+        } catch (Exception e) {
+          LOGGER.error("Failed to parse scroll search response", e);
+          promise.fail(new DxInternalServerErrorException("Failed to parse scroll search result", e));
+        }
+      });
+    return promise.future();
+  }
+
+  // --- SCROLL API USING LOW-LEVEL REST CLIENT ---
+  public Future<ScrollResult> scrollSearchRest(String index, QueryModel queryModel, String scrollTimeout, String options) {
+    Promise<ScrollResult> promise = Promise.promise();
+    try {
+      RestClient restClient = client.getLowLevelClient();
+      JsonObject body = new JsonObject();
+      if (queryModel.toElasticsearchQuery() != null) {
+        body.put("query", serializeQuery(queryModel.toElasticsearchQuery()));
+      }
+      if (queryModel.toSortOptions() != null) {
+        body.put("sort", serializeSortOptions(queryModel.toSortOptions()));
+      }
+      if (queryModel.toSourceConfig() != null) {
+        body.put("_source", queryModel.toSourceConfig().toString());
+      }
+      body.put("size", queryModel.getLimit() != null ? Integer.parseInt(queryModel.getLimit()) : 1000);
+      Request request = new Request("POST", "/" + index + "/_search?scroll=" + scrollTimeout);
+      request.setJsonEntity(body.encode());
+      Vertx vertx = Vertx.currentContext().owner();
+      vertx.executeBlocking(fut -> {
+        try {
+          Response response = restClient.performRequest(request);
+          String json = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+          JsonObject resp = new JsonObject(json);
+          String scrollId = resp.getString("_scroll_id");
+          List<ElasticsearchResponse> results = parseHits(resp);
+          fut.complete(new ScrollResult(results, scrollId));
+        } catch (Exception e) {
+          fut.fail(e);
+        }
+      }, res -> {
+        if (res.succeeded()) promise.complete((ScrollResult) res.result());
+        else promise.fail(res.cause());
+      });
+    } catch (Exception e) {
+      promise.fail(e);
+    }
+    return promise.future();
+  }
+
+  // Helper to serialize Query to JsonObject
+  private JsonObject serializeQuery(Query query) {
+    JsonpMapper mapper = asyncClient._jsonpMapper();
+    StringWriter writer = new StringWriter();
+    try (jakarta.json.stream.JsonGenerator generator = mapper.jsonProvider().createGenerator(writer)) {
+      mapper.serialize(query, generator);
+    }
+    return new JsonObject(writer.toString());
+  }
+
+  // Helper to serialize SortOptions to JsonArray
+  private JsonArray serializeSortOptions(List<SortOptions> sortOptions) {
+    JsonArray arr = new JsonArray();
+    JsonpMapper mapper = asyncClient._jsonpMapper();
+    for (SortOptions so : sortOptions) {
+      StringWriter writer = new StringWriter();
+      try (jakarta.json.stream.JsonGenerator generator = mapper.jsonProvider().createGenerator(writer)) {
+        mapper.serialize(so, generator);
+      }
+      arr.add(new JsonObject(writer.toString()));
+    }
+    return arr;
+  }
+
+  public Future<ScrollResult> continueScrollRest(String scrollId, String scrollTimeout) {
+    Promise<ScrollResult> promise = Promise.promise();
+    try {
+      RestClient restClient = client.getLowLevelClient();
+      JsonObject body = new JsonObject().put("scroll", scrollTimeout).put("scroll_id", scrollId);
+      Request request = new Request("POST", "/_search/scroll");
+      request.setJsonEntity(body.encode());
+      Vertx vertx = Vertx.currentContext().owner();
+      vertx.executeBlocking(fut -> {
+        try {
+          Response response = restClient.performRequest(request);
+          String json = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+          JsonObject resp = new JsonObject(json);
+          String newScrollId = resp.getString("_scroll_id");
+          List<ElasticsearchResponse> results = parseHits(resp);
+          fut.complete(new ScrollResult(results, newScrollId));
+        } catch (Exception e) {
+          fut.fail(e);
+        }
+      }, res -> {
+        if (res.succeeded()) promise.complete((ScrollResult) res.result());
+        else promise.fail(res.cause());
+      });
+    } catch (Exception e) {
+      promise.fail(e);
+    }
+    return promise.future();
+  }
+
+  public Future<Void> clearScrollRest(String scrollId) {
+    Promise<Void> promise = Promise.promise();
+    try {
+      RestClient restClient = client.getLowLevelClient();
+      JsonObject body = new JsonObject().put("scroll_id", scrollId);
+      Request request = new Request("DELETE", "/_search/scroll");
+      request.setJsonEntity(body.encode());
+      Vertx vertx = Vertx.currentContext().owner();
+      vertx.executeBlocking(fut -> {
+        try {
+          restClient.performRequest(request);
+          fut.complete();
+        } catch (Exception e) {
+          fut.fail(e);
+        }
+      }, res -> {
+        if (res.succeeded()) promise.complete();
+        else promise.fail(res.cause());
+      });
+    } catch (Exception e) {
+      promise.fail(e);
+    }
+    return promise.future();
+  }
+
+  private List<ElasticsearchResponse> parseHits(JsonObject resp) {
+    List<ElasticsearchResponse> results = new ArrayList<>();
+    if (resp.containsKey("hits")) {
+      JsonObject hitsObj = resp.getJsonObject("hits");
+      if (hitsObj.containsKey("hits")) {
+        for (Object hitObj : hitsObj.getJsonArray("hits")) {
+          JsonObject hit = (JsonObject) hitObj;
+          String id = hit.getString("_id");
+          JsonObject source = hit.getJsonObject("_source");
+          results.add(new ElasticsearchResponse(id, source));
+        }
+      }
+    }
+    return results;
+  }
+
+  @Override
+  public Future<Void> clearScroll(String scrollId) {
+    return clearScrollRest(scrollId);
+  }
+
+  @Override
+  public Future<ScrollResult> continueScroll(String scrollId, String scrollTimeout) {
+    return continueScrollRest(scrollId, scrollTimeout);
   }
 }

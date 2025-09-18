@@ -393,6 +393,10 @@ public class QueryModel {
     LOGGER.debug("Converting QueryModel to Elasticsearch Query " + queryType);
 
     if (this.queryType == null) {
+      if (this.queries != null) {
+        LOGGER.warn("Top-level QueryModel queryType is null, delegating to queries.toElasticsearchQuery()");
+        return this.queries.toElasticsearchQuery();
+      }
       LOGGER.error("Query type is null for QueryModel: {}", this.toJson());
       throw new IllegalArgumentException("Query type cannot be null");
     }

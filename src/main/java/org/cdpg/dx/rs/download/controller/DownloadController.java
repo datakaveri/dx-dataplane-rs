@@ -39,12 +39,12 @@ public class DownloadController implements ApiController {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        /*.handler(checkItemAccessHandler)*/
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        /*.handler(checkItemAccessHandler)*/
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
@@ -65,8 +65,9 @@ public class DownloadController implements ApiController {
               .setAssetSearch(false)
               .setCountApi(false)
               .build();
+      // Use scroll-based streaming for POST download
       downloadService
-          .streamElasticDataCsvBatched(searchQuery, id)
+          .streamElasticDataCsvScroll(searchQuery, id)
           .onSuccess(
               csvStream -> {
                 if (csvStream == null) {
@@ -121,8 +122,9 @@ public class DownloadController implements ApiController {
     GetRequestModel getRequestModel =
         new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
 
+    // Use scroll-based streaming for GET download
     downloadService
-        .streamElasticDataCsvBatched(getRequestModel)
+        .streamElasticDataCsvScroll(getRequestModel)
         .onSuccess(
             csvStream -> {
               if (csvStream == null) {

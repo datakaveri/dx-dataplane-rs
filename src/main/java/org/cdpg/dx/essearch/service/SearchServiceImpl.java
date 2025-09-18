@@ -288,4 +288,8 @@ public class SearchServiceImpl implements SearchService {
       return Future.failedFuture(new DxBadRequestException("Failed to process search request"));
     }
   }
+
+  public ElasticsearchService getElasticsearchService() {
+    return this.elasticsearchService;
+  }
 }
