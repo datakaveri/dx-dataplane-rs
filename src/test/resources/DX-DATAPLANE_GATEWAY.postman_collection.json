@@ -1,978 +1,978 @@
 {
-	"info": {
-		"_postman_id": "3c97a7cd-0369-4ec0-b641-63a0abfaee38",
-		"name": "DX-DATAPLANE_GATEWAY",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "20457128"
-	},
-	"item": [
-		{
-			"name": "entities search",
-			"item": [
-				{
-					"name": "200 (success) - Simple Attr search",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code\r",
-									"pm.test(\"response is 200 (OK)\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"// Test the response header\r",
-									"pm.test(\"Check response header\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
-									"});\r",
-									"\r",
-									"// Test the response\r",
-									"pm.test(\"Check response body\", function () {    \r",
-									"    const body = pm.response.json();\r",
-									"    pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&q=positional_accuracy>1900",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
-								},
-								{
-									"key": "q",
-									"value": "positional_accuracy>1900"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "temporalentites search",
-			"item": [
-				{
-					"name": "200 (success) temporal (before)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code\r",
-									"pm.test(\"response is 200 (OK)\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"// Test the response header\r",
-									"pm.test(\"Check response header\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
-									"});\r",
-									"\r",
-									"// Test the response\r",
-									"pm.test(\"Check response body\", function () {    \r",
-									"    const body = pm.response.json();\r",
-									"   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=before&time=2025-06-18T14:20:00Z",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
-								},
-								{
-									"key": "timerel",
-									"value": "before"
-								},
-								{
-									"key": "time",
-									"value": "2025-06-18T14:20:00Z"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) temporal (after)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code\r",
-									"pm.test(\"response is 200 (OK)\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"// Test the response header\r",
-									"pm.test(\"Check response header\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
-									"});\r",
-									"\r",
-									"// Test the response\r",
-									"pm.test(\"Check response body\", function () {    \r",
-									"    const body = pm.response.json();\r",
-									"   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=after&time=2025-06-18T14:20:00Z",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
-								},
-								{
-									"key": "timerel",
-									"value": "after"
-								},
-								{
-									"key": "time",
-									"value": "2025-06-18T14:20:00Z"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) temporal (between)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code\r",
-									"pm.test(\"response is 200 (OK)\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"// Test the response header\r",
-									"pm.test(\"Check response header\", function () {\r",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
-									"});\r",
-									"\r",
-									"// Test the response\r",
-									"pm.test(\"Check response body\", function () {    \r",
-									"    const body = pm.response.json();\r",
-									"   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=between&time=2025-06-18T14:20:00Z&endtime=2025-06-19T14:20:00Z",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
-								},
-								{
-									"key": "timerel",
-									"value": "between"
-								},
-								{
-									"key": "time",
-									"value": "2025-06-18T14:20:00Z"
-								},
-								{
-									"key": "endtime",
-									"value": "2025-06-19T14:20:00Z"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) temporal + attribute complex search",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=before&time=2025-09-19T14:00:00Z&q=positional_accuracy>1900",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entities"
-							],
-							"query": [
-								{
-									"key": "id",
-									"value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
-								},
-								{
-									"key": "timerel",
-									"value": "before"
-								},
-								{
-									"key": "time",
-									"value": "2025-09-19T14:00:00Z"
-								},
-								{
-									"key": "q",
-									"value": "positional_accuracy>1900"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "complex  search",
-			"item": [
-				{
-					"name": "200 (success) - Attribute Search",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"Success\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n     \"q\":\"positional_accuracy>1909\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - temporal (between)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - temporal (before)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2025-06-18T14:20:00Z\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - temporal (after)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - temporal (after) Copy",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - temporal + q",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - Geo-Query (circle)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxdistance=100\",\n        \"geoproperty\": \"location\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - Geo-Query + attr",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxdistance=100\",\n        \"geoproperty\": \"location\"\n    },\n     \"q\":\"positional_accuracy>1909\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "200 (success) - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test the response code",
-									"pm.test(\"response is 200 (OK)\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Test the response header",
-									"pm.test(\"Check response header\", function () {",
-									"    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
-									"});",
-									"",
-									"// Test the response",
-									"pm.test(\"Check response body\", function () {    ",
-									"    const body = pm.response.json();",
-									"    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=100\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    },\n     \"q\":\"positional_accuracy>1909\",\n    \"attrs\":\"id\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
-							"protocol": "https",
-							"host": [
-								"v2",
-								"dev",
-								"rs",
-								"iudx",
-								"io"
-							],
-							"path": [
-								"rsp",
-								"ngsi-ld",
-								"v1",
-								"temporal",
-								"entityOperations",
-								"query"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	]
+  "info": {
+    "_postman_id": "3c97a7cd-0369-4ec0-b641-63a0abfaee38",
+    "name": "DX-DATAPLANE_GATEWAY",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20457128"
+  },
+  "item": [
+    {
+      "name": "entities search",
+      "item": [
+        {
+          "name": "200 (success) - Simple Attr search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code\r",
+                  "pm.test(\"response is 200 (OK)\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response header\r",
+                  "pm.test(\"Check response header\", function () {\r",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response\r",
+                  "pm.test(\"Check response body\", function () {    \r",
+                  "    const body = pm.response.json();\r",
+                  "    pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&q=positional_accuracy>1900",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "entities"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
+                },
+                {
+                  "key": "q",
+                  "value": "positional_accuracy>1900"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "temporalentites search",
+      "item": [
+        {
+          "name": "200 (success) temporal (before)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code\r",
+                  "pm.test(\"response is 200 (OK)\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response header\r",
+                  "pm.test(\"Check response header\", function () {\r",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response\r",
+                  "pm.test(\"Check response body\", function () {    \r",
+                  "    const body = pm.response.json();\r",
+                  "   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=before&time=2025-06-18T14:20:00Z",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entities"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
+                },
+                {
+                  "key": "timerel",
+                  "value": "before"
+                },
+                {
+                  "key": "time",
+                  "value": "2025-06-18T14:20:00Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) temporal (after)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code\r",
+                  "pm.test(\"response is 200 (OK)\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response header\r",
+                  "pm.test(\"Check response header\", function () {\r",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response\r",
+                  "pm.test(\"Check response body\", function () {    \r",
+                  "    const body = pm.response.json();\r",
+                  "   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=after&time=2025-06-18T14:20:00Z",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entities"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
+                },
+                {
+                  "key": "timerel",
+                  "value": "after"
+                },
+                {
+                  "key": "time",
+                  "value": "2025-06-18T14:20:00Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) temporal (between)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code\r",
+                  "pm.test(\"response is 200 (OK)\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response header\r",
+                  "pm.test(\"Check response header\", function () {\r",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");\r",
+                  "});\r",
+                  "\r",
+                  "// Test the response\r",
+                  "pm.test(\"Check response body\", function () {    \r",
+                  "    const body = pm.response.json();\r",
+                  "   pm.expect(body).to.have.property(\"type\", \"dx:dataplaneProxy:success\");\r",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=between&time=2025-06-18T14:20:00Z&endtime=2025-06-19T14:20:00Z",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entities"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
+                },
+                {
+                  "key": "timerel",
+                  "value": "between"
+                },
+                {
+                  "key": "time",
+                  "value": "2025-06-18T14:20:00Z"
+                },
+                {
+                  "key": "endtime",
+                  "value": "2025-06-19T14:20:00Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) temporal + attribute complex search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entities?id=b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f&timerel=before&time=2025-09-19T14:00:00Z&q=positional_accuracy>1900",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entities"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f"
+                },
+                {
+                  "key": "timerel",
+                  "value": "before"
+                },
+                {
+                  "key": "time",
+                  "value": "2025-09-19T14:00:00Z"
+                },
+                {
+                  "key": "q",
+                  "value": "positional_accuracy>1900"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "complex  search",
+      "item": [
+        {
+          "name": "200 (success) - Attribute Search",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n     \"q\":\"positional_accuracy>1909\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - temporal (between)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - temporal (before)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"before\",\n        \"time\": \"2025-06-18T14:20:00Z\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - temporal (after)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - temporal (after) Copy",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - temporal + q",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - Geo-Query (circle)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxdistance=100\",\n        \"geoproperty\": \"location\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - Geo-Query + attr",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxdistance=100\",\n        \"geoproperty\": \"location\"\n    },\n     \"q\":\"positional_accuracy>1909\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) - complex - geo - (circle) + temporal (between) + attribute (>) + response filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"successful operations\");",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTU5NTc3OTcsImlhdCI6MTc1NTk1Njg5NywianRpIjoib25ydHJvOmYyZDVlOTU4LWI2MDQtNDg0ZS1hOTEwLTY4NGVhNWZmZTViYiIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlNTlkZmIwOC02NmIyLTQ5YzMtODkxYi0zOTBmOGY0ODhjNmQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIxNGIxM2VhMC1lNDM0LTRjNmItODBmZi0wZWE3NmY3MjkwNjMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImRlZmF1bHQtcm9sZXMtdGdkZXgtcGlsb3QiLCJjb25zdW1lciIsImNvc19hZG1pbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsIm9yZ2FuaXNhdGlvbl9pZCI6IjEyOTJiMTBjLWIwODgtNDk1NS1hZWFlLTkwYjQyNzU3NjIwNiIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJreWNfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJhZG1pbi5jb3MudGdkZXggdGdkZXgiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJhZG1pbi5jb3MudGdkZXhAZGF0YWthdmVyaS5vcmciLCJvcmdhbmlzYXRpb25fbmFtZSI6Im5ldyBOYW1lIFNhbmRib3gxIiwiZ2l2ZW5fbmFtZSI6ImFkbWluLmNvcy50Z2RleCIsImZhbWlseV9uYW1lIjoidGdkZXgiLCJlbWFpbCI6ImFkbWluLmNvcy50Z2RleEBkYXRha2F2ZXJpLm9yZyJ9.CFTWdVXlkWIUAQ3tRMke04vWefKwtSmOvRGlR2zdnT-9akXm7nNr7io9Hqrxoe0kD9ODuQgdZm4Nd-eX8nl2xroRmQT7rEvC0vV69nUVBiMl8D1WyjDEwP_QAfgP2e3Arhng2QbxYWBsyCD6blAq9RTCueyKdJg4E7e21x8fI6Eq63dUMyVTmKAnjIVSy2okktUNN2Xk2fUFGt2OHjVRzg7igLaU8kmpstpTlMF8K3CvCb9ss9zgdjBfQXRnHEwaTRwUw2ZzBJcX4BDNOo3z1RmwgSv4_E7mtFUT2d8Q8de7iFT0aNH0nG_n-221ZmlrEF6LFJntr7l0VCnNjIOFHQ",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"Query\",\n    \"entities\": [\n        {\n            \"id\": \"b1f88f1e-6fd2-4d63-a8d1-69e4b02b601f\"\n        }\n    ],\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=100\",\n        \"geoproperty\": \"location\"\n    },\n    \"temporalQ\": {\n        \"timerel\": \"between\",\n        \"time\": \"2025-06-18T14:20:00Z\",\n        \"endtime\": \"2025-06-19T14:20:00Z\"\n    },\n     \"q\":\"positional_accuracy>1909\",\n    \"attrs\":\"id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/rsp/ngsi-ld/v1/temporal/entityOperations/query",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "rsp",
+                "ngsi-ld",
+                "v1",
+                "temporal",
+                "entityOperations",
+                "query"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }
