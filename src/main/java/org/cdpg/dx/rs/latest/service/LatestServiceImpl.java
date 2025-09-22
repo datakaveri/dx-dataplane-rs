@@ -1,13 +1,12 @@
 package org.cdpg.dx.rs.latest.service;
 
 import io.vertx.core.Future;
-import java.util.List;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.response.ResponseModel;
-import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.essearch.model.SearchResultWithCount;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
@@ -30,7 +29,8 @@ public class LatestServiceImpl implements LatestService {
         .map(
             results -> {
               LOGGER.debug("Successfully fetched data for ID: {}", getRequestModel.id());
-              return new ResponseModel(results, getRequestModel.size(), getRequestModel.page());
+              return new ResponseModel(
+                  results.getResults(), getRequestModel.size(), getRequestModel.page());
             })
         .onFailure(
             err -> {
@@ -38,16 +38,27 @@ public class LatestServiceImpl implements LatestService {
             });
   }
 
-  private Future<List<ElasticsearchResponse>> fetchDataFromElastic(
-      GetRequestModel getRequestModel) {
+  private Future<SearchResultWithCount> fetchDataFromElastic(GetRequestModel getRequestModel) {
     String index = IndexNameCreation.createIndex(getRequestModel.id());
+    LOGGER.debug("Index determined for ID {}: {}", getRequestModel.id(), index);
     if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
-      LOGGER.debug("Fetching All data for ID: {}", getRequestModel.id());
-      return searchService.searchAllData(index, getRequestModel.size(), getRequestModel.page(),
-          getRequestModel.sortBy(), getRequestModel.sortOrder());
+      return searchService.searchAllDataWithCountValidation(
+          index,
+          getRequestModel.size(),
+          getRequestModel.page(),
+          getRequestModel.sortBy(),
+          getRequestModel.sortOrder());
     } else {
-      LOGGER.debug("Fetching Temporal data for ID: {}", getRequestModel.id());
-      return searchService.searchTemporalData(
+      /*return searchService.searchTemporalData(
+      index,
+      new TemporalQueryRequestModel(
+          getRequestModel.timeRel(),
+          getRequestModel.time(),
+          getRequestModel.endTime(),
+          timeLimit,
+          getRequestModel.size(),
+          getRequestModel.page()), getRequestModel.sortBy(), getRequestModel.sortOrder());*/
+      return searchService.searchTemporalDataWithCountValidation(
           index,
           new TemporalQueryRequestModel(
               getRequestModel.timeRel(),
@@ -55,7 +66,9 @@ public class LatestServiceImpl implements LatestService {
               getRequestModel.endTime(),
               timeLimit,
               getRequestModel.size(),
-              getRequestModel.page()), getRequestModel.sortBy(), getRequestModel.sortOrder());
+              getRequestModel.page()),
+          getRequestModel.sortBy(),
+          getRequestModel.sortOrder());
     }
   }
 

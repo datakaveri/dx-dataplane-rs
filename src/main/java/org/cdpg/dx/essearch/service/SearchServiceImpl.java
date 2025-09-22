@@ -4,6 +4,7 @@ import static org.cdpg.dx.database.elastic.util.Constants.MAX_SEARCH_RESULT_LIMI
 import static org.cdpg.dx.essearch.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.ReadStream;
 import java.util.List;
@@ -35,9 +36,13 @@ public class SearchServiceImpl implements SearchService {
 
   @Override
   public Future<List<ElasticsearchResponse>> searchTemporalData(
-      String index, TemporalQueryRequestModel temporalQueryRequestModel, String sortBy, String sortOrder) {
+      String index,
+      TemporalQueryRequestModel temporalQueryRequestModel,
+      String sortBy,
+      String sortOrder) {
     QueryModel queryModel =
-        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel, sortBy, sortOrder);
+        queryDecoder.getTemporalQueryBasedOnObservationDateTime(
+            temporalQueryRequestModel, sortBy, sortOrder);
     return elasticsearchService
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
@@ -46,15 +51,66 @@ public class SearchServiceImpl implements SearchService {
             })
         .onFailure(
             failure -> {
-              LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              LOGGER.error("Error occur : {}", failure.getMessage(), failure);
               Future.failedFuture(new DxEsException("Failed to process search request"));
             });
   }
 
   @Override
-  public Future<List<ElasticsearchResponse>> searchAllData(String index, int size, int page, String sortBy, String sortOrder) {
+  public Future<SearchResultWithCount> searchTemporalDataWithCountValidation(
+      String index,
+      TemporalQueryRequestModel temporalQueryRequestModel,
+      String sortBy,
+      String sortOrder) {
+
+    Promise<SearchResultWithCount> promise = Promise.promise();
+    QueryModel queryModel =
+        queryDecoder.getTemporalQueryBasedOnObservationDateTime(
+            temporalQueryRequestModel, sortBy, sortOrder);
+
+    // First execute count query to get accurate total hits
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.info("Count result: {}", count);
+
+              // Check if count exceeds the maximum limit
+              if (count > MAX_SEARCH_RESULT_LIMIT) {
+                LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
+                return Future.failedFuture(
+                    new DxBadRequestException(
+                        "Payload too large: "
+                            + count
+                            + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
+                            + MAX_SEARCH_RESULT_LIMIT));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug("Temporal search with count validation completed successfully");
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error occurred: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+
+    return promise.future();
+  }
+
+  @Override
+  public Future<List<ElasticsearchResponse>> searchAllData(
+      String index, int size, int page, String sortBy, String sortOrder) {
     LOGGER.info("searching all data for index: {}", index);
-    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
+    QueryModel queryModel =
+        queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
     return elasticsearchService
         .search(index, queryModel, SOURCE_ONLY)
         .onSuccess(
@@ -68,19 +124,57 @@ public class SearchServiceImpl implements SearchService {
   }
 
   @Override
-  public Future<ReadStream<Buffer>> streamAllData(String index, int size, int page, String sortBy, String sortOrder) {
+  public Future<SearchResultWithCount> searchAllDataWithCountValidation(
+      String index, int size, int page, String sortBy, String sortOrder) {
+    LOGGER.info("searching all latest data for index: {}", index);
+    Promise<SearchResultWithCount> promise = Promise.promise();
+    QueryModel queryModel =
+        queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.debug("Count result: {}", count);
+              return elasticsearchService
+                  .search(index, queryModel, SOURCE_ONLY)
+                  .map(searchResult -> new SearchResultWithCount(searchResult, count));
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug(
+                  "Latest All data search completed successfully with {} results",
+                  result.getTotalCount());
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+    return promise.future();
+  }
+
+  @Override
+  public Future<ReadStream<Buffer>> streamAllData(
+      String index, int size, int page, String sortBy, String sortOrder) {
     LOGGER.info("Streaming all data for index: {}", index);
-    QueryModel queryModel = queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
+    QueryModel queryModel =
+        queryDecoder.getQueryBasedOnObservationDateTime(size, page, sortBy, sortOrder);
     return CsvPaginatedStreamHelper.streamCsvPaginated(
         elasticsearchService, index, queryModel, size, page);
   }
 
   @Override
   public Future<ReadStream<Buffer>> streamTemporalData(
-      String index, TemporalQueryRequestModel temporalQueryRequestModel, String sortBy, String sortOrder) {
+      String index,
+      TemporalQueryRequestModel temporalQueryRequestModel,
+      String sortBy,
+      String sortOrder) {
     LOGGER.info("Streaming temporal data for index: {}", index);
     QueryModel queryModel =
-        queryDecoder.getTemporalQueryBasedOnObservationDateTime(temporalQueryRequestModel, sortBy, sortOrder);
+        queryDecoder.getTemporalQueryBasedOnObservationDateTime(
+            temporalQueryRequestModel, sortBy, sortOrder);
     return CsvPaginatedStreamHelper.streamCsvPaginated(
         elasticsearchService,
         index,
@@ -168,7 +262,7 @@ public class SearchServiceImpl implements SearchService {
                       new DxBadRequestException(
                           "Payload too large: "
                               + count
-                              + " results found. Use filters to get results within limit or use async API. Maximum allowed: "
+                              + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
                               + MAX_SEARCH_RESULT_LIMIT));
                 }
 
