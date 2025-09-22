@@ -42,12 +42,12 @@ public class LatestController implements ApiController {
     builder
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+       /* .handler(checkItemAccessHandler)*/
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        /*.handler(checkItemAccessHandler)*/
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");
