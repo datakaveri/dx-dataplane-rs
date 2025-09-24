@@ -22,14 +22,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import jakarta.json.stream.JsonGenerator;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
-
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,8 +37,12 @@ import org.cdpg.dx.database.elastic.ElasticClient;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.model.ScrollResult;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 
-public class ElasticsearchServiceImpl implements ElasticsearchService, ElasticsearchScrollService {
+public class ElasticsearchServiceImpl
+    implements ElasticsearchService /*, ElasticsearchScrollService*/ {
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchServiceImpl.class);
 
   static ElasticClient client;
@@ -53,13 +54,16 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
   }
 
   @Override
-  public Future<List<ElasticsearchResponse>> search(String index, QueryModel queryModel, String options) {
+  public Future<List<ElasticsearchResponse>> search(
+      String index, QueryModel queryModel, String options) {
     // This is the interface method, does not support deep pagination
     Promise<List<ElasticsearchResponse>> promise = Promise.promise();
     Map<String, Aggregation> aggregations = new HashMap<>();
     if (queryModel.getAggregations() != null) {
-      queryModel.getAggregations().forEach(
-        agg -> aggregations.put(agg.getAggregationName(), agg.toElasticsearchAggregations()));
+      queryModel
+          .getAggregations()
+          .forEach(
+              agg -> aggregations.put(agg.getAggregationName(), agg.toElasticsearchAggregations()));
     }
     SearchRequest.Builder requestBuilder = new SearchRequest.Builder().index(index);
     QueryModel queries = queryModel.getQueries();
@@ -156,7 +160,7 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
   }
 
   public Future<List<ElasticsearchResponse>> search(
-          String index, QueryModel queryModel, String options, List<Object> lastSortValues) {
+      String index, QueryModel queryModel, String options, List<Object> lastSortValues) {
     Promise<List<ElasticsearchResponse>> promise = Promise.promise();
 
     Map<String, Aggregation> aggregations = new HashMap<>();
@@ -195,9 +199,10 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
     }
     // Set search_after for deep pagination
     if (lastSortValues != null && !lastSortValues.isEmpty()) {
-      List<co.elastic.clients.elasticsearch._types.FieldValue> fieldValues = lastSortValues.stream()
-        .map(co.elastic.clients.elasticsearch._types.FieldValue::of)
-        .collect(java.util.stream.Collectors.toList());
+      List<co.elastic.clients.elasticsearch._types.FieldValue> fieldValues =
+          lastSortValues.stream()
+              .map(co.elastic.clients.elasticsearch._types.FieldValue::of)
+              .collect(java.util.stream.Collectors.toList());
       requestBuilder.searchAfter(fieldValues);
     }
 
@@ -276,7 +281,6 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
 
     return promise.future();
   }
-
 
   private int parseSize(String options, QueryModel model) {
     if (options.startsWith(AGGREGATION_ONLY)) {
@@ -439,67 +443,74 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
         .compose(v -> executeUpdateByQuery(index, queryModel));
   }
 
-    @Override
-    public Future<Void> createIndex(String index, JsonObject mappings) {
-        Promise<Void> promise = Promise.promise();
-        validateIndex(index)
-                .onFailure(promise::fail)
-                .onSuccess(
-                        v -> {
-                            LOGGER.debug("Creating index: {} with mappings: {}", index, mappings);
-                            try {
-                                // Build create index request directly. If it already exists, treat as success.
-                                CreateIndexRequest.Builder reqBuilder = new CreateIndexRequest.Builder().index(index);
-                                try {
-                                    if (mappings != null && !mappings.isEmpty()) {
-                                        // Unwrap if the provided JSON already has a top-level "mappings" key
-                                        JsonObject typeMapping =
-                                                mappings.containsKey("mappings") && mappings.getValue("mappings") instanceof JsonObject
-                                                        ? mappings.getJsonObject("mappings")
-                                                        : mappings;
-                                        String mappingsJson = typeMapping.encode();
-                                        reqBuilder.mappings(m -> m.withJson(new StringReader(mappingsJson)));
-                                    }
-                                } catch (Exception e) {
-                                    LOGGER.error("Failed to apply mappings JSON", e);
-                                    promise.fail(new DxBadRequestException("Invalid mappings JSON"));
-                                    return;
-                                }
+  @Override
+  public Future<Void> createIndex(String index, JsonObject mappings) {
+    Promise<Void> promise = Promise.promise();
+    validateIndex(index)
+        .onFailure(promise::fail)
+        .onSuccess(
+            v -> {
+              LOGGER.debug("Creating index: {} with mappings: {}", index, mappings);
+              try {
+                // Build create index request directly. If it already exists, treat as success.
+                CreateIndexRequest.Builder reqBuilder =
+                    new CreateIndexRequest.Builder().index(index);
+                try {
+                  if (mappings != null && !mappings.isEmpty()) {
+                    // Unwrap if the provided JSON already has a top-level "mappings" key
+                    JsonObject typeMapping =
+                        mappings.containsKey("mappings")
+                                && mappings.getValue("mappings") instanceof JsonObject
+                            ? mappings.getJsonObject("mappings")
+                            : mappings;
+                    String mappingsJson = typeMapping.encode();
+                    reqBuilder.mappings(m -> m.withJson(new StringReader(mappingsJson)));
+                  }
+                } catch (Exception e) {
+                  LOGGER.error("Failed to apply mappings JSON", e);
+                  promise.fail(new DxBadRequestException("Invalid mappings JSON"));
+                  return;
+                }
 
-                                CreateIndexRequest createReq = reqBuilder.build();
-                                asyncClient
-                                        .indices()
-                                        .create(createReq)
-                                        .whenComplete(
-                                                (createResp, createErr) -> {
-                                                    LOGGER.debug("RESPONSE {} ",createResp);
-                                                    if (createErr != null) {
-                                                        String message = createErr.getMessage() != null ? createErr.getMessage() : "";
-                                                        LOGGER.error("failed to create index {} ",message);
-                                                        // If index already exists, consider it a no-op success
-                                                        if (message.contains("resource_already_exists_exception")
-                                                                || message.contains("index_already_exists_exception")
-                                                                || message.contains("already exists")) {
-                                                            LOGGER.debug("Index {} already exists ", index);
-                                                            promise.fail(new DxConflictException("Index already exists"));
-                                                            return;
-                                                        }
-                                                        LOGGER.error("Create index failed: {}", message, createErr);
-                                                        promise.fail(new DxInternalServerErrorException("Create index failed", createErr));
-                                                    } else if (!createResp.acknowledged()) {
-                                                        LOGGER.error("Create index not acknowledged for index {}", index);
-                                                        promise.fail(new DxInternalServerErrorException("Create index not acknowledged"));
-                                                    } else {
-                                                        LOGGER.debug("Index {} created", index);
-                                                        promise.complete();
-                                                    }
-                                                });
-                            } catch (Exception e) {
-                                promise.fail(new DxInternalServerErrorException("Unexpected error creating index", e));
+                CreateIndexRequest createReq = reqBuilder.build();
+                asyncClient
+                    .indices()
+                    .create(createReq)
+                    .whenComplete(
+                        (createResp, createErr) -> {
+                          LOGGER.debug("RESPONSE {} ", createResp);
+                          if (createErr != null) {
+                            String message =
+                                createErr.getMessage() != null ? createErr.getMessage() : "";
+                            // If index already exists, consider it a no-op success
+                            if (message.contains("resource_already_exists_exception")
+                                || message.contains("index_already_exists_exception")
+                                || message.contains("already exists")) {
+                              LOGGER.debug("Index {} already exists ", index);
+                              promise.fail(new DxConflictException("Index already exists"));
+                              return;
                             }
+                            LOGGER.error("Create index failed: {}", message, createErr);
+                            promise.fail(
+                                new DxInternalServerErrorException(
+                                    "Create index failed", createErr));
+                          } else if (!createResp.acknowledged()) {
+                            LOGGER.error("Create index not acknowledged for index {}", index);
+                            promise.fail(
+                                new DxInternalServerErrorException(
+                                    "Create index not acknowledged"));
+                          } else {
+                            LOGGER.debug("Index {} created", index);
+                            promise.complete();
+                          }
                         });
-        return promise.future();
-    }
+              } catch (Exception e) {
+                promise.fail(
+                    new DxInternalServerErrorException("Unexpected error creating index", e));
+              }
+            });
+    return promise.future();
+  }
 
   private Future<Void> validateIndex(String index) {
     if (index == null || index.trim().isEmpty()) {
@@ -720,96 +731,155 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
   }
 
   @Override
-  public Future<ScrollResult> scrollSearch(String index, QueryModel queryModel, String scrollTimeout, String options) {
-    Promise<ScrollResult> promise = Promise.promise();
-    SearchRequest.Builder requestBuilder = new SearchRequest.Builder().index(index);
-    QueryModel queries = queryModel.getQueries();
-    if (queries != null && queries.toElasticsearchQuery() != null) {
-      requestBuilder.query(queries.toElasticsearchQuery());
-    }
-    if (queryModel.toSourceConfig() != null) {
-      requestBuilder.source(queryModel.toSourceConfig());
-    }
-    if (queryModel.toSortOptions() != null) {
-      requestBuilder.sort(queryModel.toSortOptions());
-    }
-    int limit = Optional.ofNullable(queryModel.getLimit()).map(Integer::parseInt).orElse(1000);
-    requestBuilder.size(limit);
-    // requestBuilder.scroll(Time.of(t -> t.time(scrollTimeout)));
-    SearchRequest request = requestBuilder.build();
-    asyncClient
-      .search(request, ObjectNode.class)
-      .whenComplete((response, error) -> {
-        if (error != null) {
-          LOGGER.error("Scroll search failed: {}", error.getMessage());
-          promise.fail(new DxInternalServerErrorException(error.getMessage(), error));
-          return;
-        }
-        try {
-          List<ElasticsearchResponse> esResponses = new ArrayList<>();
-          for (var hit : response.hits().hits()) {
-            String id = hit.id();
-            JsonObject source = hit.source() != null ? new JsonObject(hit.source().toString()) : new JsonObject();
-            esResponses.add(new ElasticsearchResponse(id, source));
-          }
-          String scrollId = response.scrollId();
-          promise.complete(new ScrollResult(esResponses, scrollId));
-        } catch (Exception e) {
-          LOGGER.error("Failed to parse scroll search response", e);
-          promise.fail(new DxInternalServerErrorException("Failed to parse scroll search result", e));
-        }
-      });
-    return promise.future();
-  }
-
-  // --- SCROLL API USING LOW-LEVEL REST CLIENT ---
-  public Future<ScrollResult> scrollSearchRest(String index, QueryModel queryModel, String scrollTimeout, String options) {
+  public Future<ScrollResult> scrollSearch(
+      String index, QueryModel queryModel, String scrollTimeout, String options) {
     Promise<ScrollResult> promise = Promise.promise();
     try {
       RestClient restClient = client.getLowLevelClient();
+
       JsonObject body = new JsonObject();
-      if (queryModel.toElasticsearchQuery() != null) {
-        body.put("query", serializeQuery(queryModel.toElasticsearchQuery()));
+
+      // Use the QueryModel's built-in method to get the query
+      if (queryModel != null && queryModel.getQueries() != null) {
+        Query esQuery = queryModel.getQueries().toElasticsearchQuery();
+        if (esQuery != null) {
+          body.put("query", serializeQuery(esQuery));
+        } else {
+          body.put("query", new JsonObject().put("match_all", new JsonObject()));
+        }
+      } else {
+        body.put("query", new JsonObject().put("match_all", new JsonObject()));
       }
-      if (queryModel.toSortOptions() != null) {
-        body.put("sort", serializeSortOptions(queryModel.toSortOptions()));
+
+      // FIX: Override the size for scroll operations to use a reasonable batch size
+      // Scroll operations should use a consistent batch size, not the page size from the request
+      int scrollBatchSize = 10000; // Use a fixed size for scroll batches
+      body.put("size", scrollBatchSize);
+
+      // Add sorting if available in queryModel
+      if (queryModel != null
+          && queryModel.getSortFields() != null
+          && !queryModel.getSortFields().isEmpty()) {
+        JsonArray sortArray = new JsonArray();
+        queryModel
+            .getSortFields()
+            .forEach(
+                (field, order) -> {
+                  JsonObject sortObj = new JsonObject();
+                  JsonObject fieldSort = new JsonObject().put("order", order.toLowerCase());
+                  sortObj.put(field, fieldSort);
+                  sortArray.add(sortObj);
+                });
+        body.put("sort", sortArray);
       }
-      if (queryModel.toSourceConfig() != null) {
-        body.put("_source", queryModel.toSourceConfig().toString());
-      }
-      body.put("size", queryModel.getLimit() != null ? Integer.parseInt(queryModel.getLimit()) : 1000);
+
       Request request = new Request("POST", "/" + index + "/_search?scroll=" + scrollTimeout);
       request.setJsonEntity(body.encode());
+
+      LOGGER.debug(
+          "REST scroll search for index: {} with scroll batch size: {}", index, scrollBatchSize);
+      LOGGER.debug("Query being executed: {}", body.encodePrettily());
+
       Vertx vertx = Vertx.currentContext().owner();
-      vertx.executeBlocking(fut -> {
-        try {
-          Response response = restClient.performRequest(request);
-          String json = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
-          JsonObject resp = new JsonObject(json);
-          String scrollId = resp.getString("_scroll_id");
-          List<ElasticsearchResponse> results = parseHits(resp);
-          fut.complete(new ScrollResult(results, scrollId));
-        } catch (Exception e) {
-          fut.fail(e);
-        }
-      }, res -> {
-        if (res.succeeded()) promise.complete((ScrollResult) res.result());
-        else promise.fail(res.cause());
-      });
+      vertx.executeBlocking(
+          fut -> {
+            try {
+              Response response = restClient.performRequest(request);
+              String json =
+                  new String(
+                      response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+              JsonObject resp = new JsonObject(json);
+
+              String scrollId = resp.getString("_scroll_id");
+              List<ElasticsearchResponse> results = parseHits(resp);
+              fut.complete(new ScrollResult(results, scrollId));
+            } catch (Exception e) {
+              fut.fail(e);
+            }
+          },
+          res -> {
+            if (res.succeeded()) {
+              ScrollResult result = (ScrollResult) res.result();
+              LOGGER.debug("REST scroll search returned {} documents", result.getResults().size());
+              promise.complete(result);
+            } else {
+              LOGGER.error("REST scroll search failed", res.cause());
+              promise.fail(res.cause());
+            }
+          });
+    } catch (Exception e) {
+      LOGGER.error("Error in REST scroll search", e);
+      promise.fail(e);
+    }
+    return promise.future();
+  }
+
+  @Override
+  public Future<ScrollResult> continueScroll(String scrollId, String scrollTimeout) {
+    Promise<ScrollResult> promise = Promise.promise();
+    try {
+      RestClient restClient = client.getLowLevelClient();
+
+      // Simple scroll continuation query
+      String scrollQuery =
+          "{\"scroll\":\"" + scrollTimeout + "\",\"scroll_id\":\"" + scrollId + "\"}";
+
+      Request request = new Request("POST", "/_search/scroll");
+      request.setJsonEntity(scrollQuery);
+
+      LOGGER.debug("Continuing scroll with ID: {}", scrollId);
+
+      Vertx vertx = Vertx.currentContext().owner();
+      vertx.executeBlocking(
+          fut -> {
+            try {
+              Response response = restClient.performRequest(request);
+              String json =
+                  new String(
+                      response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
+              JsonObject resp = new JsonObject(json);
+
+              String newScrollId = resp.getString("_scroll_id");
+              List<ElasticsearchResponse> results = parseHits(resp);
+              fut.complete(new ScrollResult(results, newScrollId));
+            } catch (Exception e) {
+              fut.fail(e);
+            }
+          },
+          res -> {
+            if (res.succeeded()) {
+              promise.complete((ScrollResult) res.result());
+            } else {
+              promise.fail(res.cause());
+            }
+          });
     } catch (Exception e) {
       promise.fail(e);
     }
     return promise.future();
   }
 
-  // Helper to serialize Query to JsonObject
   private JsonObject serializeQuery(Query query) {
+    if (query == null) {
+      return new JsonObject().put("match_all", new JsonObject());
+    }
+
     JsonpMapper mapper = asyncClient._jsonpMapper();
     StringWriter writer = new StringWriter();
-    try (jakarta.json.stream.JsonGenerator generator = mapper.jsonProvider().createGenerator(writer)) {
+    try (jakarta.json.stream.JsonGenerator generator =
+        mapper.jsonProvider().createGenerator(writer)) {
       mapper.serialize(query, generator);
+    } catch (Exception e) {
+      LOGGER.warn("Failed to serialize query, using match_all", e);
+      return new JsonObject().put("match_all", new JsonObject());
     }
-    return new JsonObject(writer.toString());
+
+    String queryJson = writer.toString();
+    if (queryJson == null || queryJson.trim().isEmpty() || queryJson.equals("{}")) {
+      return new JsonObject().put("match_all", new JsonObject());
+    }
+
+    return new JsonObject(queryJson);
   }
 
   // Helper to serialize SortOptions to JsonArray
@@ -818,7 +888,8 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
     JsonpMapper mapper = asyncClient._jsonpMapper();
     for (SortOptions so : sortOptions) {
       StringWriter writer = new StringWriter();
-      try (jakarta.json.stream.JsonGenerator generator = mapper.jsonProvider().createGenerator(writer)) {
+      try (jakarta.json.stream.JsonGenerator generator =
+          mapper.jsonProvider().createGenerator(writer)) {
         mapper.serialize(so, generator);
       }
       arr.add(new JsonObject(writer.toString()));
@@ -826,36 +897,8 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
     return arr;
   }
 
-  public Future<ScrollResult> continueScrollRest(String scrollId, String scrollTimeout) {
-    Promise<ScrollResult> promise = Promise.promise();
-    try {
-      RestClient restClient = client.getLowLevelClient();
-      JsonObject body = new JsonObject().put("scroll", scrollTimeout).put("scroll_id", scrollId);
-      Request request = new Request("POST", "/_search/scroll");
-      request.setJsonEntity(body.encode());
-      Vertx vertx = Vertx.currentContext().owner();
-      vertx.executeBlocking(fut -> {
-        try {
-          Response response = restClient.performRequest(request);
-          String json = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
-          JsonObject resp = new JsonObject(json);
-          String newScrollId = resp.getString("_scroll_id");
-          List<ElasticsearchResponse> results = parseHits(resp);
-          fut.complete(new ScrollResult(results, newScrollId));
-        } catch (Exception e) {
-          fut.fail(e);
-        }
-      }, res -> {
-        if (res.succeeded()) promise.complete((ScrollResult) res.result());
-        else promise.fail(res.cause());
-      });
-    } catch (Exception e) {
-      promise.fail(e);
-    }
-    return promise.future();
-  }
-
-  public Future<Void> clearScrollRest(String scrollId) {
+  @Override
+  public Future<Void> clearScroll(String scrollId) {
     Promise<Void> promise = Promise.promise();
     try {
       RestClient restClient = client.getLowLevelClient();
@@ -863,17 +906,19 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
       Request request = new Request("DELETE", "/_search/scroll");
       request.setJsonEntity(body.encode());
       Vertx vertx = Vertx.currentContext().owner();
-      vertx.executeBlocking(fut -> {
-        try {
-          restClient.performRequest(request);
-          fut.complete();
-        } catch (Exception e) {
-          fut.fail(e);
-        }
-      }, res -> {
-        if (res.succeeded()) promise.complete();
-        else promise.fail(res.cause());
-      });
+      vertx.executeBlocking(
+          fut -> {
+            try {
+              restClient.performRequest(request);
+              fut.complete();
+            } catch (Exception e) {
+              fut.fail(e);
+            }
+          },
+          res -> {
+            if (res.succeeded()) promise.complete();
+            else promise.fail(res.cause());
+          });
     } catch (Exception e) {
       promise.fail(e);
     }
@@ -882,27 +927,141 @@ public class ElasticsearchServiceImpl implements ElasticsearchService, Elasticse
 
   private List<ElasticsearchResponse> parseHits(JsonObject resp) {
     List<ElasticsearchResponse> results = new ArrayList<>();
-    if (resp.containsKey("hits")) {
-      JsonObject hitsObj = resp.getJsonObject("hits");
-      if (hitsObj.containsKey("hits")) {
-        for (Object hitObj : hitsObj.getJsonArray("hits")) {
-          JsonObject hit = (JsonObject) hitObj;
-          String id = hit.getString("_id");
-          JsonObject source = hit.getJsonObject("_source");
-          results.add(new ElasticsearchResponse(id, source));
+    try {
+      if (resp.containsKey("hits")) {
+        JsonObject hitsObj = resp.getJsonObject("hits");
+        if (hitsObj != null && hitsObj.containsKey("hits")) {
+          JsonArray hitsArray = hitsObj.getJsonArray("hits");
+          if (hitsArray != null) {
+            for (Object hitObj : hitsArray) {
+              if (hitObj instanceof JsonObject) {
+                JsonObject hit = (JsonObject) hitObj;
+                String id = hit.getString("_id", "");
+                JsonObject source = hit.getJsonObject("_source");
+                if (source == null) {
+                  source = new JsonObject();
+                }
+                results.add(new ElasticsearchResponse(id, source));
+              }
+            }
+          }
         }
       }
+    } catch (Exception e) {
+      LOGGER.error("Error parsing hits from Elasticsearch response", e);
     }
     return results;
   }
 
   @Override
-  public Future<Void> clearScroll(String scrollId) {
-    return clearScrollRest(scrollId);
+  public Future<List<ElasticsearchResponse>> asyncScroll(String index, QueryModel queryModel) {
+    Promise<List<ElasticsearchResponse>> promise = Promise.promise();
+
+    try {
+      // Build initial search request with scroll
+      SearchRequest.Builder searchBuilder =
+          new SearchRequest.Builder()
+              .index(index)
+              .query(queryModel.toElasticsearchQuery())
+              .size(10000)
+              .scroll(scr -> scr.time("5m"));
+
+      if (queryModel.toSourceConfig() != null) {
+        searchBuilder.source(queryModel.toSourceConfig());
+      }
+
+      if (queryModel.toSortOptions() != null) {
+        searchBuilder.sort(queryModel.toSortOptions());
+      }
+
+      SearchRequest searchRequest = searchBuilder.build();
+
+      LOGGER.debug("Starting async scroll for index: {} with batch size: {}", index, 10000);
+
+      List<ElasticsearchResponse> allResults = new ArrayList<>();
+      AtomicReference<String> scrollIdRef = new AtomicReference<>();
+
+      asyncClient
+          .search(searchRequest, ObjectNode.class)
+          .whenComplete(
+              (initialResponse, initialError) -> {
+                if (initialError != null) {
+                  promise.fail(new RuntimeException("Initial search failed", initialError));
+                  return;
+                }
+
+                String scrollId = initialResponse.scrollId();
+                scrollIdRef.set(scrollId);
+                processHits(initialResponse.hits().hits(), allResults);
+                LOGGER.debug(
+                    "Retrieved {} docs in initial batch. Total so far: {}",
+                    initialResponse.hits().hits().size(),
+                    allResults.size());
+
+                // Continue scrolling recursively
+                continueScrolling(scrollId, allResults, promise);
+              });
+
+    } catch (Exception e) {
+      promise.fail(new RuntimeException("Failed to start scroll search", e));
+    }
+
+    return promise.future();
   }
 
-  @Override
-  public Future<ScrollResult> continueScroll(String scrollId, String scrollTimeout) {
-    return continueScrollRest(scrollId, scrollTimeout);
+  private void continueScrolling(
+      String scrollId,
+      List<ElasticsearchResponse> allResults,
+      Promise<List<ElasticsearchResponse>> promise) {
+    if (scrollId == null) {
+      LOGGER.debug("Scroll completed. Total documents retrieved: {}", allResults.size());
+      promise.complete(allResults);
+      return;
+    }
+
+    ScrollRequest scrollRequest =
+        ScrollRequest.of(s -> s.scrollId(scrollId).scroll(scr -> scr.time("5m")));
+
+    asyncClient
+        .scroll(scrollRequest, ObjectNode.class)
+        .whenComplete(
+            (scrollResponse, error) -> {
+              if (error != null) {
+                clearScroll(scrollId)
+                    .onComplete(
+                        clearResult -> {
+                          promise.fail(new RuntimeException("Scroll failed", error));
+                        });
+                return;
+              }
+
+              List<Hit<ObjectNode>> hits = scrollResponse.hits().hits();
+              String newScrollId = scrollResponse.scrollId();
+              if (hits.isEmpty()) {
+                clearScroll(scrollId)
+                    .onComplete(
+                        clearResult -> {
+                          LOGGER.debug(
+                              "Scroll completed. Total documents retrieved: {}", allResults.size());
+                          promise.complete(allResults);
+                        });
+                return;
+              }
+              processHits(hits, allResults);
+              LOGGER.debug(
+                  "Retrieved {} docs in scroll batch. Total so far: {}",
+                  hits.size(),
+                  allResults.size());
+              continueScrolling(newScrollId, allResults, promise);
+            });
+  }
+
+  private void processHits(List<Hit<ObjectNode>> hits, List<ElasticsearchResponse> results) {
+    for (Hit<ObjectNode> hit : hits) {
+      String id = hit.id();
+      JsonObject source =
+          hit.source() != null ? new JsonObject(hit.source().toString()) : new JsonObject();
+      results.add(new ElasticsearchResponse(id, source));
+    }
   }
 }

@@ -73,7 +73,6 @@ public class MultiIssuerJwtAuthHandler implements AuthenticationHandler {
         .resolve(issuer)
         .map(
             jwtAuth -> {
-              System.out.println("Cached JWTAuth for issuer: " + issuer);
               authProviders.put(issuer, jwtAuth);
               return jwtAuth;
             });

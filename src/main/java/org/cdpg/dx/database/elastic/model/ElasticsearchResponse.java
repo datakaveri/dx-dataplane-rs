@@ -2,7 +2,6 @@ package org.cdpg.dx.database.elastic.model;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-
 import java.util.List;
 
 @DataObject(generateConverter = true)
@@ -58,13 +57,13 @@ public class ElasticsearchResponse {
     return docId;
   }
 
+  public void setDocId(String docId) {
+    this.docId = docId;
+  }
+
   // Alias for compatibility with code expecting getId()
   public String getId() {
     return getDocId();
-  }
-
-  public void setDocId(String docId) {
-    this.docId = docId;
   }
 
   public JsonObject getSource() {

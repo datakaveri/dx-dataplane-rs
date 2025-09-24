@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 import java.util.List;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.database.elastic.model.ScrollResult;
 
 @VertxGen
 @ProxyGen
@@ -33,4 +34,13 @@ public interface ElasticsearchService {
   Future<Void> deleteByQuery(String index, QueryModel queryModel);
 
   Future<Void> createIndex(String index, io.vertx.core.json.JsonObject mappings);
+
+  Future<List<ElasticsearchResponse>> asyncScroll(String index, QueryModel queryModel);
+
+  Future<ScrollResult> scrollSearch(
+      String index, QueryModel queryModel, String scrollTimeout, String options);
+
+  Future<ScrollResult> continueScroll(String scrollId, String scrollTimeout);
+
+  Future<Void> clearScroll(String scrollId);
 }

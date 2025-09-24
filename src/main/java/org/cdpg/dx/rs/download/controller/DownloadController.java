@@ -39,12 +39,12 @@ public class DownloadController implements ApiController {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        /*.handler(checkItemAccessHandler)*/
+        .handler(checkItemAccessHandler)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(getIdFromPathHandler)
-        /*.handler(checkItemAccessHandler)*/
+        .handler(checkItemAccessHandler)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
