@@ -56,6 +56,10 @@ public class ElasticClient {
     return client;
   }
 
+  public RestClient getLowLevelClient() {
+    return rsClient;
+  }
+
   public void close() throws IOException {
     rsClient.close();
   }
