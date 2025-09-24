@@ -41,8 +41,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 
-public class ElasticsearchServiceImpl
-    implements ElasticsearchService /*, ElasticsearchScrollService*/ {
+public class ElasticsearchServiceImpl implements ElasticsearchService {
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchServiceImpl.class);
 
   static ElasticClient client;
