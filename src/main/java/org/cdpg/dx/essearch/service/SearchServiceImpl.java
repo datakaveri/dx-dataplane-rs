@@ -5,7 +5,6 @@ import static org.cdpg.dx.essearch.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -109,35 +108,6 @@ public class SearchServiceImpl implements SearchService {
               promise.fail(failure);
             });
     return promise.future();
-  }
-
-  @Override
-  public Future<List<ElasticsearchResponse>> search(SearchQuery searchQuery, String index) {
-    try {
-      String searchType = searchQuery.getSearchType();
-      LOGGER.info("search type {}", searchType);
-      QueryModel queryModel = queryDecoder.postSearchQueryModel(searchQuery);
-      if (searchQuery.getSort() != null && !searchQuery.getSort().isEmpty()) {
-        Map<String, String> sortFields =
-            searchQuery.getSort().stream()
-                .collect(
-                    Collectors.toMap(OrderBy::getColumn, sort -> sort.getDirection().toString()));
-        queryModel.setSortFields(sortFields);
-      }
-      return elasticsearchService
-          .search(index, queryModel, SOURCE_ONLY)
-          .onSuccess(
-              result -> {
-                LOGGER.debug("Search completed successfully with {} result", result.size());
-              })
-          .onFailure(
-              failure -> {
-                LOGGER.error("Error during search: {}", failure.getMessage(), failure);
-              });
-    } catch (Exception e) {
-      LOGGER.error("Error during postSearch: {}", e.getMessage(), e);
-      return Future.failedFuture(new DxBadRequestException("Failed to process search request"));
-    }
   }
 
   @Override

@@ -394,7 +394,8 @@ public class QueryModel {
 
     if (this.queryType == null) {
       if (this.queries != null) {
-        LOGGER.warn("Top-level QueryModel queryType is null, delegating to queries.toElasticsearchQuery()");
+        LOGGER.warn(
+            "Top-level QueryModel queryType is null, delegating to queries.toElasticsearchQuery()");
         return this.queries.toElasticsearchQuery();
       }
       LOGGER.error("Query type is null for QueryModel: {}", this.toJson());
@@ -569,10 +570,18 @@ public class QueryModel {
           JsonArray coordinates = (JsonArray) queryParameters.get(COORDINATES);
           String distance = queryParameters.get("distance").toString();
           return QueryBuilders.geoDistance(
-              g -> g.field((String) queryParameters.get(GEO_PROPERTY))
-                  .location(GeoLocation.of(gl -> gl.latlon(LatLonGeoLocation.of(latLon -> 
-                      latLon.lat(coordinates.getDouble(1)).lon(coordinates.getDouble(0))))))
-                  .distance(distance));
+              g ->
+                  g.field((String) queryParameters.get(GEO_PROPERTY))
+                      .location(
+                          GeoLocation.of(
+                              gl ->
+                                  gl.latlon(
+                                      LatLonGeoLocation.of(
+                                          latLon ->
+                                              latLon
+                                                  .lat(coordinates.getDouble(1))
+                                                  .lon(coordinates.getDouble(0))))))
+                      .distance(distance));
         case TEXT:
           return QueryStringQuery.of(qs -> qs.query(queryParameters.get(Q_VALUE).toString()))
               ._toQuery();
@@ -729,12 +738,7 @@ public class QueryModel {
     if (sortFields == null || sortFields.isEmpty()) {
       return null; // Returns null if there are no sorting rules
     }
-    // Ensure _id is always the last sort field for deep pagination
-    LinkedHashMap<String, String> effectiveSortFields = new LinkedHashMap<>(sortFields);
-    if (!effectiveSortFields.containsKey("_id")) {
-      effectiveSortFields.put("_id", "asc"); // or "desc" as needed
-    }
-    return effectiveSortFields.entrySet().stream()
+    return sortFields.entrySet().stream()
         .map(
             entry ->
                 SortOptions.of(
