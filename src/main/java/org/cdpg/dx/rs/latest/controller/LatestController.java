@@ -18,22 +18,23 @@ import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
-import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandler;
 
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final CheckItemAccessHandler checkItemAccessHandler;
+  private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
   private final URNGenerator urnGenerator;
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
       LatestService latestService, String controlPlaneDomain, URNGenerator urnGenerator) {
     this.latestService = latestService;
-    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandler =
+        new ItemAccessApplicableFilterHandler(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
   }
 
@@ -42,12 +43,12 @@ public class LatestController implements ApiController {
     builder
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(getIdFromPathHandler)
-       /* .handler(checkItemAccessHandler)*/
+        .handler(itemAccessApplicableFilterHandler)
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        /*.handler(checkItemAccessHandler)*/
+        .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");
