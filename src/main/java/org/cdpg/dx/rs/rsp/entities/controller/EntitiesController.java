@@ -23,11 +23,10 @@ import org.cdpg.dx.rs.query.NGSILDQueryParams;
 import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
-import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.rs.validation.ParamsValidator;
-import org.cdpg.dx.validations.filter.ApplicableFilter;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandler;
 
 public class EntitiesController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(EntitiesController.class);
@@ -35,10 +34,9 @@ public class EntitiesController implements ApiController {
   private final DataBrokerService dataBrokerService;
   private final ParamsValidator paramsValidator;
   private final URNGenerator urnGenerator;
-  private final ApplicableFilter applicableFilterHandler;
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
-  private final CheckItemAccessHandler checkItemAccessHandler;
+  private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
   private final AuditingHandler auditingHandler;
 
   public EntitiesController(
@@ -50,8 +48,8 @@ public class EntitiesController implements ApiController {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
-    this.applicableFilterHandler = new ApplicableFilter(controlPlaneDomain);
-    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandler =
+        new ItemAccessApplicableFilterHandler(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
   }
 
@@ -61,28 +59,24 @@ public class EntitiesController implements ApiController {
     builder
         .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
-        .handler(checkItemAccessHandler)
-        .handler(applicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
-        .handler(checkItemAccessHandler)
-        .handler(applicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
-        .handler(checkItemAccessHandler)
-        .handler(applicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
-        .handler(checkItemAccessHandler)
-        .handler(applicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handlePost(ctx, true));
   }
 

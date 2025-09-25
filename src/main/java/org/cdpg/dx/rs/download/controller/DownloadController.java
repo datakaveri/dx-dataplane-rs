@@ -18,20 +18,22 @@ import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
-import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandler;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final CheckItemAccessHandler checkItemAccessHandler;
+  private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
   private final URNGenerator urnGenerator;
 
-  public DownloadController(DownloadService downloadService, String controlPlaneDomain, URNGenerator urnGenerator) {
+  public DownloadController(
+      DownloadService downloadService, String controlPlaneDomain, URNGenerator urnGenerator) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
-    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandler =
+        new ItemAccessApplicableFilterHandler(controlPlaneDomain);
   }
 
   @Override
@@ -39,12 +41,12 @@ public class DownloadController implements ApiController {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
