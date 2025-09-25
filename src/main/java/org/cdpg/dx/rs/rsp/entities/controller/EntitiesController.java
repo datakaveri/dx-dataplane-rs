@@ -34,7 +34,6 @@ public class EntitiesController implements ApiController {
   private final DataBrokerService dataBrokerService;
   private final ParamsValidator paramsValidator;
   private final URNGenerator urnGenerator;
-  /*private final ApplicableFilter applicableFilterHandler;*/
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
@@ -49,7 +48,6 @@ public class EntitiesController implements ApiController {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
-    /*this.applicableFilterHandler = new ApplicableFilter(controlPlaneDomain);*/
     this.itemAccessApplicableFilterHandler =
         new ItemAccessApplicableFilterHandler(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
@@ -62,13 +60,11 @@ public class EntitiesController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandler)
-        /*.handler(applicableFilterHandler)*/
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandler)
-        /*.handler(applicableFilterHandler)*/
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -76,13 +72,11 @@ public class EntitiesController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandler)
-        /*.handler(applicableFilterHandler)*/
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandler)
-        /*.handler(applicableFilterHandler)*/
         .handler(ctx -> handlePost(ctx, true));
   }
 
