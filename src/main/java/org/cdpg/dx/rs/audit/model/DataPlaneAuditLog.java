@@ -1,10 +1,10 @@
-package org.cdpg.dx.rs.auditing;
+package org.cdpg.dx.rs.audit.model;
 
 import io.vertx.core.json.JsonObject;
 import java.util.UUID;
 import org.cdpg.dx.auditing.model.AuditLog;
 
-public class RsAuditLog implements AuditLog {
+public class DataPlaneAuditLog implements AuditLog {
   private final UUID id;
   private final String assetName;
   private final UUID assetId;
@@ -28,7 +28,7 @@ public class RsAuditLog implements AuditLog {
   // provider]. Can be null sometimes
 
   // change this to AuditingHandler and it can be a helper
-  public RsAuditLog(
+  public DataPlaneAuditLog(
       UUID id,
       String assetName,
       UUID assetId,

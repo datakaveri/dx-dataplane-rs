@@ -1,5 +1,6 @@
 package org.cdpg.dx.rs.download.factory;
 
+import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.rs.download.controller.DownloadController;
@@ -11,9 +12,11 @@ public class DownloadControllerFactory {
       String timeLimit,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      ElasticsearchService elasticsearchService) {
+      ElasticsearchService elasticsearchService,
+      AuditingHandler auditingHandler) {
     DownloadService downloadService = new DownloadServiceImpl(timeLimit, elasticsearchService);
 
-    return new DownloadController(downloadService, controlPlaneDomain, urnGenerator);
+    return new DownloadController(
+        downloadService, controlPlaneDomain, urnGenerator, auditingHandler);
   }
 }

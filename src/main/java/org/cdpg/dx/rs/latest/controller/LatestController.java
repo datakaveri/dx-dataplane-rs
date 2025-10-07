@@ -3,6 +3,8 @@ package org.cdpg.dx.rs.latest.controller;
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.rs.audit.util.Constants.NGSILD;
+import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
@@ -11,11 +13,15 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
+import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
@@ -28,25 +34,32 @@ public class LatestController implements ApiController {
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
   private final URNGenerator urnGenerator;
+  private final AuditingHandler auditingHandler;
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
-      LatestService latestService, String controlPlaneDomain, URNGenerator urnGenerator) {
+      LatestService latestService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      AuditingHandler auditingHandler) {
     this.latestService = latestService;
     this.itemAccessApplicableFilterHandler =
         new ItemAccessApplicableFilterHandler(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
+    this.auditingHandler = auditingHandler;
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleGetSearchQuery);
@@ -67,6 +80,17 @@ public class LatestController implements ApiController {
           .postSearch(searchQuery, id)
           .onSuccess(
               searchService -> {
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(routingContext),
+                        id,
+                        RoutingContextHelper.getRequestPath(routingContext),
+                        "POST",
+                        routingContext.user().subject(),
+                        NGSILD,
+                        "consumer",
+                        VIEW);
+                RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 ResponseBuilder.sendSuccess(
                     routingContext,
                     searchService.getElasticsearchResponses(),
@@ -106,7 +130,21 @@ public class LatestController implements ApiController {
         new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
     latestService
         .getSearch(getRequestModel)
-        .onSuccess(result -> sendResponse(ctx, result))
+        .onSuccess(
+            result -> {
+              AuditLog auditLog =
+                  DataplaneAuditHelper.createAuditingLogs(
+                      RoutingContextHelper.getItemMetaData(ctx),
+                      id,
+                      RoutingContextHelper.getRequestPath(ctx),
+                      "GET",
+                      ctx.user().subject(),
+                      NGSILD,
+                      "consumer",
+                      VIEW);
+              RoutingContextHelper.setAuditingLog(ctx, auditLog);
+              sendResponse(ctx, result);
+            })
         .onFailure(
             err -> {
               LOGGER.error("Error processing latest data request for ID: {}", id, err);

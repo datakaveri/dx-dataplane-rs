@@ -20,6 +20,10 @@ public class EntityControllerfactory {
     ParamsValidator validator = new ParamsValidator(maxDaysSync, maxDaysAsync);
 
     return new EntitiesController(
-        dataBrokerService, validator, urnGenerator, config.getString("controlPlaneDomain"), auditingHandler);
+        dataBrokerService,
+        validator,
+        urnGenerator,
+        config.getString("controlPlaneDomain"),
+        auditingHandler);
   }
 }
