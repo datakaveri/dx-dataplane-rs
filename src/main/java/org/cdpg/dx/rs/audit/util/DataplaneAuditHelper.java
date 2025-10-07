@@ -21,14 +21,14 @@ public class DataplaneAuditHelper {
       String method,
       String userId,
       String serverName,
-      String role) {
+      String role, String operation) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
         id,
         itemMetaData.getString("name"),
         UUID.fromString(assetId),
         getItemType(itemMetaData.getJsonArray("type")),
-        VIEW,
+        operation,
         LocalDateTime.now().toString(),
         apiEndpoint,
         method,
