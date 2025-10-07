@@ -2,6 +2,7 @@ package org.cdpg.dx.rs.rsp.entities.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_PUBLIC_KEY;
+import static org.cdpg.dx.rs.audit.util.Constants.GATEWAY;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.MultiMap;
@@ -13,12 +14,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.databroker.service.DataBrokerService;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.query.NGSILDQueryParams;
 import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
@@ -58,11 +61,13 @@ public class EntitiesController implements ApiController {
     // GET endpoints
     builder
         .operation(GET_SPATIAL_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handleGet(ctx, true));
@@ -70,11 +75,13 @@ public class EntitiesController implements ApiController {
     // POST endpoints
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(ctx -> handlePost(ctx, true));
@@ -133,6 +140,16 @@ public class EntitiesController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(ctx),
+                        params.get(ID),
+                        RoutingContextHelper.getRequestPath(ctx),
+                        "GET",
+                        ctx.user().subject(),
+                        GATEWAY,
+                        "consumer");
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 // remote service failure
@@ -210,6 +227,16 @@ public class EntitiesController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(ctx),
+                        body.getString(ID),
+                        RoutingContextHelper.getRequestPath(ctx),
+                        "POST",
+                        ctx.user().subject(),
+                        GATEWAY,
+                        "consumer");
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());

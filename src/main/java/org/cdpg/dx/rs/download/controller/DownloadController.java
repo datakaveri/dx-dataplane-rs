@@ -4,6 +4,7 @@ import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_ID_ENTITY_DATA;
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_PUT_SEARCH_DATA;
 import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.rs.audit.util.Constants.NGSILD;
 import static org.cdpg.dx.rs.download.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
@@ -13,9 +14,13 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
+import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
@@ -27,24 +32,31 @@ public class DownloadController implements ApiController {
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
   private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
   private final URNGenerator urnGenerator;
+  private final AuditingHandler auditingHandler;
 
   public DownloadController(
-      DownloadService downloadService, String controlPlaneDomain, URNGenerator urnGenerator) {
+      DownloadService downloadService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      AuditingHandler auditingHandler) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandler =
         new ItemAccessApplicableFilterHandler(controlPlaneDomain);
+    this.auditingHandler = auditingHandler;
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandler)
         .handler(this::handleDownloadIdPostData);
@@ -83,7 +95,20 @@ public class DownloadController implements ApiController {
                           routingContext.fail(err);
                         })
                     .handler(buffer -> response.write(buffer))
-                    .endHandler(v -> response.end());
+                    .endHandler(
+                        v -> {
+                          AuditLog auditLog =
+                              DataplaneAuditHelper.createAuditingLogs(
+                                  RoutingContextHelper.getItemMetaData(routingContext),
+                                  id,
+                                  RoutingContextHelper.getRequestPath(routingContext),
+                                  "POST",
+                                  routingContext.user().subject(),
+                                  NGSILD,
+                                  "consumer");
+                          RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+                          response.end();
+                        });
               })
           .onFailure(
               err -> {
@@ -140,7 +165,20 @@ public class DownloadController implements ApiController {
                         routingContext.fail(err);
                       })
                   .handler(buffer -> response.write(buffer))
-                  .endHandler(v -> response.end());
+                  .endHandler(
+                      v -> {
+                        AuditLog auditLog =
+                            DataplaneAuditHelper.createAuditingLogs(
+                                RoutingContextHelper.getItemMetaData(routingContext),
+                                id,
+                                RoutingContextHelper.getRequestPath(routingContext),
+                                "GET",
+                                routingContext.user().subject(),
+                                NGSILD,
+                                "consumer");
+                        RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+                        response.end();
+                      });
             })
         .onFailure(
             err -> {

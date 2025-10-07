@@ -65,7 +65,7 @@ public class MultiIssuerJwtAuthHandler implements AuthenticationHandler {
   }
 
   private Future<JWTAuth> getOrCreateAuth(String issuer) {
-      LOGGER.debug("Looking up JWTAuth for issuer: " + issuer);
+    LOGGER.debug("Looking up JWTAuth for issuer: " + issuer);
     if (authProviders.containsKey(issuer)) {
       return Future.succeededFuture(authProviders.get(issuer));
     }

@@ -28,6 +28,7 @@ public final class RoutingContextHelper {
   private static final String RESPONSE_SIZE = "responseSize";
   private static final String ID = "id";
   private static final String APPLICABLE_FILTER = "applicableFilter";
+  private static final String ITEM_META_DATA = "itemMetaData";
 
   private RoutingContextHelper() {
     // Prevent instantiation
@@ -153,5 +154,13 @@ public final class RoutingContextHelper {
         "",
         "",
         null);
+  }
+
+  public static void setItemMetaData(RoutingContext context, JsonObject result) {
+    context.put(ITEM_META_DATA, result);
+  }
+
+  public static JsonObject getItemMetaData(RoutingContext event) {
+    return event.get(ITEM_META_DATA);
   }
 }

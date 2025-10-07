@@ -10,6 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
@@ -32,36 +33,52 @@ public class ItemAccessApplicableFilterHandler implements Handler<RoutingContext
   @Override
   public void handle(RoutingContext context) {
     LOGGER.info("Starting ItemAccessApplicableFilterHandler");
-    String itemId;
-    String bearerToken;
-    try {
-      itemId = RoutingContextHelper.getId(context);
-      bearerToken = RoutingContextHelper.getToken(context).orElse(null);
-    } catch (Exception e) {
-      LOGGER.error("Error extracting request parameters", e);
-      context.fail(e);
+
+    if (context.user().containsKey("cons")) {
+      LOGGER.debug("Skipping for now to handle access token");
+      context.next();
       return;
+    } else {
+      LOGGER.debug("processing with control plane call");
+      String itemId;
+      String bearerToken;
+      try {
+        itemId = RoutingContextHelper.getId(context);
+        bearerToken = RoutingContextHelper.getToken(context).orElse(null);
+      } catch (Exception e) {
+        LOGGER.error("Error extracting request parameters", e);
+        context.fail(e);
+        return;
+      }
+      getApplicableFilter(itemId, bearerToken)
+          .onSuccess(
+              result -> {
+                JsonArray v =
+                    Optional.ofNullable(result.getJsonArray("resourceServer"))
+                        .filter(rs -> !rs.isEmpty())
+                        .map(rs -> rs.getJsonObject(0).getJsonArray("accessTypes"))
+                        .filter(a -> !a.isEmpty())
+                        .orElse(null);
+                if (v == null || v.isEmpty()) {
+                  context.fail(
+                      new DxBadRequestException("No applicable filter found for the item"));
+                  return;
+                }
+                RoutingContextHelper.setApplicableFilter(context, v);
+                RoutingContextHelper.setItemMetaData(context, result);
+                context.next();
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("failed {}", err.getMessage());
+                context.fail(err);
+              });
     }
-    getApplicableFilter(itemId, bearerToken)
-        .onSuccess(
-            v -> {
-              if (v == null || v.isEmpty()) {
-                context.fail(new DxBadRequestException("No applicable filter found for the item"));
-                return;
-              }
-              RoutingContextHelper.setApplicableFilter(context, v);
-              context.next();
-            })
-        .onFailure(
-            err -> {
-              LOGGER.error("failed {}", err.getMessage());
-              context.fail(err);
-            });
   }
 
-  private Future<JsonArray> getApplicableFilter(String itemId, String bearerToken) {
+  private Future<JsonObject> getApplicableFilter(String itemId, String bearerToken) {
     LOGGER.debug("Fetching item metadata for itemId: {}", itemId);
-    Promise<JsonArray> promise = Promise.promise();
+    Promise<JsonObject> promise = Promise.promise();
     HttpRequest<?> getRequest = webClient.getAbs(checkItemAndFilterUrl);
 
     getRequest
@@ -82,12 +99,10 @@ public class ItemAccessApplicableFilterHandler implements Handler<RoutingContext
                             .getJsonArray("resourceServer")
                             .getJsonObject(0)
                             .getJsonArray("accessTypes"));
-                    JsonArray result =
-                        resultObj
-                            .getJsonArray("resourceServer")
-                            .getJsonObject(0)
-                            .getJsonArray("accessTypes");
-                    promise.complete(result);
+                    promise.complete(resultObj);
+                  } else {
+                    LOGGER.error("No response from control plane");
+                    promise.fail(new DxBadRequestException("No response from control plane"));
                   }
                 } catch (Exception e) {
                   LOGGER.error("Error in from control plane {}", e.getMessage());

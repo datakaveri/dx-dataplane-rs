@@ -1,14 +1,18 @@
 package org.cdpg.dx.apiserver;
 
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.*;
+import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_EXCHANGE;
+import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_ROUTING_KEY;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.admin.controller.ElasticOnboardingController;
@@ -28,6 +32,8 @@ public class ControllerFactory {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+    DataBrokerService dataBrokerService =
+        DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
 
     SearchService searchService = new SearchServiceImpl(elasticsearchService);
 
@@ -40,11 +46,17 @@ public class ControllerFactory {
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
 
+    AuditingHandler auditingHandler =
+        new AuditingHandler(
+            dataBrokerService,
+            config.getString("auditingExchange", DEFAULT_AUDITING_EXCHANGE),
+            config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
-        LatestControllerFactory.create(searchService, timeLimit, controlPlaneDomain, urnGenerator);
+        LatestControllerFactory.create(
+            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler);
     ApiController downloadController =
         DownloadControllerFactory.create(
-            timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService);
+            timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController);
