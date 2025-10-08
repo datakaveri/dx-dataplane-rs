@@ -1,10 +1,10 @@
 package org.cdpg.dx.rs.ngsild.queryparams;
 
-
 import static org.cdpg.dx.apiserver.util.Util.toUriFunction;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -14,9 +14,10 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.rs.ngsild.searchmodels.GeoQuery;
 import org.cdpg.dx.rs.ngsild.searchmodels.GeoRelation;
 import org.cdpg.dx.rs.ngsild.searchmodels.TemporalQuery;
-
+import org.cdpg.dx.rs.ngsild.temporal.model.TemporalGetRequest;
 
 /** NGSILDQueryParams Class to parse query parameters from HTTP request. */
 public class NGSILDQueryParams {
@@ -25,7 +26,6 @@ public class NGSILDQueryParams {
   private List<URI> id;
   private List<String> pick;
   private List<String> omit;
-
   private String textQuery;
   private TemporalQuery temporalQuery;
   private String options;
@@ -49,6 +49,90 @@ public class NGSILDQueryParams {
     this.setTemporalQuery(new TemporalQuery());
     this.setGeoRel(new GeoRelation());
     this.create(paramsMap);
+  }
+
+  /**
+   * constructor a NGSILDParams passing json.
+   *
+   * @param json JsonObject of query.
+   */
+  public NGSILDQueryParams(JsonObject json) {
+
+    this.setTemporalQuery(new TemporalQuery());
+    this.setGeoRel(new GeoRelation());
+    /*this.create(json);*/
+  }
+
+  public NGSILDQueryParams(TemporalGetRequest temporalGetRequest) {
+    this.setTemporalQuery(new TemporalQuery());
+    this.setGeoRel(new GeoRelation());
+
+    if (temporalGetRequest == null) {
+      return;
+    }
+
+    if (temporalGetRequest.getId() != null) {
+      this.id = temporalGetRequest.getId();
+    }
+
+    if (temporalGetRequest.getPick() != null) {
+      this.pick = temporalGetRequest.getPick();
+    }
+    if (temporalGetRequest.getOmit() != null) {
+      this.omit = temporalGetRequest.getOmit();
+    }
+    if (temporalGetRequest.getQ() != null) {
+      this.textQuery = temporalGetRequest.getQ();
+    }
+    if (temporalGetRequest.getOptions() != null) {
+      this.options = temporalGetRequest.getOptions();
+    }
+    if (temporalGetRequest.getFrom() != null) {
+      this.pageFrom = Integer.parseInt(temporalGetRequest.getFrom());
+    }
+    if (temporalGetRequest.getSize() != null) {
+      this.pageSize = Integer.parseInt(temporalGetRequest.getSize());
+    }
+
+    TemporalQuery temporalQuery = temporalGetRequest.getTemporalQ();
+    if (temporalQuery != null) {
+        if (temporalQuery.getTimerel() != null) {
+            this.temporalQuery.setTimerel(temporalQuery.getTimerel());
+        }
+        if (temporalQuery.getTimeAt() != null) {
+            this.temporalQuery.setTimeAt(temporalQuery.getTimeAt());
+        }
+        if (temporalQuery.getEndtimeAt() != null) {
+            this.temporalQuery.setEndtimeAt(temporalQuery.getEndtimeAt());
+        }
+        if (temporalQuery.getTimeproperty() != null) {
+            this.temporalQuery.setTimeproperty(temporalQuery.getTimeproperty());
+        }
+    }
+      GeoQuery geoQuery = temporalGetRequest.getGeoQ();
+        if (geoQuery != null) {
+            if (geoQuery.getGeometry() != null) {
+                this.geometry = geoQuery.getGeometry();
+            }
+            if (geoQuery.getCoordinates() != null) {
+                this.coordinates = geoQuery.getCoordinates().toString();
+            }
+            if (geoQuery.getGeoproperty() != null) {
+                this.geoProperty = geoQuery.getGeoproperty();
+            }
+            GeoRelation geoRel = geoQuery.getGeorel();
+            if (geoRel != null) {
+                if (geoRel.getRelation() != null) {
+                    this.geoRel.setRelation(geoRel.getRelation());
+                }
+                if (geoRel.getMaxDistance() != 0) {
+                    this.geoRel.setMaxDistance(geoRel.getMaxDistance());
+                }
+                if (geoRel.getMinDistance() != 0) {
+                    this.geoRel.setMinDistance(geoRel.getMinDistance());
+                }
+            }
+        }
   }
 
   public List<String> getPick() {
@@ -93,16 +177,14 @@ public class NGSILDQueryParams {
           List<URI> uris = Arrays.stream(ids).map(toUriFunction).collect(Collectors.toList());
           this.id.addAll(uris);
           break;
-          case NGSILDQUERY_PICK:
+        case NGSILDQUERY_PICK:
           this.pick = new ArrayList<String>();
-          this.pick.addAll(
-              Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
+          this.pick.addAll(Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
           break;
-          case NGSILDQUERY_OMIT:
-              this.omit = new ArrayList<String>();
-              this.omit.addAll(
-                      Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
-              break;
+        case NGSILDQUERY_OMIT:
+          this.omit = new ArrayList<String>();
+          this.omit.addAll(Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
+          break;
         case NGSILDQUERY_TIMEREL:
           this.temporalQuery.setTimerel(entry.getValue());
           break;
@@ -115,7 +197,7 @@ public class NGSILDQueryParams {
         case NGSILDQUERY_Q:
           this.textQuery = entry.getValue();
           break;
-          case NGSILD_OPTIONS:
+        case NGSILD_OPTIONS:
           this.options = entry.getValue();
           break;
         case NGSILDQUERY_SIZE:
@@ -124,9 +206,9 @@ public class NGSILDQueryParams {
         case NGSILDQUERY_FROM:
           this.pageFrom = Integer.parseInt(entry.getValue());
           break;
-          case NGSILDQUERY_COUNT:
-              this.count = Boolean.parseBoolean(entry.getValue());
-              break;
+        case NGSILDQUERY_COUNT:
+          this.count = Boolean.parseBoolean(entry.getValue());
+          break;
         case NGSILDQUERY_GEOREL:
           String georel = entry.getValue();
           String[] values = georel.split(";");
@@ -189,7 +271,6 @@ public class NGSILDQueryParams {
   public void setTemporalQuery(TemporalQuery temporalQuery) {
     this.temporalQuery = temporalQuery;
   }
-
 
   public String getOptions() {
     return options;

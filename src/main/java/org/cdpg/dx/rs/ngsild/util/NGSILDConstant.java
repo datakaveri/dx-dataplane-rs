@@ -26,4 +26,11 @@ public class NGSILDConstant {
     public static final String NGSILDQUERY_OMIT = "omit";
     public static final String NGSILDQUERY_COUNT = "count";
     public static final String MSG_INVALID_PARAM = "Invalid parameter in request.";
+
+
+
+    //Headers
+    public static final String HEADER_CSV = "csv";
+    public static final String HEADER_JSON = "json";
+    public static final String HEADER_PARQUET = "parquet";
 }
