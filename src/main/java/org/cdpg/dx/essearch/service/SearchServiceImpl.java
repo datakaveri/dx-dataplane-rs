@@ -57,6 +57,9 @@ public class SearchServiceImpl implements SearchService {
                             + count
                             + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
                             + MAX_SEARCH_RESULT_LIMIT));
+              } else if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
               } else {
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
@@ -90,9 +93,14 @@ public class SearchServiceImpl implements SearchService {
         .compose(
             count -> {
               LOGGER.debug("Count result: {}", count);
-              return elasticsearchService
-                  .search(index, queryModel, SOURCE_ONLY)
-                  .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
             })
         .onSuccess(
             result -> {
@@ -139,17 +147,21 @@ public class SearchServiceImpl implements SearchService {
                               + count
                               + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
                               + MAX_SEARCH_RESULT_LIMIT));
+                } else if (count == 0) {
+                  return Future.failedFuture(
+                      new DxBadRequestException("No data found for this index"));
+                } else {
+                  return elasticsearchService
+                      .search(index, queryModel, SOURCE_ONLY)
+                      .map(
+                          searchResults -> {
+                            LOGGER.debug(
+                                "Search completed successfully with {} results",
+                                searchResults.size());
+                            ElasticsearchResponse.setTotalHits(count);
+                            return new SearchResultWithCount(searchResults, count);
+                          });
                 }
-                return elasticsearchService
-                    .search(index, queryModel, SOURCE_ONLY)
-                    .map(
-                        searchResults -> {
-                          LOGGER.debug(
-                              "Search completed successfully with {} results",
-                              searchResults.size());
-                          ElasticsearchResponse.setTotalHits(count);
-                          return new SearchResultWithCount(searchResults, count);
-                        });
               })
           .onFailure(
               failure -> {
