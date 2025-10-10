@@ -25,14 +25,14 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
-import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandler;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
 
@@ -43,8 +43,8 @@ public class LatestController implements ApiController {
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler) {
     this.latestService = latestService;
-    this.itemAccessApplicableFilterHandler =
-        new ItemAccessApplicableFilterHandler(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandlerNgsild =
+        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
   }
@@ -55,13 +55,13 @@ public class LatestController implements ApiController {
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(itemAccessApplicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(itemAccessApplicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");

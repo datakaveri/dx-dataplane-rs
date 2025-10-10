@@ -18,21 +18,21 @@ import org.cdpg.dx.common.exception.DxForbiddenNoAccessException;
 import org.cdpg.dx.common.exception.DxInternalServerErrorException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 
-public class ItemAccessApplicableFilterHandler implements Handler<RoutingContext> {
+public class ItemAccessApplicableFilterHandlerGateway implements Handler<RoutingContext> {
 
   private static final Logger LOGGER =
-      LogManager.getLogger(ItemAccessApplicableFilterHandler.class);
+      LogManager.getLogger(ItemAccessApplicableFilterHandlerGateway.class);
   private final WebClient webClient;
   private final String checkItemAndFilterUrl;
 
-  public ItemAccessApplicableFilterHandler(String controlPlaneDomain) {
+  public ItemAccessApplicableFilterHandlerGateway(String controlPlaneDomain) {
     this.webClient = WebClient.create(Vertx.vertx(), new WebClientOptions().setTrustAll(true));
     this.checkItemAndFilterUrl = controlPlaneDomain + "/iudx/v2/cat/item/access";
   }
 
   @Override
   public void handle(RoutingContext context) {
-    LOGGER.info("Starting ItemAccessApplicableFilterHandler");
+    LOGGER.info("Starting ItemAccessApplicableFilterHandlerGateway");
 
     if (context.user().containsKey("cons")) {
       LOGGER.debug("Skipping for now to handle access token");
@@ -53,18 +53,27 @@ public class ItemAccessApplicableFilterHandler implements Handler<RoutingContext
       getApplicableFilter(itemId, bearerToken)
           .onSuccess(
               result -> {
-                JsonArray v =
-                    Optional.ofNullable(result.getJsonArray("resourceServer"))
+                JsonArray resourceServers = result.getJsonArray("resourceServer");
+                JsonObject ngsiLdServer =
+                    Optional.ofNullable(resourceServers)
                         .filter(rs -> !rs.isEmpty())
-                        .map(rs -> rs.getJsonObject(0).getJsonArray("accessTypes"))
-                        .filter(a -> !a.isEmpty())
-                        .orElse(null);
-                if (v == null || v.isEmpty()) {
-                  context.fail(
-                      new DxBadRequestException("No applicable filter found for the item"));
-                  return;
-                }
-                RoutingContextHelper.setApplicableFilter(context, v);
+                        .orElseThrow(
+                            () -> new DxBadRequestException("No resource server information found"))
+                        .stream()
+                        .map(JsonObject.class::cast)
+                        .filter(rs -> "GATEWAY".equalsIgnoreCase(rs.getString("name")))
+                        .findFirst()
+                        .orElseThrow(
+                            () -> new DxBadRequestException("GATEWAY resource server not found"));
+
+                JsonArray accessTypes =
+                    Optional.ofNullable(ngsiLdServer.getJsonArray("accessTypes"))
+                        .filter(at -> !at.isEmpty())
+                        .orElseThrow(
+                            () ->
+                                new DxBadRequestException(
+                                    "No access types(filters) found for GATEWAY server"));
+                RoutingContextHelper.setApplicableFilter(context, accessTypes);
                 RoutingContextHelper.setItemMetaData(context, result);
                 context.next();
               })
@@ -95,10 +104,7 @@ public class ItemAccessApplicableFilterHandler implements Handler<RoutingContext
                   if (resultObj != null && !resultObj.isEmpty()) {
                     LOGGER.debug(
                         "Item applicable filter list: {}",
-                        resultObj
-                            .getJsonArray("resourceServer")
-                            .getJsonObject(0)
-                            .getJsonArray("accessTypes"));
+                        resultObj.getJsonArray("resourceServer"));
                     promise.complete(resultObj);
                   } else {
                     LOGGER.error("No response from control plane");

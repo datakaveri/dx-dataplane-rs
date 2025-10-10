@@ -25,13 +25,13 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
-import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandler;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final ItemAccessApplicableFilterHandler itemAccessApplicableFilterHandler;
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
 
@@ -42,8 +42,8 @@ public class DownloadController implements ApiController {
       AuditingHandler auditingHandler) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
-    this.itemAccessApplicableFilterHandler =
-        new ItemAccessApplicableFilterHandler(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandlerNgsild =
+        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
   }
 
@@ -53,13 +53,13 @@ public class DownloadController implements ApiController {
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(itemAccessApplicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(itemAccessApplicableFilterHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
