@@ -27,10 +27,11 @@ import org.cdpg.dx.rs.query.NGSILDQueryParams;
 import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
+import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.rs.validation.ParamsValidator;
+import org.cdpg.dx.validations.filter.ApplicableFilterGateway;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
-import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
 public class EntitiesController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(EntitiesController.class);
@@ -40,8 +41,9 @@ public class EntitiesController implements ApiController {
   private final URNGenerator urnGenerator;
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
-  private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
+  private final CheckItemAccessHandler checkItemAccessHandler;
   private final AuditingHandler auditingHandler;
+  private final ApplicableFilterGateway applicableFilterGateway;
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
@@ -52,8 +54,8 @@ public class EntitiesController implements ApiController {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
-    this.itemAccessApplicableFilterHandlerGateway =
-        new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
+    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.applicableFilterGateway = new ApplicableFilterGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
   }
 
@@ -64,13 +66,15 @@ public class EntitiesController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterGateway)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterGateway)
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -78,13 +82,15 @@ public class EntitiesController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterGateway)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(checkItemAccessHandler)
+        .handler(applicableFilterGateway)
         .handler(ctx -> handlePost(ctx, true));
   }
 

@@ -24,14 +24,14 @@ import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
+import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
-import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
+  private final CheckItemAccessHandler itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
 
@@ -42,8 +42,7 @@ public class DownloadController implements ApiController {
       AuditingHandler auditingHandler) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
-    this.itemAccessApplicableFilterHandlerNgsild =
-        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandlerNgsild = new CheckItemAccessHandler(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
   }
 

@@ -24,15 +24,15 @@ import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
+import org.cdpg.dx.rs.util.CheckItemAccessHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
-import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
+  private final CheckItemAccessHandler itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
 
@@ -43,8 +43,7 @@ public class LatestController implements ApiController {
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler) {
     this.latestService = latestService;
-    this.itemAccessApplicableFilterHandlerNgsild =
-        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.itemAccessApplicableFilterHandlerNgsild = new CheckItemAccessHandler(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
   }
