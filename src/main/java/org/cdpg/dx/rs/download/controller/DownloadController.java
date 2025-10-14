@@ -10,6 +10,7 @@ import static org.cdpg.dx.rs.download.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +26,7 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.rs.util.CheckItemAccessHandler;
+import org.cdpg.dx.validations.filter.ApplicableFilterNGSILD;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 
 public class DownloadController implements ApiController {
@@ -34,6 +36,7 @@ public class DownloadController implements ApiController {
   private final CheckItemAccessHandler itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
+  private final ApplicableFilterNGSILD applicableFilterNGSILD;
 
   public DownloadController(
       DownloadService downloadService,
@@ -43,6 +46,7 @@ public class DownloadController implements ApiController {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerNgsild = new CheckItemAccessHandler(controlPlaneDomain);
+    this.applicableFilterNGSILD = new ApplicableFilterNGSILD(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
   }
 
@@ -53,6 +57,7 @@ public class DownloadController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(applicableFilterNGSILD)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
@@ -146,9 +151,13 @@ public class DownloadController implements ApiController {
     }
     String sortOrder = sortBy.split(":")[1];
     sortBy = sortBy.split(":")[0];
-
+    JsonArray applicableFilters = RoutingContextHelper.getApplicableFilter(routingContext);
+    boolean attrFilter = false;
+    if (applicableFilters.contains("ATTR") && !applicableFilters.contains("TEMPORAL")) {
+      attrFilter = true;
+    }
     GetRequestModel getRequestModel =
-        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder, attrFilter);
 
     // Use scroll-based streaming for GET download
     downloadService

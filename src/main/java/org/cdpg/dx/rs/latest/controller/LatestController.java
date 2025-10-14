@@ -8,6 +8,7 @@ import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +26,7 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.rs.util.CheckItemAccessHandler;
+import org.cdpg.dx.validations.filter.ApplicableFilterNGSILD;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 
 /** Controller to handle latest entity data retrieval endpoints. */
@@ -35,6 +37,7 @@ public class LatestController implements ApiController {
   private final CheckItemAccessHandler itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
+  private final ApplicableFilterNGSILD applicableFilterNGSILD;
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
@@ -44,6 +47,7 @@ public class LatestController implements ApiController {
       AuditingHandler auditingHandler) {
     this.latestService = latestService;
     this.itemAccessApplicableFilterHandlerNgsild = new CheckItemAccessHandler(controlPlaneDomain);
+    this.applicableFilterNGSILD = new ApplicableFilterNGSILD(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
   }
@@ -61,6 +65,7 @@ public class LatestController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(applicableFilterNGSILD)
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");
@@ -111,6 +116,7 @@ public class LatestController implements ApiController {
     LOGGER.debug("Handling latest data query");
     String id = ctx.pathParam(ID);
     MultiMap params = ctx.queryParams();
+    JsonArray applicableFilters = RoutingContextHelper.getApplicableFilter(ctx);
     int size = getSize(params);
     int page = getPage(params);
     String time = ctx.queryParams().get("time");
@@ -125,8 +131,12 @@ public class LatestController implements ApiController {
     }
     String sortOrder = sortBy.split(":")[1];
     sortBy = sortBy.split(":")[0];
+    boolean attrFilter = false;
+    if (applicableFilters.contains("ATTR") && !applicableFilters.contains("TEMPORAL")) {
+      attrFilter = true;
+    }
     GetRequestModel getRequestModel =
-        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder, attrFilter);
     latestService
         .getSearch(getRequestModel)
         .onSuccess(

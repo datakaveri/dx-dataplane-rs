@@ -173,4 +173,40 @@ public class SearchServiceImpl implements SearchService {
       return Future.failedFuture(new DxBadRequestException("Failed to process search request"));
     }
   }
+
+  @Override
+  public Future<SearchResultWithCount> searchAllDataWithCountValidationWithoutSorting(
+      String index, int size, int page) {
+    LOGGER.info("searching all latest data(attr) for index: {}", index);
+    Promise<SearchResultWithCount> promise = Promise.promise();
+    QueryModel queryModel = queryDecoder.getQueryForAttr(size, page);
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.debug("Count result: {}", count);
+              if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug(
+                  "Latest All data(attr) search completed successfully with {} results",
+                  result.getTotalCount());
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+    return promise.future();
+  }
 }
