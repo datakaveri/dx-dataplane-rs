@@ -86,6 +86,14 @@ public class QueryDecoder {
     return q;
   }
 
+  public QueryModel getQueryForAttr(int size, int page) {
+    QueryModel q = new QueryModel(QueryType.MATCH_ALL);
+    q.setLimit(String.valueOf(size));
+    int offset = (page - 1) * size;
+    q.setOffset(String.valueOf(offset));
+    return q;
+  }
+
   // Added for temporal query based on observation date time
   public QueryModel getTemporalQueryBasedOnObservationDateTime(
       TemporalQueryRequestModel temporalQueryRequest, String sortBy, String sortOrder) {

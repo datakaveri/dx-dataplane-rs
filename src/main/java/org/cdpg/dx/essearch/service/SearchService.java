@@ -16,4 +16,7 @@ public interface SearchService {
       String index, int size, int page, String sortBy, String sortOrder);
 
   Future<SearchResultWithCount> searchWithCountValidation(SearchQuery searchQuery, String index);
+
+  Future<SearchResultWithCount> searchAllDataWithCountValidationWithoutSorting(
+      String index, int size, int page);
 }
