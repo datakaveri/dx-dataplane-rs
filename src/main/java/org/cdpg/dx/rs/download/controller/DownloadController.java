@@ -10,6 +10,7 @@ import static org.cdpg.dx.rs.download.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -148,8 +149,13 @@ public class DownloadController implements ApiController {
     String sortOrder = sortBy.split(":")[1];
     sortBy = sortBy.split(":")[0];
 
+    JsonArray applicableFilters = RoutingContextHelper.getApplicableFilter(routingContext);
+    boolean attrFilter = false;
+    if (applicableFilters.contains("ATTR") && !applicableFilters.contains("TEMPORAL")) {
+      attrFilter = true;
+    }
     GetRequestModel getRequestModel =
-        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder, attrFilter);
 
     // Use scroll-based streaming for GET download
     downloadService

@@ -41,7 +41,10 @@ public class LatestServiceImpl implements LatestService {
   private Future<SearchResultWithCount> fetchDataFromElastic(GetRequestModel getRequestModel) {
     String index = IndexNameCreation.createIndex(getRequestModel.id());
     LOGGER.debug("Index determined for ID {}: {}", getRequestModel.id(), index);
-    if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
+    if (getRequestModel.attrFilter()) {
+      return searchService.searchAllDataWithCountValidationWithoutSorting(
+          index, getRequestModel.size(), getRequestModel.page());
+    } else if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       return searchService.searchAllDataWithCountValidation(
           index,
           getRequestModel.size(),
@@ -49,15 +52,6 @@ public class LatestServiceImpl implements LatestService {
           getRequestModel.sortBy(),
           getRequestModel.sortOrder());
     } else {
-      /*return searchService.searchTemporalData(
-      index,
-      new TemporalQueryRequestModel(
-          getRequestModel.timeRel(),
-          getRequestModel.time(),
-          getRequestModel.endTime(),
-          timeLimit,
-          getRequestModel.size(),
-          getRequestModel.page()), getRequestModel.sortBy(), getRequestModel.sortOrder());*/
       return searchService.searchTemporalDataWithCountValidation(
           index,
           new TemporalQueryRequestModel(

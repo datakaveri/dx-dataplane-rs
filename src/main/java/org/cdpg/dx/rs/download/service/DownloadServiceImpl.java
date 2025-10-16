@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
-import org.cdpg.dx.database.elastic.util.QueryType;
 import org.cdpg.dx.essearch.model.OrderBy;
 import org.cdpg.dx.essearch.model.QueryDecoder;
 import org.cdpg.dx.essearch.model.SearchQuery;
@@ -33,7 +32,10 @@ public class DownloadServiceImpl implements DownloadService {
   public Future<ReadStream<Buffer>> streamElasticDataCsvScroll(GetRequestModel getRequestModel) {
     String index = IndexNameCreation.createIndex(getRequestModel.id());
     QueryModel queryModel;
-    if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
+    if (getRequestModel.attrFilter()) {
+      queryModel =
+          new QueryDecoder().getQueryForAttr(getRequestModel.size(), getRequestModel.size());
+    } else if (getRequestModel.timeRel() == null || getRequestModel.timeRel().isEmpty()) {
       queryModel =
           new QueryDecoder()
               .getQueryBasedOnObservationDateTime(
