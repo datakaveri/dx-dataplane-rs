@@ -88,6 +88,127 @@ servers:
 # Global security definition (applies to all paths unless overridden)
 
 paths:
+  /ngsi-ld/v2/temporal/entities:
+    get:
+      operationId: getTemporalEntities
+      summary: Temporal Entities Search
+      description: Search for temporal entities with various filters
+      security:
+        - authorization: [ ]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: timerel
+          in: query
+          required: true
+          description: Temporal relation type
+          schema:
+            type: string
+            enum: [ between, before, after]
+        - name: timeAt
+          in: query
+          required: true
+          description: Start time in ISO8601 format
+          schema:
+            type: string
+        - name: endTimeAt
+          in: query
+          description: End time in ISO8601 format
+          schema:
+            type: string
+        - name: timeproperty
+          in: query
+          description: Time property to filter on
+          schema:
+            type: string
+            enum: [ observationDateTime ]
+        - name: limit
+          in: query
+          description: Limit the no of data to be shown
+          schema:
+            type: integer
+            minimum: 1
+            default: 100
+        - name: offset
+          in: query
+          description: Offset to see more data
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: count
+          in: query
+          description: Include count of matching entities in the response
+          schema:
+            type: boolean
+            default: false
+        - name: q
+          in: query
+          description: for attribute based search
+          schema:
+              type: string
+        - name: omit
+          in: query
+          description: Comma-separated list of properties to omit from the response
+          schema:
+              type: string
+        - name: pick
+          in: query
+          description: Comma-separated list of properties to pick from the response
+          schema:
+            type: string
+        - name: geometry
+          in: query
+          description: GeoJSON geometry type
+          schema:
+            type: string
+            enum: [ Point, Polygon, LineString, bbox, point, polygon, linestring, BBOX ]
+        - name: coordinates
+          in: query
+          description: Coordinates for the geometry
+          schema:
+            type: string
+        - name: georel
+          in: query
+          description: Spatial relationship type
+          schema:
+            type: string
+            enum: [ near;maxdistance, within, intersects ]
+        - name: geoproperty
+          in: query
+          description: Geospatial property name
+          schema:
+            type: string
+            enum: [ location ]
+      responses:
+        '200':
+          description: Successful retrieval of temporal entities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/entityresponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
 
   /ngsi-ld/v2/entities/{id}:
     get:

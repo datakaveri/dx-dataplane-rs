@@ -21,6 +21,7 @@ import org.cdpg.dx.rs.admin.service.OnboardingServiceImpl;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
+import org.cdpg.dx.rs.ngsild.temporal.factory.TemporalControllerFactory;
 
 public class ControllerFactory {
   private static final Logger LOGGER = LogManager.getLogger(ControllerFactory.class);
@@ -57,8 +58,11 @@ public class ControllerFactory {
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
+
+    ApiController temporalController =
+        TemporalControllerFactory.create();
     // TODO create other controllers
 
-    return List.of(latestController, downloadController, onboardingController);
+    return List.of(latestController, downloadController, onboardingController, temporalController);
   }
 }

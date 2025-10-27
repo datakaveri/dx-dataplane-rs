@@ -676,7 +676,7 @@ public class NGSILDParamsValidator {
   }
 
   public void isValidQueryWithFilters(String searchType, JsonArray applicableFilters) {
-    LOGGER.info("validation filters " + applicableFilters);
+    LOGGER.info("validation filter : " + applicableFilters);
     if (searchType.contains("temporalSearch") && !applicableFilters.contains("TEMPORAL")) {
       throw new DxBadRequestException("Temporal parameters are not supported by RS Item.");
     }

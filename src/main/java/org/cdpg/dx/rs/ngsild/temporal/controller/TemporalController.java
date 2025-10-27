@@ -9,65 +9,81 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.temporal.model.TemporalGetRequest;
+import org.cdpg.dx.rs.ngsild.temporal.service.TemporalService;
+import org.cdpg.dx.rs.ngsild.temporal.service.TemporalServiceImpl;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
 import org.cdpg.dx.rs.validation.ngsild.TemporalEntitiesValidation;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 public class TemporalController implements ApiController {
-    private static final Logger LOGGER = LogManager.getLogger(TemporalController.class);
-    GetIdFromParams getIdFromParams = new GetIdFromParams();
-    NGSILDParamsValidator ngsildParamsValidator;
-    @Override
-    public void register(RouterBuilder builder) {
-        builder
-                .operation("/temporal/entities")
-                .handler(getIdFromParams)
-                /*.handler(itemAccessApplicableFilterHandler)*/
-                .handler(context ->handleTemporalEntityDataSearch(context, true));
-    }
+  private static final Logger LOGGER = LogManager.getLogger(TemporalController.class);
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild =
+      new ItemAccessApplicableFilterHandlerNgsild("https://v2.dev.controlplane.iudx.io");
+  GetIdFromParams getIdFromParams = new GetIdFromParams();
+  NGSILDParamsValidator ngsildParamsValidator = new NGSILDParamsValidator(365, 10);
 
-    private void handleTemporalEntityDataSearch(RoutingContext routingContext, boolean isTemporal) {
-        LOGGER.debug("Handling Temporal entities GET data query");
+  @Override
+  public void register(RouterBuilder builder) {
+    builder
+        .operation("getTemporalEntities")
+        .handler(getIdFromParams)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(context -> handleTemporalEntityDataSearch(context, true));
+  }
 
-        MultiMap params = routingContext.request().params(true);
-        JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-        try{
-            ngsildParamsValidator.validateQueryParams(params);
-            ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
+  private void handleTemporalEntityDataSearch(RoutingContext routingContext, boolean isTemporal) {
+    LOGGER.debug("Handling Temporal entities GET data query");
 
-            // temporal params validation
-            //TODO: refactor to make it more readable
-            ngsildParamsValidator.validateTemporal(params.get(NGSILDQUERY_TIMEREL),
-                    params.get(NGSILDQUERY_TIMEAT),
-                    params.get(NGSILDQUERY_ENDTIMEAT),
-                    params.get(NGSILDQUERY_TIMEPROPERTY), false , isTemporal);
+    MultiMap params = routingContext.request().params(true);
+    JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
+    try {
+      ngsildParamsValidator.validateQueryParams(params);
+      ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
 
-            //Validate geo Fields
-            ngsildParamsValidator.validateGeometry(params.get(NGSILDQUERY_GEOPROPERTY),
-                    params.get(NGSILDQUERY_GEOMETRY),
-                    params.get(NGSILDQUERY_COORDINATES));
+      // temporal params validation
+      // TODO: refactor to make it more readable
+      ngsildParamsValidator.validateTemporal(
+          params.get(NGSILDQUERY_TIMEREL),
+          params.get(NGSILDQUERY_TIMEAT),
+          params.get(NGSILDQUERY_ENDTIMEAT),
+          params.get(NGSILDQUERY_TIMEPROPERTY),
+          false,
+          isTemporal);
 
-            ngsildParamsValidator.validateQ(params.get(NGSILDQUERY_Q));
+      // Validate geo Fields
+      ngsildParamsValidator.validateGeometry(
+          params.get(NGSILDQUERY_GEOPROPERTY),
+          params.get(NGSILDQUERY_GEOMETRY),
+          params.get(NGSILDQUERY_COORDINATES));
 
-            ngsildParamsValidator.validatePick(params.get(NGSILDQUERY_PICK));
-            ngsildParamsValidator.validateOmit(params.get(NGSILDQUERY_OMIT));
+      ngsildParamsValidator.validateQ(params.get(NGSILDQUERY_Q));
 
+      ngsildParamsValidator.validatePick(params.get(NGSILDQUERY_PICK));
+      ngsildParamsValidator.validateOmit(params.get(NGSILDQUERY_OMIT));
+      LOGGER.debug("nsgildParamsValidator:");
     } catch (DxBadRequestException e) {
-            routingContext.fail(e);
-            return;
-        }
-
-    TemporalGetRequest temporalGetRequest = TemporalEntitiesValidation.validateParam(params);
-        LOGGER.debug("Validated TemporalGetRequest: {}", temporalGetRequest.toJson());
-
-
-
-
-
+      routingContext.fail(e);
+      return;
     }
+
+      /*TemporalService temporalService = new TemporalServiceImpl();
+      temporalService.getTemporalSearch(params);*/
+
+      NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
+      TemporalService temporalService = new TemporalServiceImpl();
+      temporalService.getTemporalSearch(ngsildQueryParams);
+
+
+
+    // TemporalGetRequest temporalGetRequest = TemporalEntitiesValidation.validateParam(params);
+    //        LOGGER.debug("Validated TemporalGetRequest: {}", temporalGetRequest.toJson());
+
+  }
 }

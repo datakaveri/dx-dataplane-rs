@@ -24,6 +24,8 @@ public class NGSILDQueryParams {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDQueryParams.class);
 
   private List<URI> id;
+  private String idPattern;
+  private String type;
   private List<String> pick;
   private List<String> omit;
   private String textQuery;
@@ -96,43 +98,59 @@ public class NGSILDQueryParams {
 
     TemporalQuery temporalQuery = temporalGetRequest.getTemporalQ();
     if (temporalQuery != null) {
-        if (temporalQuery.getTimerel() != null) {
-            this.temporalQuery.setTimerel(temporalQuery.getTimerel());
-        }
-        if (temporalQuery.getTimeAt() != null) {
-            this.temporalQuery.setTimeAt(temporalQuery.getTimeAt());
-        }
-        if (temporalQuery.getEndtimeAt() != null) {
-            this.temporalQuery.setEndtimeAt(temporalQuery.getEndtimeAt());
-        }
-        if (temporalQuery.getTimeproperty() != null) {
-            this.temporalQuery.setTimeproperty(temporalQuery.getTimeproperty());
-        }
+      if (temporalQuery.getTimerel() != null) {
+        this.temporalQuery.setTimerel(temporalQuery.getTimerel());
+      }
+      if (temporalQuery.getTimeAt() != null) {
+        this.temporalQuery.setTimeAt(temporalQuery.getTimeAt());
+      }
+      if (temporalQuery.getEndtimeAt() != null) {
+        this.temporalQuery.setEndtimeAt(temporalQuery.getEndtimeAt());
+      }
+      if (temporalQuery.getTimeproperty() != null) {
+        this.temporalQuery.setTimeproperty(temporalQuery.getTimeproperty());
+      }
     }
-      GeoQuery geoQuery = temporalGetRequest.getGeoQ();
-        if (geoQuery != null) {
-            if (geoQuery.getGeometry() != null) {
-                this.geometry = geoQuery.getGeometry();
-            }
-            if (geoQuery.getCoordinates() != null) {
-                this.coordinates = geoQuery.getCoordinates().toString();
-            }
-            if (geoQuery.getGeoproperty() != null) {
-                this.geoProperty = geoQuery.getGeoproperty();
-            }
-            GeoRelation geoRel = geoQuery.getGeorel();
-            if (geoRel != null) {
-                if (geoRel.getRelation() != null) {
-                    this.geoRel.setRelation(geoRel.getRelation());
-                }
-                if (geoRel.getMaxDistance() != 0) {
-                    this.geoRel.setMaxDistance(geoRel.getMaxDistance());
-                }
-                if (geoRel.getMinDistance() != 0) {
-                    this.geoRel.setMinDistance(geoRel.getMinDistance());
-                }
-            }
+    GeoQuery geoQuery = temporalGetRequest.getGeoQ();
+    if (geoQuery != null) {
+      if (geoQuery.getGeometry() != null) {
+        this.geometry = geoQuery.getGeometry();
+      }
+      if (geoQuery.getCoordinates() != null) {
+        this.coordinates = geoQuery.getCoordinates().toString();
+      }
+      if (geoQuery.getGeoproperty() != null) {
+        this.geoProperty = geoQuery.getGeoproperty();
+      }
+      GeoRelation geoRel = geoQuery.getGeorel();
+      if (geoRel != null) {
+        if (geoRel.getRelation() != null) {
+          this.geoRel.setRelation(geoRel.getRelation());
         }
+        if (geoRel.getMaxDistance() != 0) {
+          this.geoRel.setMaxDistance(geoRel.getMaxDistance());
+        }
+        if (geoRel.getMinDistance() != 0) {
+          this.geoRel.setMinDistance(geoRel.getMinDistance());
+        }
+      }
+    }
+  }
+
+  public String getIdPattern() {
+    return idPattern;
+  }
+
+  public void setIdPattern(String idPattern) {
+    this.idPattern = idPattern;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   public List<String> getPick() {
@@ -194,8 +212,17 @@ public class NGSILDQueryParams {
         case NGSILDQUERY_ENDTIMEAT:
           this.temporalQuery.setEndtimeAt(entry.getValue());
           break;
+        case NGSILDQUERY_TIMEPROPERTY:
+          this.temporalQuery.setTimeproperty(entry.getValue());
+          break;
         case NGSILDQUERY_Q:
           this.textQuery = entry.getValue();
+          break;
+        case NGSILDQUERY_TYPE:
+          this.type = entry.getValue();
+          break;
+        case NGSILDQUERY_IDPATTERN:
+          this.idPattern = entry.getValue();
           break;
         case NGSILD_OPTIONS:
           this.options = entry.getValue();
@@ -338,32 +365,47 @@ public class NGSILDQueryParams {
 
   @Override
   public String toString() {
-    return "NGSILDQueryParams [id="
+    return "NGSILDQueryParams{"
+        + "id="
         + id
+        + ", idPattern='"
+        + idPattern
+        + '\''
+        + ", type='"
+        + type
+        + '\''
         + ", pick="
         + pick
         + ", omit="
         + omit
-        + ", count="
-        + count
-        + ", textQuery="
+        + ", textQuery='"
         + textQuery
-        + ", geoRel="
-        + geoRel
-        + ", geometry="
-        + geometry
-        + ", coordinates="
-        + coordinates
-        + ", geoProperty="
-        + geoProperty
-        + ", temporalRelation="
-        + temporalQuery
-        + ", options="
+        + '\''
+        + ", temporalQuery="
+        + temporalQuery.toJson()
+        + ", options='"
         + options
+        + '\''
+        + ", geoRel="
+        + geoRel.toString()
+        + ", geometry='"
+        + geometry
+        + '\''
+        + ", coordinates='"
+        + coordinates
+        + '\''
+        + ", geoProperty='"
+        + geoProperty
+        + '\''
+        + ", relation='"
+        + relation
+        + '\''
         + ", pageFrom="
         + pageFrom
         + ", pageSize="
         + pageSize
-        + "]";
+        + ", count="
+        + count
+        + '}';
   }
 }

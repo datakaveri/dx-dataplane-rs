@@ -29,4 +29,17 @@ public class GeoRelation {
   public void setRelation(String relation) {
     this.relation = relation;
   }
+
+  @Override
+  public String toString() {
+    return "GeoRelation{"
+        + "maxDistance="
+        + maxDistance
+        + ", minDistance="
+        + minDistance
+        + ", relation='"
+        + relation
+        + '\''
+        + '}';
+  }
 }
