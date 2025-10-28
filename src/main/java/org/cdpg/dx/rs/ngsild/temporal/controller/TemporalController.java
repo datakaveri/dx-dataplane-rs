@@ -10,13 +10,11 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
-import org.cdpg.dx.rs.ngsild.temporal.model.TemporalGetRequest;
+
 import org.cdpg.dx.rs.ngsild.temporal.service.TemporalService;
 import org.cdpg.dx.rs.ngsild.temporal.service.TemporalServiceImpl;
-import org.cdpg.dx.rs.query.QueryRequest;
-import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
-import org.cdpg.dx.rs.validation.ngsild.TemporalEntitiesValidation;
+
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 

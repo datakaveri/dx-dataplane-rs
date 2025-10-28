@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.rs.validation.ngsild;
 
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
@@ -128,3 +129,4 @@ public class TemporalEntitiesValidation {
     return temporalGetRequest;
   }
 }
+*/

@@ -138,8 +138,8 @@ paths:
           description: Offset to see more data
           schema:
             type: integer
-            minimum: 1
-            default: 1
+            minimum: 0
+            default: 0
         - name: count
           in: query
           description: Include count of matching entities in the response
