@@ -1,9 +1,11 @@
 package org.cdpg.dx.common.util;
 
-import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TimeUtils {
+  private static final Logger LOGGER = LogManager.getLogger(TimeUtils.class);
 
   /**
    * Parses an ISO-8601 datetime string safely. Accepts forms like: - 2025-10-01T00:00:00Z -
@@ -11,23 +13,21 @@ public class TimeUtils {
    *
    * <p>Does NOT normalize or convert zones — returns as given.
    */
-  public static ZonedDateTime parseIsoDateTime(String value) {
+  public static String parseIsoDateTime(String value) {
     if (value == null || value.isBlank()) {
       throw new IllegalArgumentException("Datetime value cannot be null or blank");
     }
 
-    String normalized = value.trim().replace(" ", "+").replaceAll("t", "T");
-
+    String normalized = value.trim().replaceAll("\\s", "+");
+    ZonedDateTime zdt;
     try {
       // Try ZonedDateTime first
-      return ZonedDateTime.parse(normalized);
+      zdt = ZonedDateTime.parse(normalized);
+      LOGGER.debug("Parsed time: " + zdt);
+      return normalized;
     } catch (Exception e1) {
-      try {
-        // Fallback to OffsetDateTime (ZonedDateTime.parse can fail if zone missing)
-        return OffsetDateTime.parse(normalized).toZonedDateTime();
-      } catch (Exception e2) {
-        throw new IllegalArgumentException("Invalid datetime format: " + value);
-      }
+      LOGGER.error(e1.getMessage());
+      throw new IllegalArgumentException("Invalid datetime format: {}" + value);
     }
   }
 }
