@@ -6,6 +6,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -200,73 +201,88 @@ public class ParamsValidator {
    * @param isTemporalApi true if /temporal/entity API, false if /entity API
    */
   public void validateTemporal(
-      String timeRel,
-      String timeAt,
-      String endTime,
-      String timeProperty,
-      boolean isAsync,
-      boolean isTemporalApi) {
+          String timeRel,
+          String timeAt,
+          String endTime,
+          String timeProperty,
+          boolean isAsync,
+          boolean isTemporalApi) {
 
-    if (!isTemporalApi) {
-      if (timeRel != null || timeAt != null || endTime != null || timeProperty != null) {
-        throw new DxBadRequestException("/entity API does not support temporal parameters");
+      if (!isTemporalApi) {
+          if (timeRel != null || timeAt != null || endTime != null || timeProperty != null) {
+              throw new DxBadRequestException("/entity API does not support temporal parameters");
+          }
+          return;
       }
-      return;
-    }
 
-    if (timeRel == null || timeAt == null) {
-      throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
-    }
-
-    if (!timeRel.equalsIgnoreCase("before")
-        && !timeRel.equalsIgnoreCase("after")
-        && !timeRel.equalsIgnoreCase("between")
-        && !timeRel.equalsIgnoreCase("during")) {
-      throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between, during");
-    }
-
-    ZonedDateTime start;
-    try {
-      start = ZonedDateTime.parse(timeAt);
-    } catch (Exception e) {
-      throw new DxBadRequestException("time must be in ISO 8601 format");
-    }
-
-    ZonedDateTime end = null;
-    if ("between".equalsIgnoreCase(timeRel) || "during".equalsIgnoreCase(timeRel)) {
-      if (endTime == null)
-        throw new DxBadRequestException("endTime is mandatory when timerel=between or during");
-      try {
-        end = ZonedDateTime.parse(endTime);
-        if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after timeAt");
-      } catch (Exception e) {
-        throw new DxBadRequestException("endTime must be in ISO 8601 format");
+      if (timeRel == null || timeAt == null) {
+          throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
       }
-    }
-    // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
-    /*
-        Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
 
-        if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
-          String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
-          throw new DxBadRequestException(
-              "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
-        }
-    */
-
-    if (end != null) {
-      long days = Duration.between(start, end).toDays();
-      int limit = isAsync ? maxDaysAsync : maxDaysSync;
-      if (days > limit) {
-        throw new DxBadRequestException(
-            "time interval greater than "
-                + limit
-                + " days is not allowed for "
-                + (isAsync ? "async" : "sync")
-                + " queries");
+      if (!timeRel.equalsIgnoreCase("before")
+              && !timeRel.equalsIgnoreCase("after")
+              && !timeRel.equalsIgnoreCase("between")
+              && !timeRel.equalsIgnoreCase("during")) {
+          throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between, during");
       }
-    }
+
+      ZonedDateTime start = parseIsoTime(timeAt, "time");
+
+      ZonedDateTime end = null;
+      if ("between".equalsIgnoreCase(timeRel) || "during".equalsIgnoreCase(timeRel)) {
+          if (endTime == null) {
+              throw new DxBadRequestException("endTime is mandatory when timerel=between or during");
+          }
+
+          end = parseIsoTime(endTime, "endTime");
+
+          if (end.isBefore(start)) {
+              throw new DxBadRequestException("endTime must be after timeAt");
+          }
+      }
+
+      // TODO: Enable when timeProperty validation is needed (NGSI-LD v1.3.1)
+  /*
+  Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
+  if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
+    String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
+    throw new DxBadRequestException(
+        "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
   }
+  */
+
+      if (end != null) {
+          long days = Duration.between(start, end).toDays();
+          int limit = isAsync ? maxDaysAsync : maxDaysSync;
+          if (days > limit) {
+              throw new DxBadRequestException(
+                      "time interval greater than "
+                              + limit
+                              + " days is not allowed for "
+                              + (isAsync ? "async" : "sync")
+                              + " queries");
+          }
+      }
+  }
+
+    /**
+     * Parses time strings in ISO 8601 format.
+     * Accepts both ZonedDateTime and OffsetDateTime inputs (e.g. "+05:30" or "[Asia/Kolkata]").
+     */
+    private ZonedDateTime parseIsoTime(String value, String fieldName) {
+        // Trim & normalize spaces before timezone
+        String normalized = value.trim().replace(" ", "+");
+        try {
+            return ZonedDateTime.parse(normalized);
+        } catch (Exception e1) {
+            try {
+                return OffsetDateTime.parse(normalized).toZonedDateTime();
+            } catch (Exception e2) {
+                throw new DxBadRequestException(fieldName + " must be in ISO 8601 format");
+            }
+        }
+    }
+
 
   /* ---- Q-type validation ---- */
 
