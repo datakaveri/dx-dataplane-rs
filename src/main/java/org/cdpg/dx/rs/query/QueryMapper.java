@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.common.util.TimeUtils;
 
 /**
  * QueryMapper converts validated {@link NGSILDQueryParams} into a JsonObject suitable for
@@ -70,9 +71,22 @@ public class QueryMapper {
     }
 
     // Temporal query (assumes already validated)
+    // Temporal query (assumes already validated)
     if (isTemporal && params.getTemporalRelation().getTimeRel() != null) {
-      temporal.put(JSON_TIME, params.getTemporalRelation().getTime());
-      temporal.put(JSON_ENDTIME, params.getTemporalRelation().getEndTime());
+      String normalizedTime =
+          TimeUtils.parseIsoDateTime(params.getTemporalRelation().getTime()).toString();
+      String normalizedEndTime = null;
+
+      if (params.getTemporalRelation().getEndTime() != null) {
+        normalizedEndTime =
+            TimeUtils.parseIsoDateTime(params.getTemporalRelation().getEndTime()).toString();
+      }
+
+      temporal.put(JSON_TIME, normalizedTime);
+      if (normalizedEndTime != null) {
+        temporal.put(JSON_ENDTIME, normalizedEndTime);
+      }
+
       temporal.put(JSON_TIMEREL, params.getTemporalRelation().getTimeRel());
       temporal.put(JSON_TIMEPROPERTY, params.getTemporalRelation().getTimeProperty());
       json.put(TEMPORAL_QUERY, temporal);
