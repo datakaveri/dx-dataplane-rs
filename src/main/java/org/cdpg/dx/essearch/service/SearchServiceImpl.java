@@ -13,16 +13,15 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.database.elastic.model.*;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
-import org.cdpg.dx.essearch.model.OrderBy;
-import org.cdpg.dx.essearch.model.QueryDecoder;
-import org.cdpg.dx.essearch.model.SearchQuery;
-import org.cdpg.dx.essearch.model.SearchResultWithCount;
-import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
+import org.cdpg.dx.essearch.model.*;
+import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
 public class SearchServiceImpl implements SearchService {
   private static final Logger LOGGER = LogManager.getLogger(SearchServiceImpl.class);
   private final ElasticsearchService elasticsearchService;
   private final QueryDecoder queryDecoder = new QueryDecoder();
+
+  private final QueryDecoderNew queryDecoderNew = new QueryDecoderNew();
 
   public SearchServiceImpl(ElasticsearchService elasticsearchService) {
     this.elasticsearchService =
@@ -207,6 +206,44 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
               promise.fail(failure);
             });
+    return promise.future();
+  }
+
+  @Override
+  public Future<SearchResultWithCount> getSearchTemporalEntityDataWithCountValidation(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchTemporalEntityDataWithCountValidation for index: {}", index);
+    Promise<SearchResultWithCount> promise = Promise.promise();
+
+    QueryModel queryModel = queryDecoderNew.buildGetTemporalEntityDataQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.debug("Count result for getTemporalEntity: {}", count);
+              if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug(
+                  "Get temporal entity search completed successfully with {} results",
+                  result.getTotalCount());
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during get temporal entity: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+
     return promise.future();
   }
 }

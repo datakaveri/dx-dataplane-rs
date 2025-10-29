@@ -28,7 +28,7 @@ public class NGSILDQueryParams {
   private String type;
   private List<String> pick;
   private List<String> omit;
-  private String textQuery;
+  private String q;
   private TemporalQuery temporalQuery;
   private String options;
   private GeoRelation geoRel;
@@ -84,7 +84,7 @@ public class NGSILDQueryParams {
       this.omit = temporalGetRequest.getOmit();
     }
     if (temporalGetRequest.getQ() != null) {
-      this.textQuery = temporalGetRequest.getQ();
+      this.q = temporalGetRequest.getQ();
     }
     if (temporalGetRequest.getOptions() != null) {
       this.options = temporalGetRequest.getOptions();
@@ -169,14 +169,6 @@ public class NGSILDQueryParams {
     this.omit = omit;
   }
 
-  public String getTextQuery() {
-    return textQuery;
-  }
-
-  public void setTextQuery(String textQuery) {
-    this.textQuery = textQuery;
-  }
-
   public boolean isCount() {
     return count;
   }
@@ -216,7 +208,7 @@ public class NGSILDQueryParams {
           this.temporalQuery.setTimeproperty(entry.getValue());
           break;
         case NGSILDQUERY_Q:
-          this.textQuery = entry.getValue();
+          this.q = entry.getValue();
           break;
         case NGSILDQUERY_TYPE:
           this.type = entry.getValue();
@@ -284,11 +276,11 @@ public class NGSILDQueryParams {
   }
 
   public String getQ() {
-    return textQuery;
+    return q;
   }
 
   public void setQ(String textQuery) {
-    this.textQuery = textQuery;
+    this.q = textQuery;
   }
 
   public TemporalQuery getTemporalQuery() {
@@ -379,7 +371,7 @@ public class NGSILDQueryParams {
         + ", omit="
         + omit
         + ", textQuery='"
-        + textQuery
+        + q
         + '\''
         + ", temporalQuery="
         + temporalQuery.toJson()

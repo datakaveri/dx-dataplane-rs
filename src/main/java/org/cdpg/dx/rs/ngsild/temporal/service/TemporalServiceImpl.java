@@ -8,26 +8,41 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.essearch.service.SearchService;
+import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
 public class TemporalServiceImpl implements TemporalService {
   private static final Logger LOGGER = LogManager.getLogger(TemporalServiceImpl.class);
   private final NewQueryMapper queryMapper;
 
-  public TemporalServiceImpl() {
+  private final SearchService searchService;
+
+  public TemporalServiceImpl(SearchService searchService) {
+    this.searchService = searchService;
     this.queryMapper = new NewQueryMapper();
   }
 
   @Override
   public Future<ResponseModel> getTemporalSearch(NGSILDQueryParams ngsildQueryParams) {
     LOGGER.debug("NGSILDQueryParams: {}", ngsildQueryParams.toString());
+    String index = IndexNameCreation.createIndex(ngsildQueryParams.getId().get(0).toString());
+    searchService.getSearchTemporalEntityDataWithCountValidation(index, ngsildQueryParams);
+
+    List<ElasticsearchResponse> emptyResults = Collections.emptyList();
+    ResponseModel response = new ResponseModel(emptyResults, 0, 0);
+    return Future.succeededFuture(response);
+  }
+
+ /* @Override
+  public Future<ResponseModel> getTemporalSearch(NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.debug("NGSILDQueryParams: {}", ngsildQueryParams.toString());
 
     try {
       // Map NGSI-LD parameters to Elasticsearch query
       QueryModel elasticsearchQuery = queryMapper.mapToElasticsearchQuery(ngsildQueryParams);
-      
-      LOGGER.info("Complete QueryModel - Query: {}",
-          elasticsearchQuery.toElasticsearchQuery());
+
+      LOGGER.info("Complete QueryModel - Query: {}", elasticsearchQuery.toElasticsearchQuery());
 
       // TODO: Execute the Elasticsearch query using ElasticsearchService
       // This would typically involve:
@@ -40,13 +55,12 @@ public class TemporalServiceImpl implements TemporalService {
       // TODO: Replace with actual Elasticsearch query execution
       List<ElasticsearchResponse> emptyResults = Collections.emptyList();
       ResponseModel response = new ResponseModel(emptyResults, 0, 0);
-      
+
       return Future.succeededFuture(response);
 
     } catch (Exception e) {
       LOGGER.error("Error processing temporal search query", e);
       return Future.failedFuture(e);
     }
-  }
-
+  }*/
 }

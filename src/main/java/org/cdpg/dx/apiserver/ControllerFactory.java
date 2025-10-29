@@ -60,7 +60,7 @@ public class ControllerFactory {
             timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
 
     ApiController temporalController =
-        TemporalControllerFactory.create();
+        TemporalControllerFactory.create(searchService);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, temporalController);

@@ -24,10 +24,10 @@ public class GeoQ {
   private String geoproperty;
   private Double maxDistance;
 
-  public GeoQ(GeoQuery geoQuery, GeoRelation geoRelation) {
+  public GeoQ(GeoQuery geoQuery) {
     this.geometry = geoQuery.getGeometry();
     this.geoproperty = geoQuery.getGeoproperty();
-    this.geoRel = geoRelation.getRelation();
+    this.geoRel = geoQuery.getGeorel().getRelation();
 
     if (geoQuery.getCoordinates() != null) {
       JsonArray coordinates = geoQuery.getCoordinates();

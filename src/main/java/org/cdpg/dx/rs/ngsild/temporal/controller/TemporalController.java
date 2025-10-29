@@ -1,5 +1,7 @@
 package org.cdpg.dx.rs.ngsild.temporal.controller;
 
+import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
+
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
@@ -10,15 +12,10 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
-
 import org.cdpg.dx.rs.ngsild.temporal.service.TemporalService;
-import org.cdpg.dx.rs.ngsild.temporal.service.TemporalServiceImpl;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
-
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
-
-import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 public class TemporalController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(TemporalController.class);
@@ -26,6 +23,11 @@ public class TemporalController implements ApiController {
       new ItemAccessApplicableFilterHandlerNgsild("https://v2.dev.controlplane.iudx.io");
   GetIdFromParams getIdFromParams = new GetIdFromParams();
   NGSILDParamsValidator ngsildParamsValidator = new NGSILDParamsValidator(365, 10);
+  TemporalService temporalService;
+
+  public TemporalController(TemporalService temporalService) {
+    this.temporalService = temporalService;
+  }
 
   @Override
   public void register(RouterBuilder builder) {
@@ -71,14 +73,11 @@ public class TemporalController implements ApiController {
       return;
     }
 
-      /*TemporalService temporalService = new TemporalServiceImpl();
-      temporalService.getTemporalSearch(params);*/
+    /*TemporalService temporalService = new TemporalServiceImpl();
+    temporalService.getTemporalSearch(params);*/
 
-      NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
-      TemporalService temporalService = new TemporalServiceImpl();
-      temporalService.getTemporalSearch(ngsildQueryParams);
-
-
+    NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
+    temporalService.getTemporalSearch(ngsildQueryParams);
 
     // TemporalGetRequest temporalGetRequest = TemporalEntitiesValidation.validateParam(params);
     //        LOGGER.debug("Validated TemporalGetRequest: {}", temporalGetRequest.toJson());

@@ -64,8 +64,8 @@ public class NewQueryMapper {
     }
 
     // Map text query (q parameter)
-    if (ngsildQueryParams.getTextQuery() != null && !ngsildQueryParams.getTextQuery().trim().isEmpty()) {
-      QueryModel textQuery = mapTextQuery(ngsildQueryParams.getTextQuery());
+    if (ngsildQueryParams.getQ() != null && !ngsildQueryParams.getQ().trim().isEmpty()) {
+      QueryModel textQuery = mapTextQuery(ngsildQueryParams.getQ());
       if (textQuery != null) {
         mustQueries.add(textQuery);
       }
@@ -102,7 +102,7 @@ public class NewQueryMapper {
   /**
    * Maps ID list to terms query.
    */
-  private QueryModel mapIdQuery(List<java.net.URI> ids) {
+  private QueryModel mapIdQuery(List<URI> ids) {
     if (ids == null || ids.isEmpty()) {
       return null;
     }
