@@ -26,7 +26,6 @@ public class Constants {
   public static final String EQUAL_OP = "==";
   public static final String NOT_EQUAL_OP = "!=";
   public static final String BETWEEN_OP = "<==>";
-
   public static final String DATA_SAMPLE = "dataSample";
   public static final String DATA_DESCRIPTOR = "dataDescriptor";
   public static final String LABEL = "label";

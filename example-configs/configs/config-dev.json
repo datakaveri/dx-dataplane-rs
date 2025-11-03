@@ -6,19 +6,30 @@
   "clusterId": "iudx-rs-cluster",
   "host": "rs.iudx.io",
   "commonConfig": {
-    "dxApiBasePath": "/ngsi-ld/v1",
-
+    "dxApiBasePath": "/ngsi-ld/v2",
     "timeLimit": "test,2020-10-22T00:00:00Z,20",
     "timeLimitForAsync": 365,
-    "tenantPrefix": "iudx",
+    "tenantPrefix": "iudx-v2",
     "corsAllowedOrigin": [
       "*",
       "http://localhost:4001"
     ],
-    "kcIss": "",
-    "aaaIss": "",
-    "keycloakCertUrl": "",
-    "aaaCertUrl": ""
+    "controlPlaneDomain": "https://v2.dev.controlplane.iudx.io",
+    "issuers": {
+      "jwtIgnoreExpiry": true,
+      "leeway": 60,
+      "jwksRefreshIntervalMs": 21600000,
+      "v2.dev.controlplane.iudx.io": {
+        "type": "remote",
+        "jwksUrl": "https://v2.dev.controlplane.iudx.io/iudx/v2/auth/jwks",
+        "audience": []
+      },
+      "https://staging.keycloak.update.iudx.io/auth/realms/tgdex-pilot": {
+        "type": "remote",
+        "jwksUrl": "https://staging.keycloak.update.iudx.io/auth/realms/tgdex-pilot/protocol/openid-connect/certs",
+        "audience": []
+      }
+    }
   },
   "modules": [
     {
@@ -26,25 +37,25 @@
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "databaseIP": "",
-      "databasePort": 5433,
-      "databaseName": "",
+      "databasePort": 5434533,
+      "databaseName": "iudx_rs",
       "databaseUserName": "",
       "databasePassword": "",
       "poolSize": 25,
-      "databaseSchema": ""
+      "databaseSchema": "public"
     },
     {
       "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "dataBrokerIP": "",
-      "dataBrokerPort": 24568,
+      "dataBrokerPort": 245345368,
       "prodVhost": "",
       "internalVhost": "",
       "externalVhost": "",
       "dataBrokerUserName": "",
       "dataBrokerPassword": "",
-      "dataBrokerManagementPort": 28042,
+      "dataBrokerManagementPort": 280345342,
       "connectionTimeout": 6000,
       "requestedHeartbeat": 60,
       "handshakeTimeout": 6000,
@@ -52,28 +63,15 @@
       "networkRecoveryInterval": 500,
       "automaticRecoveryEnabled": "true",
       "brokerAmqpIp": "",
-      "brokerAmqpPort": 24567
-    },
-    {
-      "id": "org.cdpg.dx.catalogue.CatalogueVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "dxCatalogueBasePath": "",
-      "catServerHost": "",
-      "catServerPort": 443
-    },
-    {
-      "id": "org.cdpg.dx.uniqueattribute.UniqueAttributeVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1
+      "brokerAmqpPort": 245673453,
+      "adapterQueryPublishExchange": "rpc-adapter-requests"
     },
     {
       "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
       "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "tenantPrefix": "",
+      "verticleInstances": 2,
       "databaseIP": "",
-      "databasePort": 24034,
+      "databasePort": 24324034,
       "databaseUser": "",
       "databasePassword": ""
     },
@@ -81,18 +79,27 @@
       "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
-      "ssl": false,
+      "ssl": true,
       "production": false,
-      "httpPort": 1234,
-      "iss": "",
-      "aud": "",
-      "jwtIgnoreExpiry": true,
+      "httpPort": 8443,
       "isAdexInstance": false,
       "keystore": "configs/keystore.jks",
-      "keystorePassword": "",
-      "dxAuthBasePath": "",
-      "authServerHost": "",
-      "authServerPort": 443
+      "keystorePassword": "password",
+      "urnPrefix": "dx:dataplane:"
+    },
+    {
+      "id": "org.cdpg.dx.apiserver.ProxyApiServerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "ssl": true,
+      "production": false,
+      "httpPort": 8444,
+      "isAdexInstance": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "urnPrefix": "dx:dataplaneProxy:",
+      "maxDaysSync": 10,
+      "maxDaysAsync": 365
     }
   ]
 }

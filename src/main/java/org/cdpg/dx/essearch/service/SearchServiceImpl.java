@@ -13,20 +13,19 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.database.elastic.model.*;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
-import org.cdpg.dx.essearch.model.OrderBy;
-import org.cdpg.dx.essearch.model.QueryDecoder;
-import org.cdpg.dx.essearch.model.SearchQuery;
-import org.cdpg.dx.essearch.model.SearchResultWithCount;
-import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
+import org.cdpg.dx.essearch.model.*;
+import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
 public class SearchServiceImpl implements SearchService {
   private static final Logger LOGGER = LogManager.getLogger(SearchServiceImpl.class);
   private final ElasticsearchService elasticsearchService;
   private final QueryDecoder queryDecoder = new QueryDecoder();
+  private final QueryDecoderNew queryDecoderNew;
 
-  public SearchServiceImpl(ElasticsearchService elasticsearchService) {
+  public SearchServiceImpl(ElasticsearchService elasticsearchService, String timeLimit) {
     this.elasticsearchService =
         Objects.requireNonNull(elasticsearchService, "elasticsearchService must not be null");
+    queryDecoderNew = new QueryDecoderNew(timeLimit);
   }
 
   @Override
@@ -205,6 +204,66 @@ public class SearchServiceImpl implements SearchService {
         .onFailure(
             failure -> {
               LOGGER.error("Error during searchAllData: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+    return promise.future();
+  }
+
+  @Override
+  public Future<SearchResultWithCount> getSearchTemporalEntityDataWithCountValidation(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchTemporalEntityDataWithCountValidation for index: {}", index);
+    Promise<SearchResultWithCount> promise = Promise.promise();
+
+    QueryModel queryModel = queryDecoderNew.buildGetTemporalEntityDataQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.debug("Count for getTemporalEntity: {}", count);
+              if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug(
+                  "Get temporal entity search completed successfully with {} results",
+                  result.getTotalCount());
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error("Error during get temporal entity: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+
+    return promise.future();
+  }
+
+  @Override
+  public Future<Integer> getSearchTemporalEntityDataOnlyCount(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchTemporalEntityDataOnlyCount for index: {}", index);
+    Promise<Integer> promise = Promise.promise();
+    QueryModel queryModel = queryDecoderNew.buildGetTemporalEntityCountQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .onSuccess(
+            count -> {
+              LOGGER.debug("Count result : {}", count);
+              promise.complete(count);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error(
+                  "Error during get temporal entity count: {}", failure.getMessage(), failure);
               promise.fail(failure);
             });
     return promise.future();

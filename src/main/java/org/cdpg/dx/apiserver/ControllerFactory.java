@@ -21,6 +21,7 @@ import org.cdpg.dx.rs.admin.service.OnboardingServiceImpl;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
+import org.cdpg.dx.rs.ngsild.temporal.factory.TemporalControllerFactory;
 
 public class ControllerFactory {
   private static final Logger LOGGER = LogManager.getLogger(ControllerFactory.class);
@@ -34,18 +35,18 @@ public class ControllerFactory {
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-
-    SearchService searchService = new SearchServiceImpl(elasticsearchService);
+    String timeLimit = config.getString("timeLimit");
+    SearchService searchService = new SearchServiceImpl(elasticsearchService, timeLimit);
 
     String tenantPrefix = config.getString("tenantPrefix");
-    String timeLimit = config.getString("timeLimit");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
     OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
     ApiController onboardingController =
         new ElasticOnboardingController(onboardingService, tenantPrefix, urnGenerator);
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
-
+    int maxDaysSync = config.getInteger("maxDaysSync", 20);
+    int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -57,8 +58,12 @@ public class ControllerFactory {
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
+
+    ApiController temporalController =
+        TemporalControllerFactory.create(
+            searchService, controlPlaneDomain, urnGenerator, maxDaysSync, maxDaysAsync);
     // TODO create other controllers
 
-    return List.of(latestController, downloadController, onboardingController);
+    return List.of(latestController, downloadController, onboardingController, temporalController);
   }
 }

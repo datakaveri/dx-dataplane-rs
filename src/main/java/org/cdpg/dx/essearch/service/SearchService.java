@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.essearch.model.SearchResultWithCount;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;
+import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
 public interface SearchService {
   Future<SearchResultWithCount> searchTemporalDataWithCountValidation(
@@ -19,4 +20,10 @@ public interface SearchService {
 
   Future<SearchResultWithCount> searchAllDataWithCountValidationWithoutSorting(
       String index, int size, int page);
+
+  Future<SearchResultWithCount> getSearchTemporalEntityDataWithCountValidation(
+      String index, NGSILDQueryParams ngsildQueryParams);
+
+  Future<Integer> getSearchTemporalEntityDataOnlyCount(
+      String index, NGSILDQueryParams ngsildQueryParams);
 }
