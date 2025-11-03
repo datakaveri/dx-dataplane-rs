@@ -156,7 +156,7 @@ public class QueryDecoderNew {
     String jsonValue = "";
     String jsonAttribute = "";
 
-    String[] attributes = queryTerms.split(";");
+    String[] attributes = queryTerms.split(",");
     LOGGER.info("Attributes : {} ", attributes);
 
     for (String attr : attributes) {
@@ -253,7 +253,7 @@ public class QueryDecoderNew {
     }
     if (ngsildQueryParams.getQ() != null) {
       JsonArray query = new JsonArray();
-      String[] qterms = ngsildQueryParams.getQ().split(";");
+      String[] qterms = ngsildQueryParams.getQ().split(",");
       for (String term : qterms) {
         query.add(getQueryTerms(term));
       }

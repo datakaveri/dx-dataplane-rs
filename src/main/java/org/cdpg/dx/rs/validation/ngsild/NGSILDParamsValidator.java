@@ -220,8 +220,7 @@ public class NGSILDParamsValidator {
 
     if (!timeRel.equalsIgnoreCase("before")
         && !timeRel.equalsIgnoreCase("after")
-        && !timeRel.equalsIgnoreCase("between")
-        && !timeRel.equalsIgnoreCase("during")) {
+        && !timeRel.equalsIgnoreCase("between")) {
       throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between, during");
     }
 
@@ -244,15 +243,14 @@ public class NGSILDParamsValidator {
       }
     }
     // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
-    /*
-        Set<String> ALLOWED_TIME_PROPERTIES = Set.of("observedAt", "createdAt", "modifiedAt");
+    /*Set<String> ALLOWED_TIME_PROPERTIES =
+        Set.of("observedAt", "createdAt", "modifiedAt", "observationDateTime");
 
-        if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
-          String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
-          throw new DxBadRequestException(
-              "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
-        }
-    */
+    if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
+      String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
+      throw new DxBadRequestException(
+          "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
+    }*/
 
     if (end != null) {
       long days = Duration.between(start, end).toDays();
@@ -274,9 +272,9 @@ public class NGSILDParamsValidator {
     if (q == null || q.isBlank()) return;
 
     String[] attributes = q.split(",");
-      if (attributes.length > MAX_Q_ITEMS) {
-          throw new DxBadRequestException("Too many q, maximum allowed = " + MAX_Q_ITEMS);
-      }
+    if (attributes.length > MAX_Q_ITEMS) {
+      throw new DxBadRequestException("Too many q, maximum allowed = " + MAX_Q_ITEMS);
+    }
     for (String attr : attributes) {
       String[] terms = attr.split("((?=>)|(?<=>)|(?=<)|(?<=<)|(?<==)|(?=!)|(?<=!)|(?==)|(?===))");
       if (terms.length < 3 || terms.length > 4)

@@ -131,7 +131,7 @@ paths:
           description: Time property to filter on
           schema:
             type: string
-            enum: [ observationDateTime ]
+            enum: [ observationDateTime, observedAt ]
         - name: limit
           in: query
           description: Limit the no of data to be shown

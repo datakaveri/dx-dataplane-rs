@@ -40,7 +40,7 @@ public class TemporalQueryFiltersDecorator implements ElasticsearchQueryDecorato
     String timeProperty =
         temporalQuery.getTimeproperty() != null
             ? temporalQuery.getTimeproperty()
-            : "observedAt"; // Default temporal property
+            : "observationDateTime"; // Default temporal property
 
     String timerel = temporalQuery.getTimerel();
     String timeAt = temporalQuery.getTimeAt();
