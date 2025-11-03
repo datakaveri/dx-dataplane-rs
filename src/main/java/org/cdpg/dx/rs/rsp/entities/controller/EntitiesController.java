@@ -143,6 +143,7 @@ public class EntitiesController implements ApiController {
         .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
             rpcResponse -> {
+              LOGGER.debug("response from adapter {}", rpcResponse.encodePrettily());
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
