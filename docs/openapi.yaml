@@ -68,6 +68,10 @@ info:
     name: Apache 2.0
 
 tags:
+  - name: Temporal Entities
+    x-displayName: "Temporal and Complex Search"
+    description: |
+      A Temporal Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `temporal`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `temporal` parameter is <b>mandatory</b>. <br/> You can use this API to make a `temporal` or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute` query. <br/> If you are looking for an `attribute` only query refer the <b>Spatial Search</b> `/entities` endpoint.
   - name: Download CSV
     x-displayName: "Download"
     description: |
@@ -90,6 +94,8 @@ servers:
 paths:
   /ngsi-ld/v2/temporal/entities:
     get:
+      tags:
+        - Temporal Entity
       operationId: getTemporalEntities
       summary: Temporal Entities Search
       description: Search for temporal entities with various filters
@@ -148,17 +154,17 @@ paths:
             default: false
         - name: q
           in: query
-          description: for attribute based search
+          description: For attribute based search. The attribute query is used for querying allowed quantitative properties. Used to query on a value of a resource attribute using <,>,<=,>=,!=, == operators. For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. Allowed values for all operators is double. For the operator == if the query is on id then the only value allowed is an data exchange ID of a resource. Multiple value is allow with comma(,) separate, maximum 10 values is allowed.
           schema:
               type: string
         - name: omit
           in: query
-          description: Comma-separated list of properties to omit from the response
+          description: Comma-separated list of properties to omit from the response, maximum value is allow is 5.
           schema:
               type: string
         - name: pick
           in: query
-          description: Comma-separated list of properties to pick from the response
+          description: Comma-separated list of properties to pick from the response, maximum value is allow is 5.
           schema:
             type: string
         - name: geometry
