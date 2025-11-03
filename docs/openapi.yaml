@@ -95,7 +95,7 @@ paths:
   /ngsi-ld/v2/temporal/entities:
     get:
       tags:
-        - Temporal Entity
+        - Temporal Entities
       operationId: getTemporalEntities
       summary: Temporal Entities Search
       description: Search for temporal entities with various filters
@@ -196,7 +196,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/entityresponse'
+                anyOf:
+                - $ref: '#/components/schemas/temporalEntityresponse'
+                - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -2121,6 +2123,55 @@ components:
             "id": "UUID"
           }
         ]
+
+    temporalEntityresponse:
+      title: temporalentityresponse
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+       [
+          {
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "trip_delay": 948,
+            "last_stop_arrival_time": "15:09:58",
+            "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+            "vehicle_label": "A09",
+            "observationDateTime": "2020-11-03T15:12:08+05:30",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
+
+    countResponse:
+      title: Count response
+      type: object
+      properties:
+        results:
+          description: An objects
+          type: object
+          items:
+            type: object
+      example:
+        {
+          "type": "CountResult",
+          "value": 145
+        }
 
     registeradapter:
       title: registeradapter
