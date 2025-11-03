@@ -704,7 +704,7 @@ public class RabbitClient {
             RabbitMQConsumer rmqConsumer = rabbitMQConsumerResult.result();
             long timerId =
                 vertx.setTimer(
-                    10000,
+                    1000000,
                     timeout -> {
                       LOGGER.info("max wait time elapsed for consumer, cancelling consumer");
                       rmqConsumer.cancel();
