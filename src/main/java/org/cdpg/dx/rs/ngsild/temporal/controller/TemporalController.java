@@ -1,14 +1,18 @@
 package org.cdpg.dx.rs.ngsild.temporal.controller;
 
+import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
@@ -19,14 +23,23 @@ import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHand
 
 public class TemporalController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(TemporalController.class);
-  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild =
-      new ItemAccessApplicableFilterHandlerNgsild("https://v2.dev.controlplane.iudx.io");
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
+  private final URNGenerator urnGenerator;
   GetIdFromParams getIdFromParams = new GetIdFromParams();
-  NGSILDParamsValidator ngsildParamsValidator = new NGSILDParamsValidator(365, 10);
+  NGSILDParamsValidator ngsildParamsValidator;
   TemporalService temporalService;
 
-  public TemporalController(TemporalService temporalService) {
+  public TemporalController(
+      TemporalService temporalService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      int maxDaysSync,
+      int maxDaysAsync) {
     this.temporalService = temporalService;
+    this.itemAccessApplicableFilterHandlerNgsild =
+        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
+    this.urnGenerator = urnGenerator;
   }
 
   @Override
@@ -43,6 +56,7 @@ public class TemporalController implements ApiController {
 
     MultiMap params = routingContext.request().params(true);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
+    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
       ngsildParamsValidator.validateQueryParams(params);
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
@@ -67,20 +81,65 @@ public class TemporalController implements ApiController {
 
       ngsildParamsValidator.validatePick(params.get(NGSILDQUERY_PICK));
       ngsildParamsValidator.validateOmit(params.get(NGSILDQUERY_OMIT));
-      LOGGER.debug("nsgildParamsValidator:");
+      LOGGER.debug("nsgildParamsValidator completed");
     } catch (DxBadRequestException e) {
       routingContext.fail(e);
       return;
     }
-
-    /*TemporalService temporalService = new TemporalServiceImpl();
-    temporalService.getTemporalSearch(params);*/
-
+    HttpServerResponse response = routingContext.response();
     NGSILDQueryParams ngsildQueryParams = new NGSILDQueryParams(params);
-    temporalService.getTemporalSearch(ngsildQueryParams);
-
-    // TemporalGetRequest temporalGetRequest = TemporalEntitiesValidation.validateParam(params);
-    //        LOGGER.debug("Validated TemporalGetRequest: {}", temporalGetRequest.toJson());
-
+    if (ngsildQueryParams.isCount()) {
+      temporalService
+          .getTemporalSearchCount(ngsildQueryParams)
+          .onSuccess(
+              getTemporalEntityCount -> {
+                JsonObject result = new JsonObject();
+                result.put("type", "CountResult");
+                result.put("value", getTemporalEntityCount);
+                response
+                    .putHeader("Content-Type", "application/json")
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityCount))
+                    .setStatusCode(200)
+                    .end(result.encode());
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Count request failed: {}", err.getMessage(), err);
+                routingContext.fail(err);
+              });
+    } else {
+      temporalService
+          .getTemporalSearch(ngsildQueryParams)
+          .onSuccess(
+              getTemporalEntityData -> {
+                response
+                    .putHeader("Content-Type", "application/json")
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(
+                        NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityData.getTotalHits()))
+                    .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                    .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                    .setStatusCode(200)
+                    /*.end(JsonObject.mapFrom(response).encode());*/
+                    .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                /*ResponseBuilder.sendSuccess(
+                routingContext,
+                getTemporalEntityData.getElasticsearchResponses(),
+                getTemporalEntityData.getPaginationInfo(),
+                urnGenerator);*/
+              })
+          .onFailure(
+              err -> {
+                LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                routingContext.fail(err);
+              });
+    }
   }
 }

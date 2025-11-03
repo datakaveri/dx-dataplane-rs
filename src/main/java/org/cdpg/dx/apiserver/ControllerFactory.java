@@ -35,18 +35,18 @@ public class ControllerFactory {
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-
-    SearchService searchService = new SearchServiceImpl(elasticsearchService);
+    String timeLimit = config.getString("timeLimit");
+    SearchService searchService = new SearchServiceImpl(elasticsearchService, timeLimit);
 
     String tenantPrefix = config.getString("tenantPrefix");
-    String timeLimit = config.getString("timeLimit");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
     OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
     ApiController onboardingController =
         new ElasticOnboardingController(onboardingService, tenantPrefix, urnGenerator);
 
     IndexNameCreation.tenantPrefixs = tenantPrefix;
-
+    int maxDaysSync = config.getInteger("maxDaysSync", 20);
+    int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -60,7 +60,8 @@ public class ControllerFactory {
             timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
 
     ApiController temporalController =
-        TemporalControllerFactory.create(searchService);
+        TemporalControllerFactory.create(
+            searchService, controlPlaneDomain, urnGenerator, maxDaysSync, maxDaysAsync);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, temporalController);

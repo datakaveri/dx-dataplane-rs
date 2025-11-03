@@ -33,4 +33,8 @@ public class NGSILDConstant {
     public static final String HEADER_CSV = "csv";
     public static final String HEADER_JSON = "json";
     public static final String HEADER_PARQUET = "parquet";
+
+    public static final String NGSILD_RESULTS_COUNT = "NGSILD-Results-Count";
+    public static final String NGSILD_LIMIT = "NGSILD-Limit";
+    public static final String NGSILD_OFFSET = "NGSILD-Offset";
 }

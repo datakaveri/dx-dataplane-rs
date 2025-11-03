@@ -28,6 +28,7 @@ public class NGSILDParamsValidator {
 
   private static final int MAX_ATTRS_ITEMS = 5; // same as VALIDATION_MAX_ATTRS
   private static final int MAX_ATTR_LENGTH = 100; // same as VALIDATIONS_MAX_ATTR_LENGTH
+  private static final int MAX_Q_ITEMS = 10;
   private static final Pattern ATTRS_REGEX = Pattern.compile("^[a-zA-Z0-9_]+$");
 
   private static final Pattern DECIMAL_PATTERN =
@@ -272,7 +273,10 @@ public class NGSILDParamsValidator {
   public void validateQ(String q) {
     if (q == null || q.isBlank()) return;
 
-    String[] attributes = q.split(";");
+    String[] attributes = q.split(",");
+      if (attributes.length > MAX_Q_ITEMS) {
+          throw new DxBadRequestException("Too many q, maximum allowed = " + MAX_Q_ITEMS);
+      }
     for (String attr : attributes) {
       String[] terms = attr.split("((?=>)|(?<=>)|(?=<)|(?<=<)|(?<==)|(?=!)|(?<=!)|(?==)|(?===))");
       if (terms.length < 3 || terms.length > 4)

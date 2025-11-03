@@ -20,12 +20,12 @@ public class SearchServiceImpl implements SearchService {
   private static final Logger LOGGER = LogManager.getLogger(SearchServiceImpl.class);
   private final ElasticsearchService elasticsearchService;
   private final QueryDecoder queryDecoder = new QueryDecoder();
+  private final QueryDecoderNew queryDecoderNew;
 
-  private final QueryDecoderNew queryDecoderNew = new QueryDecoderNew();
-
-  public SearchServiceImpl(ElasticsearchService elasticsearchService) {
+  public SearchServiceImpl(ElasticsearchService elasticsearchService, String timeLimit) {
     this.elasticsearchService =
         Objects.requireNonNull(elasticsearchService, "elasticsearchService must not be null");
+    queryDecoderNew = new QueryDecoderNew(timeLimit);
   }
 
   @Override
@@ -220,7 +220,7 @@ public class SearchServiceImpl implements SearchService {
         .count(index, queryModel)
         .compose(
             count -> {
-              LOGGER.debug("Count result for getTemporalEntity: {}", count);
+              LOGGER.debug("Count for getTemporalEntity: {}", count);
               if (count == 0) {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
@@ -244,6 +244,28 @@ public class SearchServiceImpl implements SearchService {
               promise.fail(failure);
             });
 
+    return promise.future();
+  }
+
+  @Override
+  public Future<Integer> getSearchTemporalEntityDataOnlyCount(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchTemporalEntityDataOnlyCount for index: {}", index);
+    Promise<Integer> promise = Promise.promise();
+    QueryModel queryModel = queryDecoderNew.buildGetTemporalEntityCountQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .onSuccess(
+            count -> {
+              LOGGER.debug("Count result : {}", count);
+              promise.complete(count);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error(
+                  "Error during get temporal entity count: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
     return promise.future();
   }
 }

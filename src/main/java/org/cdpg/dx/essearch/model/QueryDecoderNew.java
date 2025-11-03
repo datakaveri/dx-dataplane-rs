@@ -28,18 +28,28 @@ public class QueryDecoderNew {
   private boolean isGeoSearch = false;
   private boolean isResponseFilter = false;
   private boolean isAttributeSearch = false;
+  private String timeLimit;
+
+  public QueryDecoderNew(String timeLimit) {
+    this.timeLimit = timeLimit;
+  }
 
   public QueryModel buildGetTemporalEntityDataQuery(NGSILDQueryParams ngsildQueryParams) {
     Map<FilterType, List<QueryModel>> queryMap = new HashMap<>();
+    for (FilterType filterType : FilterType.values()) {
+      queryMap.put(filterType, new ArrayList<>());
+    }
     LOGGER.debug("Mapping NGSI-LD parameters to Elasticsearch query: {}", ngsildQueryParams);
     // Map ID filters
-      if (ngsildQueryParams.getId() != null && !ngsildQueryParams.getId().isEmpty()) {
-          QueryModel idQuery = mapIdQuery(ngsildQueryParams.getId());
-          if (idQuery != null) {
-              /*mustQueries.add(idQuery);*/
-              queryMap.computeIfAbsent(FilterType.FILTER, k -> new ArrayList<>()).add(idQuery);
-          }
-      }
+    /*if (ngsildQueryParams.getId() != null && !ngsildQueryParams.getId().isEmpty()) {
+    QueryModel idQuery = mapIdQuery(ngsildQueryParams.getId());
+    if (idQuery != null) {
+        */
+    /*mustQueries.add(idQuery);*/
+    /*
+            queryMap.computeIfAbsent(FilterType.SHOULD, k -> new ArrayList<>()).add(idQuery);
+        }
+    }*/
 
     if (ngsildQueryParams.getTemporalQuery() != null) {
       if (ngsildQueryParams.getTemporalQuery().getTimerel() == null
@@ -49,18 +59,16 @@ public class QueryDecoderNew {
         int defaultDateLimit = 0;
         if (ngsildQueryParams.getTemporalQuery().getTimerel() != null
             && ngsildQueryParams.getTemporalQuery().getTimeAt() != null) {
-          /*defaultDateLimit = Integer.parseInt("temporalQueryRequest.getTimeLimit()".split(",")[2]);*/
-          defaultDateLimit = Integer.parseInt("test,2020-10-22T00:00:00Z,20".split(",")[2]);
+          defaultDateLimit = Integer.parseInt(timeLimit.split(",")[2]);
         }
 
         new TemporalQueryFiltersDecorator(
                 queryMap, ngsildQueryParams.getTemporalQuery(), defaultDateLimit)
             .add();
         isTemporal = true;
-        LOGGER.debug("checking temporal query");
       }
     }
-    LOGGER.debug("bhar aya temporal query");
+
     if (ngsildQueryParams.getGeoRel().getRelation() != null) {
       if (ngsildQueryParams.getGeoRel() == null
           || ngsildQueryParams.getGeoRel().getRelation() == null
@@ -76,10 +84,9 @@ public class QueryDecoderNew {
         GeoQ geoQ = new GeoQ(geoQuery);
         new GeoQueryFiltersDecorator(queryMap, geoQ).add();
         isGeoSearch = true;
-        LOGGER.debug("checking geo query");
       }
     }
-    LOGGER.debug("bhar aya geo query");
+
     if (ngsildQueryParams.getQ() != null) {
       JsonArray query = new JsonArray();
       String[] qterms = ngsildQueryParams.getQ().split(";");
@@ -91,11 +98,8 @@ public class QueryDecoderNew {
       LOGGER.debug("Attribute Query JSON: {}", qJson);
       new AttributeQueryFiltersDecorator(queryMap, qJson).add();
       isAttributeSearch = true;
-      LOGGER.debug("checking attribute query");
     }
-    LOGGER.debug("bhar aya attr query");
 
-    LOGGER.debug("bhar aya at querymap {}", queryMap);
     QueryModel q = new QueryModel();
     q.setQueries(getBoolQuery(queryMap));
 
@@ -119,10 +123,10 @@ public class QueryDecoderNew {
     }
 
     // Optional: Add sorting if required
-    Map<String, String> sortFields = new HashMap<>();
+    /*Map<String, String> sortFields = new HashMap<>();
     sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");
     q.setSortFields(sortFields);
-    LOGGER.debug("Sort fields set to: {}", sortFields);
+    LOGGER.debug("Sort fields set to: {}", sortFields);*/
 
     return q;
   }
@@ -203,5 +207,74 @@ public class QueryDecoderNew {
       boolQuery.setShouldQueries(shouldQueries);
     }
     return boolQuery;
+  }
+
+  public QueryModel buildGetTemporalEntityCountQuery(NGSILDQueryParams ngsildQueryParams) {
+    Map<FilterType, List<QueryModel>> queryMap = new HashMap<>();
+    for (FilterType filterType : FilterType.values()) {
+      queryMap.put(filterType, new ArrayList<>());
+    }
+    LOGGER.debug("Mapping NGSI-LD parameters to Elasticsearch query: {}", ngsildQueryParams);
+
+    if (ngsildQueryParams.getTemporalQuery() != null) {
+      if (ngsildQueryParams.getTemporalQuery().getTimerel() == null
+          || ngsildQueryParams.getTemporalQuery().getTimerel().isEmpty()) {
+        throw new DxEsException("Time relation is required for temporal queries");
+      } else {
+        int defaultDateLimit = 0;
+        if (ngsildQueryParams.getTemporalQuery().getTimerel() != null
+            && ngsildQueryParams.getTemporalQuery().getTimeAt() != null) {
+          defaultDateLimit = Integer.parseInt(timeLimit.split(",")[2]);
+        }
+
+        new TemporalQueryFiltersDecorator(
+                queryMap, ngsildQueryParams.getTemporalQuery(), defaultDateLimit)
+            .add();
+        isTemporal = true;
+      }
+    }
+
+    if (ngsildQueryParams.getGeoRel().getRelation() != null) {
+      if (ngsildQueryParams.getGeoRel() == null
+          || ngsildQueryParams.getGeoRel().getRelation() == null
+          || ngsildQueryParams.getCoordinates() == null
+          || ngsildQueryParams.getGeometry() == null) {
+        return null;
+      } else {
+        GeoQuery geoQuery = new GeoQuery();
+        geoQuery.setCoordinates(new JsonArray(ngsildQueryParams.getCoordinates()));
+        geoQuery.setGeometry(ngsildQueryParams.getGeometry());
+        geoQuery.setGeoproperty(ngsildQueryParams.getGeoProperty());
+        geoQuery.setGeorel(ngsildQueryParams.getGeoRel());
+        GeoQ geoQ = new GeoQ(geoQuery);
+        new GeoQueryFiltersDecorator(queryMap, geoQ).add();
+        isGeoSearch = true;
+      }
+    }
+    if (ngsildQueryParams.getQ() != null) {
+      JsonArray query = new JsonArray();
+      String[] qterms = ngsildQueryParams.getQ().split(";");
+      for (String term : qterms) {
+        query.add(getQueryTerms(term));
+      }
+      JsonObject qJson = new JsonObject();
+      qJson.put(ATTRIBUTE_QUERY_KEY, query);
+      LOGGER.debug("Attribute Query JSON: {}", qJson);
+      new AttributeQueryFiltersDecorator(queryMap, qJson).add();
+      isAttributeSearch = true;
+    }
+
+    QueryModel q = new QueryModel();
+    q.setQueries(getBoolQuery(queryMap));
+
+    if (ngsildQueryParams.getPick() != null && !ngsildQueryParams.getPick().isEmpty()) {
+      q.setIncludeFields(ngsildQueryParams.getPick());
+      LOGGER.debug("Include fields set to: {}", ngsildQueryParams.getPick());
+    }
+    if (ngsildQueryParams.getOmit() != null && !ngsildQueryParams.getOmit().isEmpty()) {
+      q.setExcludeFields(ngsildQueryParams.getOmit());
+      LOGGER.debug("Exclude fields set to: {}", ngsildQueryParams.getOmit());
+    }
+    return q;
   }
 }

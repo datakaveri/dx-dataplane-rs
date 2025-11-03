@@ -1,13 +1,10 @@
 package org.cdpg.dx.rs.ngsild.temporal.service;
 
 import io.vertx.core.Future;
-import java.util.Collections;
-import java.util.List;
+import io.vertx.core.Promise;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.response.ResponseModel;
-import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
-import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
@@ -27,40 +24,42 @@ public class TemporalServiceImpl implements TemporalService {
   public Future<ResponseModel> getTemporalSearch(NGSILDQueryParams ngsildQueryParams) {
     LOGGER.debug("NGSILDQueryParams: {}", ngsildQueryParams.toString());
     String index = IndexNameCreation.createIndex(ngsildQueryParams.getId().get(0).toString());
-    searchService.getSearchTemporalEntityDataWithCountValidation(index, ngsildQueryParams);
-
-    List<ElasticsearchResponse> emptyResults = Collections.emptyList();
-    ResponseModel response = new ResponseModel(emptyResults, 0, 0);
-    return Future.succeededFuture(response);
+    return searchService
+        .getSearchTemporalEntityDataWithCountValidation(index, ngsildQueryParams)
+        .map(
+            searchResultWithCount -> {
+              LOGGER.debug(
+                  "Successfully fetched count for ID: {}",
+                  ngsildQueryParams.getId().get(0).toString());
+              return new ResponseModel(
+                  searchResultWithCount.getResults(),
+                  ngsildQueryParams.getPageSize(),
+                  ngsildQueryParams.getPageFrom());
+            })
+        .onFailure(
+            err -> {
+              LOGGER.error(
+                  "Error fetching data for ID: {}",
+                  ngsildQueryParams.getId().get(0).toString(),
+                  err);
+            });
   }
 
- /* @Override
-  public Future<ResponseModel> getTemporalSearch(NGSILDQueryParams ngsildQueryParams) {
+  @Override
+  public Future<Integer> getTemporalSearchCount(NGSILDQueryParams ngsildQueryParams) {
     LOGGER.debug("NGSILDQueryParams: {}", ngsildQueryParams.toString());
-
-    try {
-      // Map NGSI-LD parameters to Elasticsearch query
-      QueryModel elasticsearchQuery = queryMapper.mapToElasticsearchQuery(ngsildQueryParams);
-
-      LOGGER.info("Complete QueryModel - Query: {}", elasticsearchQuery.toElasticsearchQuery());
-
-      // TODO: Execute the Elasticsearch query using ElasticsearchService
-      // This would typically involve:
-      // 1. Converting QueryModel to actual Elasticsearch query
-      // 2. Executing the query against Elasticsearch
-      // 3. Processing the results
-      // 4. Returning ResponseModel with the results
-
-      // For now, return a placeholder response with empty results
-      // TODO: Replace with actual Elasticsearch query execution
-      List<ElasticsearchResponse> emptyResults = Collections.emptyList();
-      ResponseModel response = new ResponseModel(emptyResults, 0, 0);
-
-      return Future.succeededFuture(response);
-
-    } catch (Exception e) {
-      LOGGER.error("Error processing temporal search query", e);
-      return Future.failedFuture(e);
-    }
-  }*/
+    String index = IndexNameCreation.createIndex(ngsildQueryParams.getId().get(0).toString());
+    Promise<Integer> promise = Promise.promise();
+    searchService
+        .getSearchTemporalEntityDataOnlyCount(index, ngsildQueryParams)
+        .onSuccess(promise::complete)
+        .onFailure(
+            err -> {
+              LOGGER.error(
+                  "Error fetching count for ID: {}",
+                  ngsildQueryParams.getId().get(0).toString(),
+                  err);
+            });
+    return promise.future();
+  }
 }
