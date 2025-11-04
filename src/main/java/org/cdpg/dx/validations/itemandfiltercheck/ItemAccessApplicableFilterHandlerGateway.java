@@ -42,7 +42,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
               .orElseThrow(
                   () ->
                       new DxBadRequestException(
-                          "No access types(filters) found for NGSI-LD server"));
+                          "No access types(filters) found for GATEWAY server"));
       RoutingContextHelper.setItemMetaData(context, context.user().principal());
       RoutingContextHelper.setApplicableFilter(context, applicableFilters);
       context.next();
