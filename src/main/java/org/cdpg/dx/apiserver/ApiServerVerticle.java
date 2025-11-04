@@ -53,7 +53,7 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     port = config().getInteger("httpPort", 8443);
     allowedOrigins = config().getJsonArray("corsAllowedOrigin").getList();
-    String urnPrefix = config().getString("urnPrefix", "urn:dx:controlPanel:");
+    String urnPrefix = config().getString("urnPrefix", "urn:dx:dataplane:");
     this.urnGenerator = new URNGenerator(urnPrefix);
 
     // Configure Jackson mappers
