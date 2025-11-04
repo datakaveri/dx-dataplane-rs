@@ -35,7 +35,16 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerGateway");
 
     if (context.user().containsKey("cons")) {
-      LOGGER.debug("Skipping for now to handle access token");
+      LOGGER.debug("Processing access token");
+      JsonArray applicableFilters =
+          Optional.ofNullable(context.user().principal().getJsonArray("applicableFilters"))
+              .filter(at -> !at.isEmpty())
+              .orElseThrow(
+                  () ->
+                      new DxBadRequestException(
+                          "No access types(filters) found for GATEWAY server"));
+      RoutingContextHelper.setItemMetaData(context, context.user().principal());
+      RoutingContextHelper.setApplicableFilter(context, applicableFilters);
       context.next();
       return;
     } else {
