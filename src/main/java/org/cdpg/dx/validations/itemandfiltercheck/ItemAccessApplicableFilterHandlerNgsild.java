@@ -35,7 +35,16 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerNgsild");
 
     if (context.user().containsKey("cons")) {
-      LOGGER.debug("Skipping for now to handle access token");
+      LOGGER.debug("Processing access token");
+      JsonArray applicableFilters =
+          Optional.ofNullable(context.user().principal().getJsonArray("applicableFilters"))
+              .filter(at -> !at.isEmpty())
+              .orElseThrow(
+                  () ->
+                      new DxBadRequestException(
+                          "No access types(filters) found for NGSI-LD server"));
+      RoutingContextHelper.setItemMetaData(context, context.user().principal());
+      RoutingContextHelper.setApplicableFilter(context, applicableFilters);
       context.next();
       return;
     } else {
