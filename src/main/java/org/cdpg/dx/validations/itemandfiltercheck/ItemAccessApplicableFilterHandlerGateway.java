@@ -36,15 +36,26 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
 
     if (context.user().containsKey("cons")) {
       LOGGER.debug("Processing access token");
-      JsonArray applicableFilters =
-          Optional.ofNullable(context.user().principal().getJsonArray("applicableFilters"))
+      JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
+      JsonObject ngsiLdServer =
+          Optional.ofNullable(resourceServers)
+              .filter(rs -> !rs.isEmpty())
+              .orElseThrow(() -> new DxBadRequestException("No resource server information found"))
+              .stream()
+              .map(JsonObject.class::cast)
+              .filter(rs -> "GATEWAY".equalsIgnoreCase(rs.getString("name")))
+              .findFirst()
+              .orElseThrow(() -> new DxBadRequestException("GATEWAY resource server not found"));
+
+      JsonArray accessTypes =
+          Optional.ofNullable(ngsiLdServer.getJsonArray("accessTypes"))
               .filter(at -> !at.isEmpty())
               .orElseThrow(
                   () ->
                       new DxBadRequestException(
                           "No access types(filters) found for GATEWAY server"));
       RoutingContextHelper.setItemMetaData(context, context.user().principal());
-      RoutingContextHelper.setApplicableFilter(context, applicableFilters);
+      RoutingContextHelper.setApplicableFilter(context, accessTypes);
       context.next();
       return;
     } else {
