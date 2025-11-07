@@ -4,20 +4,21 @@ import static org.cdpg.dx.apiserver.util.Util.toUriFunction;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cdpg.dx.rs.ngsild.searchmodels.GeoQuery;
 import org.cdpg.dx.rs.ngsild.searchmodels.GeoRelation;
 import org.cdpg.dx.rs.ngsild.searchmodels.TemporalQuery;
-import org.cdpg.dx.rs.ngsild.temporal.model.TemporalGetRequest;
+import org.cdpg.dx.rs.ngsild.util.NGSILDConstant;
 
 /** NGSILDQueryParams Class to parse query parameters from HTTP request. */
 public class NGSILDQueryParams {
@@ -36,8 +37,8 @@ public class NGSILDQueryParams {
   private String coordinates;
   private String geoProperty;
   private String relation;
-  private int pageFrom;
-  private int pageSize;
+  private int pageFrom = 0;
+  private int pageSize = 100;
   private boolean count;
 
   public NGSILDQueryParams() {}
@@ -62,79 +63,7 @@ public class NGSILDQueryParams {
 
     this.setTemporalQuery(new TemporalQuery());
     this.setGeoRel(new GeoRelation());
-    /*this.create(json);*/
-  }
-
-  public NGSILDQueryParams(TemporalGetRequest temporalGetRequest) {
-    this.setTemporalQuery(new TemporalQuery());
-    this.setGeoRel(new GeoRelation());
-
-    if (temporalGetRequest == null) {
-      return;
-    }
-
-    if (temporalGetRequest.getId() != null) {
-      this.id = temporalGetRequest.getId();
-    }
-
-    if (temporalGetRequest.getPick() != null) {
-      this.pick = temporalGetRequest.getPick();
-    }
-    if (temporalGetRequest.getOmit() != null) {
-      this.omit = temporalGetRequest.getOmit();
-    }
-    if (temporalGetRequest.getQ() != null) {
-      this.q = temporalGetRequest.getQ();
-    }
-    if (temporalGetRequest.getOptions() != null) {
-      this.options = temporalGetRequest.getOptions();
-    }
-    if (temporalGetRequest.getFrom() != null) {
-      this.pageFrom = Integer.parseInt(temporalGetRequest.getFrom());
-    }
-    if (temporalGetRequest.getSize() != null) {
-      this.pageSize = Integer.parseInt(temporalGetRequest.getSize());
-    }
-
-    TemporalQuery temporalQuery = temporalGetRequest.getTemporalQ();
-    if (temporalQuery != null) {
-      if (temporalQuery.getTimerel() != null) {
-        this.temporalQuery.setTimerel(temporalQuery.getTimerel());
-      }
-      if (temporalQuery.getTimeAt() != null) {
-        this.temporalQuery.setTimeAt(temporalQuery.getTimeAt());
-      }
-      if (temporalQuery.getEndtimeAt() != null) {
-        this.temporalQuery.setEndtimeAt(temporalQuery.getEndtimeAt());
-      }
-      if (temporalQuery.getTimeproperty() != null) {
-        this.temporalQuery.setTimeproperty(temporalQuery.getTimeproperty());
-      }
-    }
-    GeoQuery geoQuery = temporalGetRequest.getGeoQ();
-    if (geoQuery != null) {
-      if (geoQuery.getGeometry() != null) {
-        this.geometry = geoQuery.getGeometry();
-      }
-      if (geoQuery.getCoordinates() != null) {
-        this.coordinates = geoQuery.getCoordinates().toString();
-      }
-      if (geoQuery.getGeoproperty() != null) {
-        this.geoProperty = geoQuery.getGeoproperty();
-      }
-      GeoRelation geoRel = geoQuery.getGeorel();
-      if (geoRel != null) {
-        if (geoRel.getRelation() != null) {
-          this.geoRel.setRelation(geoRel.getRelation());
-        }
-        if (geoRel.getMaxDistance() != 0) {
-          this.geoRel.setMaxDistance(geoRel.getMaxDistance());
-        }
-        if (geoRel.getMinDistance() != 0) {
-          this.geoRel.setMinDistance(geoRel.getMinDistance());
-        }
-      }
-    }
+    this.create(json);
   }
 
   public String getIdPattern() {
@@ -257,6 +186,79 @@ public class NGSILDQueryParams {
     }
   }
 
+  private void create(JsonObject requestJson) {
+    LOGGER.info("create from json started");
+    requestJson.forEach(
+        entry -> {
+          LOGGER.debug("key ::" + entry.getKey() + " value :: " + entry.getValue());
+          if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_Q)) {
+            this.q = requestJson.getString(NGSILDQUERY_Q);
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_PICK)) {
+            this.pick = new ArrayList<String>();
+            this.pick =
+                Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_OMIT)) {
+            this.omit = new ArrayList<String>();
+            this.omit =
+                Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
+          } else if (entry.getKey().equalsIgnoreCase("geoQ")) {
+            JsonObject geoJson = requestJson.getJsonObject(entry.getKey());
+            this.setGeometry(geoJson.getString("geometry"));
+            this.setGeoProperty(geoJson.getString("geoproperty"));
+            this.setCoordinates(geoJson.getJsonArray("coordinates").toString());
+            if (geoJson.containsKey("georel")) {
+              String georel = geoJson.getString("georel");
+              String[] values = georel.split(";");
+              this.geoRel.setRelation(values[0]);
+              if (values.length == 2) {
+                String[] distance = values[1].split("=");
+                if (distance[0].equalsIgnoreCase(NGSILDQUERY_MAXDISTANCE)) {
+                  this.geoRel.setMaxDistance(Double.parseDouble(distance[1]));
+                } else if (distance[0].equalsIgnoreCase(NGSILDQUERY_MINDISTANCE)) {
+                  this.geoRel.setMinDistance(Double.parseDouble(distance[1]));
+                }
+              }
+            }
+          } else if (entry.getKey().equalsIgnoreCase("temporalQ")) {
+            JsonObject temporalJson = requestJson.getJsonObject(entry.getKey());
+            this.temporalQuery.setTimerel(temporalJson.getString("timerel"));
+            this.temporalQuery.setTimeAt(temporalJson.getString("timeAt"));
+            this.temporalQuery.setEndtimeAt(temporalJson.getString("endtimeAt"));
+            this.temporalQuery.setTimeproperty(
+                temporalJson.getString("timeproperty", "observationDateTime"));
+          } else if (entry.getKey().equalsIgnoreCase("entities")) {
+            JsonArray array = new JsonArray(entry.getValue().toString());
+            Iterator<?> iter = array.iterator();
+            while (iter.hasNext()) {
+              this.id = new ArrayList<URI>();
+              /*this.idPattern = new ArrayList<String>();*/
+              JsonObject entity = (JsonObject) iter.next();
+              String id = entity.getString("id");
+              String idPattern = entity.getString("idPattern");
+              String type = entity.getString("type");
+              if (id != null) {
+                this.id.add(toUri(id));
+              }
+              if (idPattern != null) {
+                this.idPattern = idPattern;
+              }
+              if (type != null) {
+                this.type = type;
+              }
+            }
+          } else if (entry.getKey().equalsIgnoreCase(NGSILD_OPTIONS)) {
+            this.options = requestJson.getString(entry.getKey());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_COUNT)) {
+            this.count = Boolean.parseBoolean(requestJson.getString(entry.getKey()));
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_FROM)) {
+            this.pageFrom = Integer.parseInt(requestJson.getString(entry.getKey()));
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_SIZE)) {
+            this.pageSize =
+                Integer.parseInt(requestJson.getString(NGSILDConstant.NGSILDQUERY_SIZE));
+          }
+        });
+  }
+
   private URI toUri(String source) {
     URI uri = null;
     try {
@@ -370,7 +372,7 @@ public class NGSILDQueryParams {
         + pick
         + ", omit="
         + omit
-        + ", textQuery='"
+        + ", q='"
         + q
         + '\''
         + ", temporalQuery="

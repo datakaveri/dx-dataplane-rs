@@ -74,7 +74,7 @@ public class FailureHandler implements Handler<RoutingContext> {
 
     // Case 3: Unexpected exceptions
     HttpStatusCode statusCode = ExceptionHttpStatusMapper.map(failure);
-    LOGGER.error("Unhandled error: {}", failure != null ? failure.getMessage() : "null", failure);
+    LOGGER.error("Error: {}", failure != null ? failure.getMessage() : "null", failure);
 
     String safeDetail =
         failure != null && ThrowableUtils.isSafeToExpose(failure)

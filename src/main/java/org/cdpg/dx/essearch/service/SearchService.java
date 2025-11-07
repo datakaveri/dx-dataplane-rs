@@ -26,4 +26,10 @@ public interface SearchService {
 
   Future<Integer> getSearchTemporalEntityDataOnlyCount(
       String index, NGSILDQueryParams ngsildQueryParams);
+
+    Future<SearchResultWithCount> getSearchEntitiesAttributeDataWithCountValidation(
+            String index, NGSILDQueryParams ngsildQueryParams);
+
+    Future<Integer> getSearchEntitiesAttributeDataOnlyCount(
+            String index, NGSILDQueryParams ngsildQueryParams);
 }

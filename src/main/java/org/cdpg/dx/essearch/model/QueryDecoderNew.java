@@ -89,7 +89,7 @@ public class QueryDecoderNew {
 
     if (ngsildQueryParams.getQ() != null) {
       JsonArray query = new JsonArray();
-      String[] qterms = ngsildQueryParams.getQ().split(";");
+      String[] qterms = ngsildQueryParams.getQ().split(",");
       for (String term : qterms) {
         query.add(getQueryTerms(term));
       }
@@ -266,6 +266,69 @@ public class QueryDecoderNew {
 
     QueryModel q = new QueryModel();
     q.setQueries(getBoolQuery(queryMap));
+    return q;
+  }
+
+  public QueryModel buildEntitiesAttributeDataQuery(NGSILDQueryParams ngsildQueryParams) {
+    Map<FilterType, List<QueryModel>> queryMap = new HashMap<>();
+    for (FilterType filterType : FilterType.values()) {
+      queryMap.put(filterType, new ArrayList<>());
+    }
+    LOGGER.debug("Mapping NGSI-LD parameters to Elasticsearch query: {}", ngsildQueryParams);
+    // Map ID filters
+    /*if (ngsildQueryParams.getId() != null && !ngsildQueryParams.getId().isEmpty()) {
+    QueryModel idQuery = mapIdQuery(ngsildQueryParams.getId());
+    if (idQuery != null) {
+        */
+    /*mustQueries.add(idQuery);*/
+    /*
+            queryMap.computeIfAbsent(FilterType.SHOULD, k -> new ArrayList<>()).add(idQuery);
+        }
+    }*/
+
+    if (ngsildQueryParams.getGeoRel().getRelation() != null) {
+      if (ngsildQueryParams.getGeoRel() == null
+          || ngsildQueryParams.getGeoRel().getRelation() == null
+          || ngsildQueryParams.getCoordinates() == null
+          || ngsildQueryParams.getGeometry() == null) {
+        return null;
+      } else {
+        GeoQuery geoQuery = new GeoQuery();
+        geoQuery.setCoordinates(new JsonArray(ngsildQueryParams.getCoordinates()));
+        geoQuery.setGeometry(ngsildQueryParams.getGeometry());
+        geoQuery.setGeoproperty(ngsildQueryParams.getGeoProperty());
+        geoQuery.setGeorel(ngsildQueryParams.getGeoRel());
+        GeoQ geoQ = new GeoQ(geoQuery);
+        new GeoQueryFiltersDecorator(queryMap, geoQ).add();
+        isGeoSearch = true;
+      }
+    }
+
+    if (ngsildQueryParams.getQ() != null) {
+      JsonArray query = new JsonArray();
+      String[] qterms = ngsildQueryParams.getQ().split(",");
+      for (String term : qterms) {
+        query.add(getQueryTerms(term));
+      }
+      JsonObject qJson = new JsonObject();
+      qJson.put(ATTRIBUTE_QUERY_KEY, query);
+      LOGGER.debug("Atr Query JSON: {}", qJson);
+      new AttributeQueryFiltersDecorator(queryMap, qJson).add();
+      isAttributeSearch = true;
+    }
+
+    QueryModel q = new QueryModel();
+    q.setQueries(getBoolQuery(queryMap));
+
+    if (ngsildQueryParams.getPageSize() > 0) {
+      q.setLimit(String.valueOf(ngsildQueryParams.getPageSize()));
+      LOGGER.debug("Limit set to: {}", ngsildQueryParams.getPageSize());
+    }
+
+    if (ngsildQueryParams.getPageFrom() >= 0) {
+      q.setOffset(String.valueOf(ngsildQueryParams.getPageFrom()));
+      LOGGER.debug("Offset set to: {}", ngsildQueryParams.getPageFrom());
+    }
 
     if (ngsildQueryParams.getPick() != null && !ngsildQueryParams.getPick().isEmpty()) {
       q.setIncludeFields(ngsildQueryParams.getPick());
@@ -275,6 +338,55 @@ public class QueryDecoderNew {
       q.setExcludeFields(ngsildQueryParams.getOmit());
       LOGGER.debug("Exclude fields set to: {}", ngsildQueryParams.getOmit());
     }
+
+    // Optional: Add sorting if required
+    /*Map<String, String> sortFields = new HashMap<>();
+    sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");
+    q.setSortFields(sortFields);
+    LOGGER.debug("Sort fields set to: {}", sortFields);*/
+
+    return q;
+  }
+
+  public QueryModel buildEntitiesAttributeCountQuery(NGSILDQueryParams ngsildQueryParams) {
+    Map<FilterType, List<QueryModel>> queryMap = new HashMap<>();
+    for (FilterType filterType : FilterType.values()) {
+      queryMap.put(filterType, new ArrayList<>());
+    }
+    LOGGER.debug("Mapping NGSI-LD parameters to Elasticsearch query: {}", ngsildQueryParams);
+
+    if (ngsildQueryParams.getGeoRel().getRelation() != null) {
+      if (ngsildQueryParams.getGeoRel() == null
+          || ngsildQueryParams.getGeoRel().getRelation() == null
+          || ngsildQueryParams.getCoordinates() == null
+          || ngsildQueryParams.getGeometry() == null) {
+        return null;
+      } else {
+        GeoQuery geoQuery = new GeoQuery();
+        geoQuery.setCoordinates(new JsonArray(ngsildQueryParams.getCoordinates()));
+        geoQuery.setGeometry(ngsildQueryParams.getGeometry());
+        geoQuery.setGeoproperty(ngsildQueryParams.getGeoProperty());
+        geoQuery.setGeorel(ngsildQueryParams.getGeoRel());
+        GeoQ geoQ = new GeoQ(geoQuery);
+        new GeoQueryFiltersDecorator(queryMap, geoQ).add();
+        isGeoSearch = true;
+      }
+    }
+    if (ngsildQueryParams.getQ() != null) {
+      JsonArray query = new JsonArray();
+      String[] qterms = ngsildQueryParams.getQ().split(",");
+      for (String term : qterms) {
+        query.add(getQueryTerms(term));
+      }
+      JsonObject qJson = new JsonObject();
+      qJson.put(ATTRIBUTE_QUERY_KEY, query);
+      LOGGER.debug("Q Query JSON: {}", qJson);
+      new AttributeQueryFiltersDecorator(queryMap, qJson).add();
+      isAttributeSearch = true;
+    }
+
+    QueryModel q = new QueryModel();
+    q.setQueries(getBoolQuery(queryMap));
     return q;
   }
 }

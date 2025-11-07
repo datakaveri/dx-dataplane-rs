@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.rs.ngsild.temporal.model;
 
 import io.vertx.core.json.JsonArray;
@@ -8,8 +9,12 @@ import org.cdpg.dx.rs.ngsild.searchmodels.*;
 
 public class TemporalGetRequest {
   private List<URI> id;
-  /*private List<String> attributes;*/
-  /*private List<String> idPattern;*/
+  */
+/*private List<String> attributes;*//*
+
+  */
+/*private List<String> idPattern;*//*
+
   private List<String> pick;
   private List<String> omit;
   private String q;
@@ -141,3 +146,4 @@ public class TemporalGetRequest {
     return json;
   }
 }
+*/

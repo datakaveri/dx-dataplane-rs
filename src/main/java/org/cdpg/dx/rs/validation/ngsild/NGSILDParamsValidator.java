@@ -39,6 +39,7 @@ public class NGSILDParamsValidator {
       Pattern.compile("^urn:ngsi-ld:[a-zA-Z0-9_-]+$");
   private static final String[] VALIDATION_ALLOWED_OPERATORS = {"==", ">", "<", ">=", "<=", "!="};
   private static Set<String> validParams = new HashSet<String>();
+  private static Set<String> validParamsPost = new HashSet<String>();
   private static Set<String> validHeaders = new HashSet<String>();
 
   static {
@@ -63,6 +64,13 @@ public class NGSILDParamsValidator {
     validParams.add(NGSILDQUERY_SIZE);
     validParams.add(NGSILD_OPTIONS);
     validParams.add(NGSILDQUERY_COUNT);
+  }
+
+  static {
+    validParamsPost.add(NGSILDQUERY_FROM);
+    validParamsPost.add(NGSILDQUERY_SIZE);
+    validParamsPost.add(NGSILD_OPTIONS);
+    validParamsPost.add(NGSILDQUERY_COUNT);
   }
 
   static {
@@ -121,6 +129,14 @@ public class NGSILDParamsValidator {
   public void validateQueryParams(MultiMap params) {
     for (var entry : params.entries()) {
       if (!validParams.contains(entry.getKey())) {
+        throw new DxBadRequestException("Invalid query parameter: " + entry.getKey());
+      }
+    }
+  }
+
+  public void validateQueryParamsPost(MultiMap params) {
+    for (var entry : params.entries()) {
+      if (!validParamsPost.contains(entry.getKey())) {
         throw new DxBadRequestException("Invalid query parameter: " + entry.getKey());
       }
     }
@@ -666,6 +682,9 @@ public class NGSILDParamsValidator {
 
   public void isValidQueryWithFilters(MultiMap paramsMap, JsonArray applicableFilters) {
     LOGGER.info("validation filters " + applicableFilters);
+    if (applicableFilters == null || applicableFilters.isEmpty()) {
+      throw new DxBadRequestException("No filters given that are applicable for RS Item.");
+    }
     if (isTemporalQuery(paramsMap) && !applicableFilters.contains("TEMPORAL")) {
       throw new DxBadRequestException("Temporal parameters are not supported by RS Item.");
     }
