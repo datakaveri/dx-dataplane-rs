@@ -221,7 +221,15 @@ public class SearchServiceImpl implements SearchService {
         .compose(
             count -> {
               LOGGER.debug("Count for getTemporalEntity: {}", count);
-              if (count == 0) {
+              if (count > MAX_SEARCH_RESULT_LIMIT) {
+                LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
+                return Future.failedFuture(
+                    new DxBadRequestException(
+                        "Payload too large: "
+                            + count
+                            + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
+                            + MAX_SEARCH_RESULT_LIMIT));
+              } else if (count == 0) {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
               } else {
@@ -264,6 +272,75 @@ public class SearchServiceImpl implements SearchService {
             failure -> {
               LOGGER.error(
                   "Error during get temporal entity count: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+    return promise.future();
+  }
+
+  @Override
+  public Future<SearchResultWithCount> getSearchEntitiesAttributeDataWithCountValidation(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchEntitiesAttributeDataWithCountValidation for index: {}", index);
+    Promise<SearchResultWithCount> promise = Promise.promise();
+
+    QueryModel queryModel = queryDecoderNew.buildEntitiesAttributeDataQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .compose(
+            count -> {
+              LOGGER.debug("Count for getEntities: {}", count);
+              if (count > MAX_SEARCH_RESULT_LIMIT) {
+                LOGGER.error("Count {} exceeds maximum limits {}", count, MAX_SEARCH_RESULT_LIMIT);
+                return Future.failedFuture(
+                    new DxBadRequestException(
+                        "Payload too large: "
+                            + count
+                            + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
+                            + MAX_SEARCH_RESULT_LIMIT));
+              } else if (count == 0) {
+                return Future.failedFuture(
+                    new DxBadRequestException("No data found for this index"));
+              } else {
+                return elasticsearchService
+                    .search(index, queryModel, SOURCE_ONLY)
+                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+              }
+            })
+        .onSuccess(
+            result -> {
+              LOGGER.debug(
+                  "Get entities attribute search completed successfully with {} results",
+                  result.getTotalCount());
+              ElasticsearchResponse.setTotalHits(result.getTotalCount());
+              promise.complete(result);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error(
+                  "Error during get entities attribute: {}", failure.getMessage(), failure);
+              promise.fail(failure);
+            });
+
+    return promise.future();
+  }
+
+  @Override
+  public Future<Integer> getSearchEntitiesAttributeDataOnlyCount(
+      String index, NGSILDQueryParams ngsildQueryParams) {
+    LOGGER.info("getSearchEntitiesAttributeDataOnlyCount for index: {}", index);
+    Promise<Integer> promise = Promise.promise();
+    QueryModel queryModel = queryDecoderNew.buildEntitiesAttributeCountQuery(ngsildQueryParams);
+    elasticsearchService
+        .count(index, queryModel)
+        .onSuccess(
+            count -> {
+              LOGGER.debug("Count results : {}", count);
+              promise.complete(count);
+            })
+        .onFailure(
+            failure -> {
+              LOGGER.error(
+                  "Error during get entities attribute count: {}", failure.getMessage(), failure);
               promise.fail(failure);
             });
     return promise.future();
