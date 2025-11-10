@@ -2,8 +2,7 @@ package org.cdpg.dx.rs.rsp.entities.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_PUBLIC_KEY;
-import static org.cdpg.dx.rs.audit.util.Constants.GATEWAY;
-import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.MultiMap;
@@ -137,6 +136,7 @@ public class EntitiesController implements ApiController {
         .executeAdapterQueryRPC(jsonQuery)
         .onSuccess(
             rpcResponse -> {
+              // LOGGER.debug("response from adapter {}", rpcResponse.encodePrettily());
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
@@ -150,7 +150,7 @@ public class EntitiesController implements ApiController {
                         ctx.user().subject(),
                         GATEWAY,
                         "consumer",
-                        VIEW);
+                        DOWNLOAD);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
@@ -238,7 +238,7 @@ public class EntitiesController implements ApiController {
                         ctx.user().subject(),
                         GATEWAY,
                         "consumer",
-                        VIEW);
+                        DOWNLOAD);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {

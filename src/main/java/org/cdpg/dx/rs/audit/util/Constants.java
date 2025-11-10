@@ -29,6 +29,7 @@ public class Constants {
               ITEM_TYPE_DATA_BANK,
               ITEM_TYPE_APPS));
   public static final String VIEW = "View";
+  public static final String DOWNLOAD = "Download";
   public static final String NGSILD = "NGSI-LD";
   public static final String GATEWAY = "GATEWAY";
 }
