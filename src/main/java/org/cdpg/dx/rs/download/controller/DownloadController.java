@@ -4,8 +4,7 @@ import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_ID_ENTITY_DATA;
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_PUT_SEARCH_DATA;
 import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
-import static org.cdpg.dx.rs.audit.util.Constants.NGSILD;
-import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.download.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
@@ -108,7 +107,7 @@ public class DownloadController implements ApiController {
                                   routingContext.user().subject(),
                                   NGSILD,
                                   "consumer",
-                                  VIEW);
+                                  DOWNLOAD);
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                           response.end();
                         });
@@ -184,7 +183,7 @@ public class DownloadController implements ApiController {
                                 routingContext.user().subject(),
                                 NGSILD,
                                 "consumer",
-                                VIEW);
+                                DOWNLOAD);
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                         response.end();
                       });
