@@ -1,7 +1,6 @@
 package org.cdpg.dx.rs.audit.util;
 
 import static org.cdpg.dx.rs.audit.util.Constants.ITEM_TYPES;
-import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -21,7 +20,8 @@ public class DataplaneAuditHelper {
       String method,
       String userId,
       String serverName,
-      String role, String operation) {
+      String role,
+      String operation) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
         id,

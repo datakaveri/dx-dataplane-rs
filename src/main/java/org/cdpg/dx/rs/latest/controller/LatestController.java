@@ -3,8 +3,7 @@ package org.cdpg.dx.rs.latest.controller;
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
 import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
-import static org.cdpg.dx.rs.audit.util.Constants.NGSILD;
-import static org.cdpg.dx.rs.audit.util.Constants.VIEW;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
@@ -93,7 +92,7 @@ public class LatestController implements ApiController {
                         routingContext.user().subject(),
                         NGSILD,
                         "consumer",
-                        VIEW);
+                        DOWNLOAD);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 ResponseBuilder.sendSuccess(
                     routingContext,
@@ -150,7 +149,7 @@ public class LatestController implements ApiController {
                       ctx.user().subject(),
                       NGSILD,
                       "consumer",
-                      VIEW);
+                      DOWNLOAD);
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
               sendResponse(ctx, result);
             })
