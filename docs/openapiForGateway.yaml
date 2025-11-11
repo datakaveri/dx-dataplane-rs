@@ -2,37 +2,30 @@ openapi: 3.0.2
 info:
   title: Data exchange Resource Server Proxy APIs
   version: 5.6.0
-  description: "# Introduction\nThe Resource Proxy Server is DXs'(Data Exchange) data\
-    \ discovery portal.\nThe consumers can access data from the resource server proxy\
+  description: "# Introduction\nThe Dataplane Proxy Server (Gateway) is DXs'(Data Exchange) data\
+    \ discovery portal.\nThe consumers can access data from the Dataplane server proxy\
     \ using HTTPs.\nIt supports Complex (Temporal + Attribute), Temporal (Before,\
     \ during, After) and Attribute searches.\nIt integrates with authorization server\
     \ (token introspection) to serve private data as per the access control policies\
     \ set by the provider\nIt secures data access over TLS\n\n\n# Configurations\n\
-    - **Server**: \n  - In the doc, we display the server url to be https://example-proxy.com\
-    \ with the hostname as example-proxy.com\n  - This could be configured according\
+    - **Server**: \n  - In the doc, we display the server url to be https://rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp\
+    \ with the hostname as rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp\n  - This could be configured according\
     \ to the deployment\n- **Base path**:\n  - Base path is the path on which API\
     \ is served, relative to the host\n  - It is the initial part of the API\n  -\
-    \ These base path values could be configured according to the deployment\n  -\
-    \ The base path for [DX AAA Server](https://github.com/datakaveri/iudx-aaa-server)\
-    \ is set to `/auth/v1`\n  - The base path for [DX Catalogue Server](https://github.com/datakaveri/iudx-catalogue-server)\
-    \ is set to `/iudx/cat/v1`\n      Currently, the following APIs have `/ngsi-ld/v1`\
+    \ These base path values could be configured according to the deployment\n.      Currently, the following APIs have `/ngsi-ld/v1`\
     \ base path\n      -  /entities\n      -  /temporal/entities\n      -  /temporal/entityOperations/query\n\
-    \      -  /entityOperations/query\n      -  /async/search\n      -  /async/status\n\
-    \      \n\n- **Request Samples**:\n  - The `<tokeValue>` in the header of request\
+    \      -  /entityOperations/query\n 
+    \      \n- **Request Samples**:\n  - The `<tokenValue>` in the header of request\
     \ sample could be replaced with respective token value [Also refer Tokens section\
-    \ [here](#section/Tokens)]\n  - The `<publicKeyValue>` in the header of request\
-    \ sample could be replaced with the respective public key [Also refer Encryption\
-    \ section [here](#section/Encryption)]\n  - The `<payload>` in the request sample\
+    \ [here](#section/Tokens)]\n - The `<payload>` in the request sample\
     \ could be replaced with the payload given adjacent to the request sample\n\n\n\
-    # Tokens\nAll the ***Search API***  calls to the resource server proxy should\
-    \ now contain a valid data exchange auth token presented in the query header.\
+    # Tokens\nAll the ***Search API***  calls to the dataplane server proxy should\
+    \ now contain a valid data exchange token presented in the query header.\
     \ To search (or) access an *Open* resource, the consumer should present a valid\
-    \ data exchange Auth token. To search (or) access a *Secure / Closed* resource,\
+    \ data exchange token. To search (or) access a *Secure / Closed* resource,\
     \ a consumer must get a token for the *Secure / Closed* resource along with the\
-    \ associated constraints from the DX(Data exchange) Auth Server. For subscription\
-    \ to a *Secure / Closed / Open* resource, a consumer must get a token along with\
-    \ the associated constraints from the DX(Data exchange) Auth Server.\n\n# Pagination\n\
-    Resource server proxy also offers way to paginate the result for queries. If a\
+    \ associated constraints from the DX(Data exchange) Controlplane Server. \n\n# Pagination\n\
+    Dataplane server proxy also offers way to paginate the result for queries. If a\
     \ query returns large number of records then user can use additional parameters\
     \ in query parameters to limit numbers of records to be returned.\n\n- ** Pagination\
     \ is applicable only for**\n   - **/entities**\n   - **/temporal/entities**\n\
@@ -42,10 +35,7 @@ info:
     \ first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue:\
     \ 49999</i> )\n  - **limit** : The size parameter allows you to configure the\
     \ maximum results to be returned  ( <i>default: 5000</i> ,<i>minValue: 0</i>,\
-    \ <i>maxValue: 5000</i> )\n\n# Encryption\nAll the count and search APIs have\
-    \ a feature to get encrypted data.\nTo get the data in encrypted format, the user\
-    \ could provide a `publicKey` in the header. \nThe header value should be in _url-safe\
-    \ base64 format_. \n\n**Encryption is applicable only for**\n-  **/entities**\n\
+    \ <i>maxValue: 5000</i> )\n\n-  **/entities**\n\
     -  **/temporal/entities**\n-  **/temporal/entityOperations/query**\n-  **/entityOperations/query**\n\
     \n\n# API HTTP Responses\nApart from the response codes specified in each API,\
     \ the API server may respond with certain 4xx and 5xx error codes which are related\
@@ -62,7 +52,7 @@ tags:
     description: "A Spatial Search is used by DX(Data exchange) Data *Consumers* for\
     \ querying a resource using a **valid data exchange** `id`, `spatial` and `attribute`\
     \ parameters. \n Information about the data exchange ID of the resource and security\
-    \ scope of the resource can be obtained from the ** DX(Data exchange) catalogue\
+    \ scope of the resource can be obtained from the ** DX(Data exchange) controlplane\
     \ server **. \n You can use this API to make a `spatial` or `attribute` or `complex\
     \ : spatial+attribute` query.\n"
   - name: Temporal Entities
@@ -82,13 +72,13 @@ tags:
     \ exchange) Data *Consumers*. \nThis API is used for querying a resource using\
     \ a **valid data exchange** `id`, `temporal`, `spatial` and `attribute` parameters.\
     \ \n Information about the data exchange ID of the resource and security scope\
-    \ of the resource can be obtained from the ** DX(Data exchange) catalogue server\
+    \ of the resource can be obtained from the ** DX(Data exchange) controlplane server\
     \ **. \n You can use this API to make a `temporal` or `spatial` or `attribute`\
     \ or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex\
     \ : spatial+attribute` or `complex : temporal+spatial+attribute` query.\n"
 
 servers:
-  - url: https://example-proxy.com
+  - url: https://rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp
     description: Development Server URL
 security:
   - authorization: [ ]
@@ -142,17 +132,7 @@ paths:
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
           \
 
-          --header ''token: <tokenValue>''
-
-          '
-        - lang: cURL
-          label: get encrypted data
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
-          \
-
-          --header ''token: <tokenValue>'' \
-
-          --header ''publicKey: <publicKeyValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -160,7 +140,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -168,7 +148,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -176,7 +156,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -184,7 +164,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -192,7 +172,7 @@ paths:
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -200,7 +180,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
       deprecated: false
@@ -315,25 +295,16 @@ paths:
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
-        - lang: cURL
-          label: get encrypted data
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
-          \
 
-          --header ''token: <tokenValue>'' \
-
-          --header ''publicKey: <publicKeyValue>''
-
-          '
         - lang: cURL
           label: search by before
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -341,19 +312,19 @@ paths:
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
           label: search by between and filter
           source: "curl --location --request GET 'https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
-          \ \\\n--header 'token: <tokenValue>'        \n"
+          \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
         - lang: cURL
           label: count by after
           source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -361,7 +332,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
         - lang: cURL
@@ -369,7 +340,7 @@ paths:
           source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
           \
 
-          --header ''token: <tokenValue>''
+          --header ''Authorization: Bearer <tokenValue>''
 
           '
       deprecated: false
@@ -390,10 +361,7 @@ paths:
         \ `between`, `before` or `after`. The value `during` could also be used instead\
         \ of `between`.\n  - **time**: Start time for the temporal query in `ISO 8601`\
         \ format. \n  - **endtime**: End time for the temporal query in `ISO 8601`\
-        \ format. Applicable only for `timerel = between`. \n  - Note, The time difference\
-        \ between `time` and `endtime` should be less than `10 days`. For `before`\
-        \ and `after` queries, `10 days` of data `before` or `after` the specified\
-        \ time will be provided.\n\n\n#### Spatial (Geo) Search\nGeo search accepts\
+        \ format. Applicable only for `timerel = between`. \n\n\n#### Spatial (Geo) Search\nGeo search accepts\
         \ geojson based queries. The params and their accepted values are briefed\
         \ below -\n  - **geoproperty**: \n      - Specifies the name of the ** geospatial\
         \ ** property in the ** DX(Data exchange) data descriptor **.\n      - The\
@@ -456,21 +424,7 @@ paths:
           source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/entityOperations/query''
           \
 
-          --header ''token: <tokenValue>'' \
-
-          --header ''Content-Type: application/json'' \
-
-          --data-raw ''<payload>''
-
-          '
-        - lang: cURL
-          label: get encrypted data
-          source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/entityOperations/query''
-          \
-
-          --header ''token: <tokenValue>'' \
-
-          --header ''publicKey: <publicKeyValue>'' \
+          --header ''Authorization: Bearer <tokenValue>'' \
 
           --header ''Content-Type: application/json'' \
 
@@ -580,27 +534,14 @@ paths:
           source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/temporal/entityOperations/query''
           \
 
-          --header ''token: <tokenValue>'' \
+          --header ''Authorization: Bearer <tokenValue>'' \
 
           --header ''Content-Type: application/json'' \
 
           --data-raw ''<payload>''
 
           '
-        - lang: cURL
-          label: get encrypted data
-          source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/temporal/entityOperations/query''
-          \
 
-          --header ''token: <tokenValue>'' \
-
-          --header ''publicKey: <publicKeyValue>'' \
-
-          --header ''Content-Type: application/json'' \
-
-          --data-raw ''<payload>''
-
-          '
       requestBody:
         $ref: '#/components/requestBodies/PostTemporalRequest'
       responses:
@@ -648,9 +589,7 @@ paths:
         \ could also be used instead of `between`.\n  - **time**: Start time for the\
         \ temporal query in `ISO 8601` format. \n  - **endtime**: End time for the\
         \ temporal query in `ISO 8601` format. Applicable only for `timerel = between`.\
-        \ \n  - Note, The time difference between `time` and `endtime` should be less\
-        \ than `10 days`. For `before` and `after` queries, `10 days` of data `before`\
-        \ or `after` the specified time will be provided.\n\n#### Spatial (Geo) Search\n\
+        \ \n\n#### Spatial (Geo) Search\n\
         Geo search accepts geojson based queries. The params and their accepted values\
         \ are briefed below -\n  - **geoproperty**: \n      - Specifies the name of\
         \ the ** geospatial ** property in the ** DX(Data exchange) data descriptor\
@@ -1502,7 +1441,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplaneProxy:success
         title: Success
         results:
           - trip_direction: NT
@@ -1535,7 +1474,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplaneProxy:success
         title: Success
         detail: Success
     standardBadRequestErrorResponse:
@@ -1548,7 +1487,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplaneProxy:badRequest
         title: Bad Request Data
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid
           geo parameters | Count is not supported with filtering
@@ -1562,9 +1501,9 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidAuthorizationToken
-        title: Invalid credentials
-        detail: Invalid credentials
+        type: dx:dataplaneProxy:notAuthorized
+        title: Not Authorized
+        detail: Not Authorized / Invalid token / missing Bearer token
     standardResourceNotFoundErrorResponse:
       title: standardResourceNotFoundErrorResponse
       properties:
@@ -1575,7 +1514,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:resourceNotFound
+        type: dx:dataplaneProxy:resourceNotFound
         title: Not Found
         detail: Resource Not Found
     adapterBadRequestErrorResponse:
@@ -1588,7 +1527,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplaneProxy:badRequest
         title: Bad Request Data
         detail: Missing/Invalid parameters
     asyncsearchResponse:
@@ -1605,7 +1544,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplaneProxy:success
         title: query submitted successfully
         results:
           - searchId: asasdasd-asdasd-a353f-dasdas5
@@ -1619,7 +1558,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplaneProxy:badRequest
         title: Internal Server Error
         detail: Internal Server Error
     asyncsearchStatusComplete:
@@ -1636,7 +1575,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplaneProxy:success
         title: success
         results:
           - status: COMPLETE
@@ -1658,7 +1597,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplaneProxy:success
         title: success
         results:
           - status: IN_PROGRESS
@@ -1675,7 +1614,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:general
+        type: dx:dataplaneProxy:general
         title: Not Found
         detail: Not Found
   parameters:
