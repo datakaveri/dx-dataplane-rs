@@ -12,7 +12,7 @@ info:
     
     # Configurations
     - **Server**: 
-      - In the doc, we display the server url to be https://rs.forest-stack.digivan.forest.rajasthan.gov.in with the hostname as rs.forest-stack.digivan.forest.rajasthan.gov.in
+      - In the doc, we display the server url to be https://${HOSTNAME} with the hostname as ${HOSTNAME}
       - This could be configured according to the deployment
     - **Base path**:
       - Base path is the path on which API is served, relative to the host
@@ -49,7 +49,7 @@ info:
 
   contact:
     name: For support contact CDPG Team at
-    email: support@cdpg.org.in
+    email: ${SUPPORT_EMAIL}
     url: https://dataforpublicgood.org.in/
   license:
     name: Apache 2.0
@@ -77,8 +77,8 @@ tags:
       A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) controlplane server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
 
 servers:
-  - url: 'https://rs.forest-stack.digivan.forest.rajasthan.gov.in/'
-    description: 'Development Server URL'
+  - url: 'https://${HOSTNAME}'
+    description: 'Server URL'
 
 # Global security definition (applies to all paths unless overridden)
 
@@ -746,8 +746,8 @@ paths:
         - lang: 'cURL'
           label: 'get latest data'
           source: |
-            curl --location --request GET '${servers.url}/ngsi-ld/v2/entities/UUID' \
-            --header 'token: <tokenValue>'
+            curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62' \
+            --header 'Authorization: Bearer <tokenValue>'
 
           description: |
             The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange Auth token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
@@ -1071,7 +1071,7 @@ paths:
         - lang: 'cURL'
           label: 'post search data'
           source: |
-            curl --location --request POST '${servers.url}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search' \
+            curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search' \
             --header 'Authorization: Bearer <tokenValue>' \
             --header 'Content-Type: application/json' \
             --data-raw '{
@@ -1144,7 +1144,7 @@ paths:
         - lang: 'cURL'
           label: 'get download data'
           source: |
-            curl --location --request GET '${servers.url}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z' \
+            curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z' \
             --header 'Authorization: Bearer <tokenValue>'
 
     post:
@@ -1199,7 +1199,7 @@ paths:
         - lang: 'cURL'
           label: 'post download data'
           source: |
-            curl --location --request POST '${servers.url}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download' \
+            curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download' \
             --header 'Authorization: Bearer <tokenValue>' \
             --header 'Content-Type: application/json' \
             --data-raw '{
@@ -2080,7 +2080,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2099,7 +2099,7 @@ components:
           maxLength: 512
           description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
       example:
-        id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        id: 9c0737d6-17df-484f-a7f8-aa472002eae5
     GeoQ:
       title: GeoQ
       required:
@@ -2189,7 +2189,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2255,7 +2255,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: linestring
           coordinates:
@@ -2287,7 +2287,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: bbox
           coordinates:
@@ -2317,7 +2317,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         attrs: resource-id,latitude,longitude
     geospatial-circle-responsefilterrequest:
       title: geospatial-circle+responsefilterrequest
@@ -2342,7 +2342,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2368,7 +2368,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         temporalQ:
           timerel: between
           time: 2020-06-01T14:20:00Z
@@ -2419,7 +2419,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         temporalQ:
           timerel: before
           time: 2020-06-01T14:20:00Z
@@ -2478,7 +2478,7 @@ components:
       example:
         type: Query
         entities:
-          - id: 32cf54e7-be31-474c-ae4c-3d41e556dd2d
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -3242,7 +3242,7 @@ components:
       properties:
         type:
           type: string
-          example: urn:dx:dataplane:no-access
+          example: dx:dataplane:no-access
         title:
           type: string
           example: No-access
