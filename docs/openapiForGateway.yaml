@@ -8,8 +8,8 @@ info:
     \ during, After) and Attribute searches.\nIt integrates with authorization server\
     \ (token introspection) to serve private data as per the access control policies\
     \ set by the provider\nIt secures data access over TLS\n\n\n# Configurations\n\
-    - **Server**: \n  - In the doc, we display the server url to be https://rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp\
-    \ with the hostname as rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp\n  - This could be configured according\
+    - **Server**: \n  - In the doc, we display the server url to be https://${HOSTNAME}\
+    \ with the hostname as ${HOSTNAME}\n  - This could be configured according\
     \ to the deployment\n- **Base path**:\n  - Base path is the path on which API\
     \ is served, relative to the host\n  - It is the initial part of the API\n  -\
     \ These base path values could be configured according to the deployment\n.      Currently, the following APIs have `/ngsi-ld/v1`\
@@ -42,7 +42,7 @@ info:
     \ to common API Gateway behaviours.\nThe application should address them accordingly.\n"
   contact:
     name: For support contact IUDX Team at
-    email: support@cdpg.org.in
+    email: ${SUPPORT_EMAIL}
     url: https://dataforpublicgood.org.in/
   license:
     name: Apache 2.0
@@ -78,8 +78,8 @@ tags:
     \ : spatial+attribute` or `complex : temporal+spatial+attribute` query.\n"
 
 servers:
-  - url: https://rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp
-    description: Development Server URL
+  - url: 'https://${HOSTNAME}'
+    description: Server URL
 security:
   - authorization: [ ]
 paths:
@@ -129,7 +129,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: search by attribute
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -137,7 +137,7 @@ paths:
           '
         - lang: cURL
           label: search by circle
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -145,7 +145,7 @@ paths:
           '
         - lang: cURL
           label: search by polygon
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -153,7 +153,7 @@ paths:
           '
         - lang: cURL
           label: search by bbox
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -161,7 +161,7 @@ paths:
           '
         - lang: cURL
           label: search by linestring
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -169,7 +169,7 @@ paths:
           '
         - lang: cURL
           label: search by attribute and filter
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -177,7 +177,7 @@ paths:
           '
         - lang: cURL
           label: count by circle
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -292,7 +292,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: search by between
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -301,7 +301,7 @@ paths:
 
         - lang: cURL
           label: search by before
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -309,7 +309,7 @@ paths:
           '
         - lang: cURL
           label: search by after
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -317,11 +317,11 @@ paths:
           '
         - lang: cURL
           label: search by between and filter
-          source: "curl --location --request GET 'https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
+          source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
           \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
         - lang: cURL
           label: count by after
-          source: 'curl --location --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -329,7 +329,7 @@ paths:
           '
         - lang: cURL
           label: complex search
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -337,7 +337,7 @@ paths:
           '
         - lang: cURL
           label: complex count
-          source: 'curl --location -g --request GET ''https://example-proxy.com/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -421,7 +421,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: Spatial complex query
-          source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/entityOperations/query''
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/entityOperations/query''
           \
 
           --header ''Authorization: Bearer <tokenValue>'' \
@@ -531,7 +531,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: Spatial + temporal complex query
-          source: 'curl --location --request POST ''https://example-proxy.com/ngsi-ld/v1/temporal/entityOperations/query''
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entityOperations/query''
           \
 
           --header ''Authorization: Bearer <tokenValue>'' \
