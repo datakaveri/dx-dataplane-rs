@@ -5,22 +5,19 @@ info:
   version: 1.1.0
   description: |
     # Introduction
-    The Resource Server is DXs'(Data exchange) data store which allows publication, subscription and discovery of data.
+    The Dataplane Server is DXs'(Data exchange) data store which allows publication and discovery of data.
     For search and discovery, it allows users to search through temporal, geo-based and attribute queries. 
-    For publication and subscription, it allows users to use AMQP streaming protocol over TLS.
     It enables *Providers* of datasources to publish data as per the DX(Data exchange) data descriptor.
     It enables *Consumers* of datasources to search and query for data using HTTPs APIs.
     
     # Configurations
     - **Server**: 
-      - In the doc, we display the server url to be https://example.com with the hostname as example.com
+      - In the doc, we display the server url to be https://${HOSTNAME} with the hostname as ${HOSTNAME}
       - This could be configured according to the deployment
     - **Base path**:
       - Base path is the path on which API is served, relative to the host
       - It is the initial part of the API
       - These base path values could be configured according to the deployment
-      - The base path for [DX AAA Server](https://github.com/datakaveri/iudx-aaa-server) is set to `/auth/v1`
-      - The base path for [DX Catalogue Server](https://github.com/datakaveri/iudx-catalogue-server) is set to `/iudx/cat/v1`
       - Currently, the following APIs have `/ngsi-ld/v2` base path
           -  /entities/{id}
           -  /entities/{id}/search
@@ -28,12 +25,11 @@ info:
       <br>
     - **Request Samples**:
       - The `<tokenValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
-      - The `<publicKeyValue>` in the header of request sample could be replaced with the respective public key [Also refer Encryption section [here](#section/Encryption)]
       - The `<payload>` in the request sample could be replaced with the payload given adjacent to the request sample
     
     
     # Tokens
-    All the <b>*Search API*</b>  calls to the resource server should now contain a valid data exchange auth token presented in the query header. To search (or) access an *Open* resource, the consumer should present a valid data exchange Auth token. To search (or) access a *Secure / Closed* resource, a consumer must get a token for the *Secure / Closed* resource along with the associated constraints from the DX(Data exchange) Auth Server. For subscription to a *Secure / Closed / Open* resource, a consumer must get a token along with the associated constraints from the DX(Data exchange) Auth Server.
+    All the <b>*Search API*</b>  calls to the resource server should now contain a valid data exchange auth token presented in the query header. To search (or) access an *Open* resource, the consumer should present a valid data exchange Auth token. To search (or) access a *Secure / Closed* resource, a consumer must get a token for the *Secure / Closed* resource along with the associated constraints from the DX(Data exchange) Controlplane Server.
     
     # Pagination
     Resource server also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
@@ -41,20 +37,11 @@ info:
     - <b> Pagination is applicable only for</b>
        - <b>/entities/{id}</b>
        - <b>/entities/{id}/search</b>
-       - <b>/{id}/download</b>\
+       - <b>/{id}/download</b>
     
     Additional query parameters to be used:
-      - <b>offset</b> : The from parameter defines the offset from the first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
-      - <b>limit</b> : The size parameter allows you to configure the maximum results to be returned  ( <i>default: 5000</i> ,<i>minValue: 0</i>, <i>maxValue: 5000</i> )
-    
-    # Encryption
-    All the count and search APIs have a feature to get encrypted data.
-    The user could provide a `publicKey` in the header. 
-    The header value should be in _url-safe base64 format_. 
-    
-    **Encryption is applicable only for**
-    -  **/entities**
-
+      - <b>page</b> : The page parameter defines the page from the first result you want to fetch,  ( <i>default : 1</i> ,<i>minValue: 1</i>, <i>maxValue: 49999</i> )
+      - <b>size</b> : The size parameter allows you to configure the maximum results to be returned  ( <i>default: 100</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
 
     # API HTTP Responses
     Apart from the response codes specified in each API, the API server may respond with certain 4xx and 5xx error codes which are related to common API Gateway behaviours.
@@ -62,7 +49,7 @@ info:
 
   contact:
     name: For support contact CDPG Team at
-    email: support@cdpg.org.in
+    email: ${SUPPORT_EMAIL}
     url: https://dataforpublicgood.org.in/
   license:
     name: Apache 2.0
@@ -72,12 +59,10 @@ tags:
     x-displayName: "Temporal and Complex Search"
     description: |
       A Temporal Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `temporal`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `temporal` parameter is <b>mandatory</b>. <br/> You can use this API to make a `temporal` or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute` query. <br/> If you are looking for an `attribute` only query refer the <b>Spatial Search</b> `/entities` endpoint.
-
   - name: Entities Spatial
     x-displayName: "Entities Spatial and Complex Search"
     description: |
       A Entities Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `id` parameter is <b>mandatory</b>. <br/> You can use this API to make a `entities attributes` or `complex : attribute+spatial` query. <br/> If you are looking for an `temporal`  query refer the <b>Temporal Entities</b> `/temporal/entities` endpoint.
-
   - name: Download CSV
     x-displayName: "Download"
     description: |
@@ -89,11 +74,11 @@ tags:
   - name: Latest Entity
     x-displayName: "Latest Data"
     description: |
-      A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
+      A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) controlplane server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
 
 servers:
-  - url: 'https://example.com/'
-    description: 'Development Server URL'
+  - url: 'https://${HOSTNAME}'
+    description: 'Server URL'
 
 # Global security definition (applies to all paths unless overridden)
 
@@ -669,7 +654,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
           required: true
           schema:
             type: string
@@ -721,24 +706,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/entityresponse'
-        204:
-          description: 'Empty Response'
 
         400:
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
-          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+          description: 'Bad query - Empty response | Missing/Invalid parameters'
 
         401:
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
-          description: |-
-            - Unauthorized - `token` invalid/expired
-            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+          description: 'Unauthorized - Invalid/missing token'
+
+        403:
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
 
         404:
           content:
@@ -758,15 +746,8 @@ paths:
         - lang: 'cURL'
           label: 'get latest data'
           source: |
-            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities/UUID' \
-            --header 'token: <tokenValue>'
-
-        - lang: 'cURL'
-          label: 'get encrypted data'
-          source: |
-            curl --location --request GET 'https://example.com/ngsi-ld/v1/entities/UUID' \
-            --header 'token: <tokenValue>' \
-            --header 'publicKey: <publicKeyValue>'
+            curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62' \
+            --header 'Authorization: Bearer <tokenValue>'
 
           description: |
             The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange Auth token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
@@ -779,7 +760,7 @@ paths:
         - Search Entity
       summary: Data Post Search
       description: |
-        Unified catalogue search query for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, and temporal-based searches using a common `searchCriteria` array format.
+        Unified search query for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, temporal-based, and geo-based searches using a common `searchCriteria` array format.
         
         #### 📌 `searchCriteria` Format (Unified)
         Each entry in `searchCriteria` must define:
@@ -847,7 +828,7 @@ paths:
         ```json
         {
           "searchType": "beforeTemporal",
-          "field": "itemCreatedAt",
+          "field": "observationDateTime",
           "values": ["2025-04-30T00:00:00+0530"]
         }
         ```
@@ -955,7 +936,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
           schema:
             type: string
             format: uuid
@@ -1009,6 +990,25 @@ paths:
                   - $ref: '#/components/schemas/successResponseForRangeSearch'
                   - $ref: '#/components/schemas/successResponseForTemporalSearch'
                   - $ref: '#/components/schemas/successResponseForComplexSearch'
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized - Invalid/missing token'
+
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
+        '413':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/payloadTooLarge"
+          description: 'Payload Too Large'
         '400':
           description: Bad Request
           content:
@@ -1018,61 +1018,86 @@ paths:
               examples:
                 Invalid Geo Value:
                   value:
-                    type: 'urn:dx:cat:InvalidGeoValue'
+                    type: 'dx:dataplane:InvalidGeoValue'
                     "title": "Geoquery value error"
                     "detail": "Invalid value for a query param"
                 Invalid Syntax:
                   value:
-                    "type": "urn:dx:cat:InvalidSyntax"
+                    "type": "dx:dataplane:InvalidSyntax"
                     "title": "Invalid Syntax"
                     "detail": "Invalid value for a query param"
                 Invalid Syntax 1:
                   value:
-                    "type": "urn:dx:cat:InvalidSyntax"
+                    "type": "dx:dataplane:InvalidSyntax"
                     "title": "Invalid Syntax"
                     "detail": "Mandatory field(s) not provided"
                 Precision validation:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "The max point of 'coordinates' precision is 6"
                 Coordinate pair:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "The max number of 'coordinates' value is 10"
                 Max Distance limit:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "The 'maxDistance' should range between 0-10000m"
                 Coordinates value limit:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "Unable to parse 'coordinates'; value is Infinity"
                 Invalid request - Max string size:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "The max string(q) size supported is 100"
                 Bad filter:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:BadFilter"
+                    "type": "dx:dataplane:BadFilter"
                     "detail": "The max number of 'filter' should be 10"
                 Exceed limit|offset value:
                   value:
                     "title": "failed"
-                    "type": "urn:dx:cat:InvalidPropertyValue"
+                    "type": "dx:dataplane:InvalidPropertyValue"
                     "detail": "The limit + offset should be between 1 to 10000"
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'post search data'
+          source: |
+            curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search' \
+            --header 'Authorization: Bearer <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "q": "Ranaau",
+                "fuzzy": false,
+                "searchCriteria": [
+                    {
+                        "searchType": "beforeTemporal",
+                        "field": "observationDateTime",
+                        "values": ["2025-05-02T09:15:27+0530"]
+                    }
+                ],
+                "geoQ": {
+                    "geometry": "Point",
+                    "coordinates": [21.178, 72.834],
+                    "georel": "near;maxDistance=20",
+                    "geoproperty": "location"
+                }
+            }'
 
   /ngsi-ld/v2/{id}/download:
     get:
       tags:
         - Download CSV
       summary: Get Data CSV
-      description: This is used to stream data in csv format for a given resource ID. (Get Search Data)
+      description: This is used to stream data in csv format for a given resource ID. (Get Search Data). Use same format of request data sample as it is in /entities/{id} API.
       operationId: downloadIdEntityData
       security:
         - authorization: [ ]
@@ -1080,26 +1105,11 @@ paths:
         - name: id
           in: path
           required: true
-          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
           schema:
             type: string
             format: uuid
-        - name: page
-          in: query
-          description: Page number for pagination
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: size
-          in: query
-          description: Page size for pagination
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 100
+
         - name: sort
           in: query
           description: 'This parameter is used to sort the results basis on this property. <br/> The default sortBy property is `observationDateTime:desc` . <br/> The user could provide any property among `observationDateTime` and `itemCreatedAt` of the resource to sort the data. <br/> If the user provides a property which is not part of the resource, the API will throw a `400-Bad Request` error.'
@@ -1110,12 +1120,38 @@ paths:
       responses:
         '200':
           description: Success
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized - Invalid/missing token'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
+
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
+          description: 'Bad query - Empty response | Missing/Invalid parameters'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'get download data'
+          source: |
+            curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z' \
+            --header 'Authorization: Bearer <tokenValue>'
 
     post:
       tags:
         - Download CSV
       summary: Post Data CSV
-      description: This is used to stream data in csv format for a given resource ID. (Post Search Data)
+      description: This is used to stream data in csv format for a given resource ID. (Post Search Data). Use same format of request data sample as it is in /search API.
       operationId: downloadPutSearchData
       security:
         - authorization: [ ]
@@ -1123,26 +1159,10 @@ paths:
         - name: id
           in: path
           required: true
-          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
           schema:
             type: string
             format: uuid
-        - name: page
-          in: query
-          description: Page number for pagination
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: size
-          in: query
-          description: Page size for pagination
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            default: 100
         - name: sort
           in: query
           description: >
@@ -1156,6 +1176,41 @@ paths:
       responses:
         '200':
           description: Success
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
+          description: 'Unauthorized - Invalid/missing token'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
+          description: 'Bad query - Empty response | Missing/Invalid parameters'
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'post download data'
+          source: |
+            curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download' \
+            --header 'Authorization: Bearer <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "searchCriteria": [
+                    {
+                        "searchType": "beforeTemporal",
+                        "field": "observationDateTime",
+                        "values": ["2025-05-02T09:15:27+0530"]
+                    }
+                ]
+            }'
   /admin/elasticsearch/createIndex:
     post:
       tags:
@@ -1387,7 +1442,7 @@ components:
         - pagination
         - results
       example:
-        type: "urn:dx:cat:Success"
+        type: "dx:dataplane:Success"
         title: "Success"
         pagination:
           page: 1
@@ -1472,7 +1527,7 @@ components:
         - pagination
         - results
       example:
-        type: "urn:dx:cat:Success"
+        type: "dx:dataplane:Success"
         title: "Success"
         pagination:
           page: 1
@@ -1607,7 +1662,7 @@ components:
         - pagination
         - results
       example:
-        type: "urn:dx:cat:Success"
+        type: "dx:dataplane:Success"
         title: "Success"
         pagination:
           page: 1
@@ -1706,7 +1761,7 @@ components:
         - pagination
         - results
       example:
-        type: "urn:dx:cat:Success"
+        type: "dx:dataplane:Success"
         title: "Success"
         pagination:
           page: 1
@@ -1819,7 +1874,7 @@ components:
         - pagination
         - results
       example:
-        type: "urn:dx:cat:Success"
+        type: "dx:dataplane:Success"
         title: "Success"
         pagination:
           page: 1
@@ -2025,7 +2080,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2044,7 +2099,7 @@ components:
           maxLength: 512
           description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
       example:
-        id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+        id: 9c0737d6-17df-484f-a7f8-aa472002eae5
     GeoQ:
       title: GeoQ
       required:
@@ -2134,7 +2189,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2200,7 +2255,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: linestring
           coordinates:
@@ -2232,7 +2287,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: bbox
           coordinates:
@@ -2262,7 +2317,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         attrs: resource-id,latitude,longitude
     geospatial-circle-responsefilterrequest:
       title: geospatial-circle+responsefilterrequest
@@ -2287,7 +2342,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2313,7 +2368,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         temporalQ:
           timerel: between
           time: 2020-06-01T14:20:00Z
@@ -2364,7 +2419,7 @@ components:
       example:
         type: Query
         entities:
-          - id: iudx.io/aa9d66a000d94a78895de8d4c0b3a67f3450e531/example.com/varanasi-swm-vehicles/varanasi-swm-vehicles-live
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         temporalQ:
           timerel: before
           time: 2020-06-01T14:20:00Z
@@ -2423,7 +2478,7 @@ components:
       example:
         type: Query
         entities:
-          - id: 32cf54e7-be31-474c-ae4c-3d41e556dd2d
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
         geoQ:
           geometry: Point
           coordinates:
@@ -2480,47 +2535,6 @@ components:
           geoproperty: geoJsonLocation
 
 
-    registeradapterrequest:
-      title: registeradapterrequest
-      required:
-        - entities
-      type: object
-      properties:
-        entities:
-          type: array
-          items:
-            type: string
-            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-      example:
-        entities:
-          - UUID
-
-    ingestionEntityRequest:
-      title: ingestion entity
-      type: array
-      items:
-        type: object
-        required:
-          - entities
-        properties:
-          entities:
-            type: array
-            items:
-              type: string
-      example:
-        [ {
-          "currentLevel": 1.16,
-          "referenceLevel": 15.9,
-          "measuredDistance": 14.74,
-          "entities": [
-            "695e222b-3fae-4325-8db0-3e29d01c4fc0"
-          ],
-          "observationDateTime": "2020-09-22T18:30:00+05:30",
-          "deviceInfo": {
-            "deviceID": "FWR055"
-          }
-        } ]
-
     entityresponse:
       title: entityresponse
       type: object
@@ -2534,32 +2548,49 @@ components:
           type: array
           items:
             type: object
+        paginationInfo:
+          type: object
+          properties:
+            page:
+              type: integer
+            size:
+              type: integer
+            totalCount:
+              type: integer
+            totalPages:
+              type: integer
+            hasNext:
+              type: boolean
+            hasPrevious:
+              type: boolean
       example:
-        type: urn:dx:rs:success
-        title: success
-        results: [
-          {
-            "trip_direction": "NT",
-            "trip_id": "24374871",
-            "route_id": "17AD",
-            "trip_delay": 948,
-            "last_stop_arrival_time": "15:09:58",
-            "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
-            "vehicle_label": "A09",
-            "observationDateTime": "2020-11-03T15:12:08+05:30",
-            "speed": 25.0,
-            "license_plate": "GJ05BX1916",
-            "last_stop_id": "2028",
-            "location": {
-              "coordinates": [
-                72.870511,
-                21.218943
-              ],
-              "type": "Point"
-            },
-            "id": "UUID"
-          }
-        ]
+        type: "dx:dataplane:success"
+        title: "Success"
+        results:
+          - trip_direction: "NT"
+            trip_id: "24374871"
+            route_id: "17AD"
+            trip_delay: 948
+            last_stop_arrival_time: "15:09:58"
+            actual_trip_start_time: "2020-11-03T14:22:30+05:30"
+            vehicle_label: "A09"
+            observationDateTime: "2020-11-03T15:12:08+05:30"
+            speed: 25.0
+            license_plate: "GJ05BX1916"
+            last_stop_id: "2028"
+            location:
+              coordinates:
+                - 72.870511
+                - 21.218943
+              type: "Point"
+            id: "UUID"
+        paginationInfo:
+          page: 1
+          size: 100
+          totalCount: 1
+          totalPages: 1
+          hasNext: false
+          hasPrevious: false
 
     temporalEntityresponse:
       title: temporalentityresponse
@@ -2655,98 +2686,6 @@ components:
           type: string
         title:
           type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          {
-            "username": "fd47486b-XXXX-4248-ac1e-082e4d37a66c",
-            "apiKey": "Use the apiKey returned on registration, if lost please use /resetPassword API",
-            "id": "UUID",
-            "URL": "databroker.iudx.io",
-            "port": 24567,
-            "vHost": "IUDX"
-          }
-        ]
-
-    adapterIngestionEntities:
-      title: ingestion
-      required:
-        - username
-        - apiKey
-        - id
-        - URL
-        - port
-        - vHost
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        detail: "Item Published"
-
-    retrieveadapter:
-      title: retrieveadapter
-      required:
-        - database
-        - adaptorLogs
-        - redis-latest
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success,
-        title: success,
-        results: [
-          {
-            "database": [
-              "UUID/.*"
-            ],
-            "redis-latest": [
-              "UUID/.*"
-            ],
-            "subscriptions-monitoring": [
-              "UUID/.*"
-            ]
-          }
-        ]
-
-    deleteadapter:
-      title: deleteadapter
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: string
-      example:
-        type: urn:dx:rs:success
-        title: Success
-        detail: Adapter deleted
 
     createstreaming:
       title: createstreaming
@@ -2770,7 +2709,7 @@ components:
             type: object
 
       example:
-        type: urn:dx:rs:success,
+        type: dx:dataplane:success,
         title: success,
         results: [
           {
@@ -2801,7 +2740,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success,
+        type: dx:dataplane:success,
         title: success,
         results: [
           { "entities": [ "UUID/.*" ]
@@ -2824,7 +2763,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success,
+        type: dx:dataplane:success,
         title: success,
         results: [
           { "entities": [ "UUID" ]
@@ -2847,7 +2786,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success,
+        type: dx:dataplane:success,
         title: success,
         results: [
           { "entities": [ "UUID" ]
@@ -2865,7 +2804,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: success
         detail: Subscription deleted Successfully
 
@@ -2885,7 +2824,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: successful
         results: [
           { "username": "asasdasd-asdasd-aada-d23342",
@@ -2907,7 +2846,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: query submitted successfully
         results: [
           { "searchId": "asasdasd-asdasd-a353f-dasdas5"
@@ -2928,7 +2867,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: success
         results: [
           { "status": "COMPLETE",
@@ -2953,7 +2892,7 @@ components:
           items:
             type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: success
         results: [
           { "status": "IN_PROGRESS",
@@ -2963,138 +2902,6 @@ components:
           }
         ]
 
-    getTotalAPICallsMade:
-      title: get Total API Calls Made
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success
-        title: Success
-        results: [
-          {
-            "total": 54
-          }
-        ]
-
-    getDataCountQuery:
-      title: get Data Count Query
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success
-        title: Success
-        results: [
-          {
-            "total": 1963
-          }
-        ]
-
-    meteringApiResponse:
-      title: get Data Read Query
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success
-        title: success
-        results: [
-          {
-            "id": "UUID",
-            "api": "/{basePath}/entities",
-            "userid": "15c7506f-c800-48d6-adeb-0542b03947c6",
-            "epochtime": 1669385581658,
-            "resourceid": "UUID",
-            "isotime": "2022-11-25T19:43:01+05:30[Asia/Kolkata]",
-            "providerid": "UUID",
-            "size": 456,
-            "time": "2022-11-25T14:13:01"
-          }
-        ]
-        limit: 2000
-        offset: 0
-        totalHits: 568
-
-    summaryApiResponse:
-      title: summaryresponse
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success
-        title: success
-        results: [
-          {
-            "resourceid": "UUID",
-            "resource_label": "description",
-            "publisher": "pune-env-flood",
-            "publisher_id": "UUID",
-            "city": "pune",
-            "count": 19
-          }
-        ]
-
-    overviewApiResponse:
-      title: overview response
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
-      example:
-        type: urn:dx:rs:success
-        title: success
-        results: [
-          {
-            "month": "november",
-            "year": "2022",
-            "counts": 19
-          },
-          {
-            "month": "december",
-            "year": "2022",
-            "counts": 156
-          }
-        ]
 
     revokeToken:
       title: revoke-token
@@ -3107,20 +2914,6 @@ components:
       example:
         sub: ase2132-2342323-2423
 
-    unique-attribute:
-      title: unique-attribute
-      required:
-        - id
-        - attribute
-      type: object
-      properties:
-        id:
-          type: string
-        attribute:
-          type: string
-      example:
-        id: iisc.ac.in/89a36273d77dac4cf38114fca1bbe64392547f86/example.com/surat-itms-realtime-information/surat-itms-live-eta
-        attribute: license_plate
 
     standardSuccessResponse:
       title: standardSuccessResponse
@@ -3132,7 +2925,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: Success
         detail: Success
 
@@ -3146,7 +2939,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidParameterValue
+        type: dx:dataplane:badrequest
         title: Bad Request
         detail: Bad Request
 
@@ -3160,7 +2953,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidParameter
+        type: dx:dataplane:invalidParameter
         title: Bad Request
         detail: Invalid Name
 
@@ -3174,7 +2967,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidParameterValue
+        type: dx:dataplane:invalidParameterValue
         title: Bad Request
         detail: Bad query
 
@@ -3188,7 +2981,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidParameterValue
+        type: dx:dataplane:invalidParameterValue
         title: Bad Request
         detail: Bad Request
 
@@ -3202,7 +2995,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:general
+        type: dx:dataplane:general
         title: Bad Request
         detail: "Fail: Incorrect search ID"
 
@@ -3216,7 +3009,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidPayloadFormat
+        type: dx:dataplane:invalidPayloadFormat
         title: Bad Request
         detail: Bad Request
 
@@ -3230,7 +3023,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidTemporalRelationParam
+        type: dx:dataplane:invalidTemporalRelationParam
         title: Bad Request
         detail: Bad Request
 
@@ -3244,7 +3037,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidAttributeValue
+        type: dx:dataplane:invalidAttributeValue
         title: Bad Request
         detail: Bad Request
 
@@ -3258,7 +3051,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplane:badRequest
         title: Bad Request
         detail: Bad Request
 
@@ -3272,7 +3065,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplane:badRequest
         title: Bad Request Data
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering
 
@@ -3286,23 +3079,9 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidAuthorizationToken
+        type: dx:dataplane:notAuthorized
         title: Not Authorized
-        detail: Not Authorized
-
-    summaryInvalidTokenErrorResponse:
-      title: standardInvalidTokenErrorResponse
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        detail:
-          type: string
-      example:
-        type: urn:dx:rs:invalidAuthorizationToken
-        title: Not Authorized
-        detail: Not Authorized
+        detail: Not Authorized / Invalid token / missing Bearer token
 
     generalResourceNotFoundErrorResponse:
       title: generalResourceNotFoundErrorResponse
@@ -3314,7 +3093,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:general
+        type: dx:dataplane:general
         title: Not Found
         detail: Not Found
 
@@ -3328,7 +3107,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:resourceNotFound
+        type: dx:dataplane:resourceNotFound
         title: Not Found
         detail: Not Found
 
@@ -3342,7 +3121,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:resourceNotFound
+        type: dx:dataplane:resourceNotFound
         title: Not Found
         detail: Resource Not Found
 
@@ -3356,7 +3135,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:general
+        type: dx:dataplane:general
         title: Conflict
         detail: Conflict
 
@@ -3370,7 +3149,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:resourceAlreadyExist
+        type: dx:dataplane:resourceAlreadyExist
         title: Conflict
         detail: Conflict
 
@@ -3392,7 +3171,7 @@ components:
             Subscription:
               type: object
       example:
-        type: urn:dx:rs:success
+        type: dx:dataplane:success
         title: success
         results: [
           {
@@ -3415,53 +3194,6 @@ components:
           }
         ]
 
-    allexchange:
-      title: Response
-      required:
-        - type
-        - title
-        - details
-      type: object
-      properties:
-        type:
-          type: string
-        title:
-          type: string
-        results:
-          type: object
-          properties:
-            Ingestion:
-              type: object
-      example:
-        type: urn:dx:rs:success
-        title: success
-        results: [
-          {
-            "_id": "3a7a9b7d-da3c-45b3-9ccc-44c9a19d7b26",
-            "exchange_name": "UUID",
-            "resource_id": "UUID",
-            "dataset_name": "FWR055",
-            "dataset_details_json": {
-              "id": "UUID",
-              "name": "FWR055",
-              "type": [
-                "iudx:Resource",
-                "iudx:EnvFlood"
-              ],
-              "label": "RS Adaptor Test Resource Group",
-              "instance": "pune",
-              "provider": "UUID",
-              "description": "Flood Sensor Data with respect to water level/flow",
-              "resourceGroup": "UUID",
-              "accessPolicy": "SECURE"
-            },
-            "user_id": "fd47486b-3497-4248-ac1e-082e4d37a66c",
-            "created_at": "2023-07-14T06:22:09.336142",
-            "modified_at": "2023-07-14T06:22:09.336142",
-            "providerid": "b2c27f3f-2524-4a84-816e-91f9ab23f837"
-          }
-        ]
-
 
     standardInvalidTokenErrorResponseAllQueueAndExcahnge:
       title: standardInvalidTokenErrorResponse
@@ -3473,7 +3205,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:invalidAuthorizationToken
+        type: dx:dataplane:invalidAuthorizationToken
         title: Not Authorized
         detail: Not Authorized
 
@@ -3487,7 +3219,7 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:badRequest
+        type: dx:dataplane:badRequest
         title: Bad Request Data
         detail: Missing/Invalid parameters
 
@@ -3501,9 +3233,22 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:backend
+        type: dx:dataplane:backend
         title: bad request
         detail: bad request
+
+    ForbiddenResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: dx:dataplane:no-access
+        title:
+          type: string
+          example: No-access
+        detail:
+          type: string
+          example: Access check failed doc doesn't exist
 
     payloadTooLarge:
       title: payloadtoolarge
@@ -3515,6 +3260,6 @@ components:
         detail:
           type: string
       example:
-        type: urn:dx:rs:payloadTooLarge
+        type: dx:dataplane:payloadTooLarge
         title: Payload Too Large
-        detail: Response size exceeds limit use filters to get value within limit or use async api
+        detail: Response size exceeds limit use filters to get value within limit or use download api
