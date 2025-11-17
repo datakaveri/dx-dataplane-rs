@@ -59,6 +59,6 @@ public class ControllerFactory {
             timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
     // TODO create other controllers
 
-    return List.of(latestController, downloadController, onboardingController);
+    return List.of(latestController, downloadController/*, onboardingController*/);
   }
 }
