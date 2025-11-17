@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
-  title: Data exchange Resource Server Proxy APIs
-  version: 5.6.0
+  title: Data exchange Resource Server Proxy (GATEWAY) APIs
+  version: ""
   description: "# Introduction\nThe Dataplane Proxy Server (Gateway) is DXs'(Data Exchange) data\
     \ discovery portal.\nThe consumers can access data from the Dataplane server proxy\
     \ using HTTPs.\nIt supports Complex (Temporal + Attribute), Temporal (Before,\
