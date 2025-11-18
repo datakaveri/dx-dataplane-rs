@@ -2,7 +2,7 @@ openapi: 3.0.2
 info:
   title: Data exchange Resource Server Proxy (GATEWAY) APIs
   version: ""
-  description: "# Introduction\nThe Dataplane Proxy Server (Gateway) is DXs'(Data Exchange) data\
+  description: "# Introduction\nThe Dataplane Proxy Server (GATEWAY) is DXs'(Data Exchange) data\
     \ discovery portal.\nThe consumers can access data from the Dataplane server proxy\
     \ using HTTPs.\nIt supports Complex (Temporal + Attribute), Temporal (Before,\
     \ during, After) and Attribute searches.\nIt integrates with authorization server\
@@ -30,7 +30,7 @@ info:
     \ in query parameters to limit numbers of records to be returned.\n\n- ** Pagination\
     \ is applicable only for**\n   - **/entities**\n   - **/temporal/entities**\n\
     \   - **/temporal/entityOperations/query**\n   - **/entityOperations/query**\n\
-    \   - **/consumer/audit**\n   - **/provider/audit**\n\nAdditional query parameters\
+    \   \n\nAdditional query parameters\
     \ to be used:\n  - **offset** : The from parameter defines the offset from the\
     \ first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue:\
     \ 49999</i> )\n  - **limit** : The size parameter allows you to configure the\
