@@ -12,6 +12,7 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.response.DxErrorResponse;
+import org.cdpg.dx.common.response.DxErrorResponseNGSILD;
 import org.cdpg.dx.common.util.ExceptionHttpStatusMapper;
 import org.cdpg.dx.common.util.ThrowableUtils;
 
@@ -26,17 +27,30 @@ public class FailureHandler implements Handler<RoutingContext> {
 
   @Override
   public void handle(RoutingContext context) {
-    Throwable failure = context.failure();
-    int statusCodeFromContext = context.statusCode();
 
-    // Case 1: OpenAPI validation / schema errors
+    String path = context.request().path();
+    LOGGER.error("path : {} ", path);
+
+    if (path.matches("/ngsi-ld/v1.*")) {
+      ngsildErrorResponse(context);
+    } else {
+      nonNgsildErrorResponse(context);
+    }
+  }
+
+  private void nonNgsildErrorResponse(RoutingContext context) {
+    Throwable failure = context.failure();
+    if (failure == null) {
+      LOGGER.warn(
+          "FailureHandler triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
+      failure = new RuntimeException("Unknown server error");
+    }
+    LOGGER.info("FailureHandler: {}", failure.getClass());
+    /* exceptions from OpenAPI specification*/
     if (failure instanceof ValidationException
         || failure instanceof BodyProcessorException
         || failure instanceof RequestPredicateException
         || failure instanceof ParameterProcessorException) {
-
-      LOGGER.warn("Validation error: {}", failure.getMessage());
-
       context
           .response()
           .putHeader(CONTENT_TYPE, APPLICATION_JSON)
@@ -53,31 +67,15 @@ public class FailureHandler implements Handler<RoutingContext> {
       return;
     }
 
-    // Case 2: ctx.fail(statusCode) without Throwable
-    if (failure == null && statusCodeFromContext != -1) {
-      LOGGER.warn("FailureHandler triggered with only statusCode: {}", statusCodeFromContext);
-
-      DxErrorResponse errorResponse =
-          new DxErrorResponse(
-              urnGenerator.generateUrn("bad_request"), "Request failed", "Bad request");
-
-      context
-          .response()
-          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-          .putHeader(HEADER_ALLOW_ORIGIN, "*")
-          .putHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-          .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-          .setStatusCode(statusCodeFromContext)
-          .end(errorResponse.toJson().encode());
-      return;
-    }
-
-    // Case 3: Unexpected exceptions
     HttpStatusCode statusCode = ExceptionHttpStatusMapper.map(failure);
-    LOGGER.error("Error: {}", failure != null ? failure.getMessage() : "null", failure);
+    LOGGER.debug("FailureHandler() statusCode: {}", statusCode.getValue());
 
+    // Log complete error with stack trace for diagnostics
+    LOGGER.error("Error: {}", failure.getMessage(), failure);
+
+    // Avoid leaking internal exception messages
     String safeDetail =
-        failure != null && ThrowableUtils.isSafeToExpose(failure)
+        ThrowableUtils.isSafeToExpose(failure)
             ? failure.getMessage()
             : "An unexpected error occurred";
 
@@ -85,6 +83,71 @@ public class FailureHandler implements Handler<RoutingContext> {
 
     DxErrorResponse errorResponse =
         new DxErrorResponse(urn, statusCode.getDescription(), safeDetail);
+
+    if (!context.response().ended()) {
+      int status = statusCode.getValue();
+      if (status < 400 || status > 599) {
+        status = 500;
+      }
+
+      context
+          .response()
+          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+          .putHeader(HEADER_ALLOW_ORIGIN, "*")
+          .putHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+          .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+          .setStatusCode(status)
+          .end(errorResponse.toJson().encode());
+    }
+  }
+
+  private void ngsildErrorResponse(RoutingContext context) {
+    Throwable failure = context.failure();
+    String instance = context.request().getHeader(HEADER_HOST);
+    if (failure == null) {
+      LOGGER.warn(
+          "FailureHandlerNGSILD triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
+      failure = new RuntimeException("Unknown server error");
+    }
+    LOGGER.info("FailureHandlerNGSILD: {}", failure.getClass());
+    /* exceptions from OpenAPI specification*/
+    if (failure instanceof ValidationException
+        || failure instanceof BodyProcessorException
+        || failure instanceof RequestPredicateException
+        || failure instanceof ParameterProcessorException) {
+      context
+          .response()
+          .putHeader(CONTENT_TYPE, APPLICATION_JSON)
+          .putHeader(HEADER_ALLOW_ORIGIN, "*")
+          .putHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+          .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+          .setStatusCode(HttpStatus.SC_BAD_REQUEST)
+          .end(
+              ResponseUtilNGSILD.generateResponse(
+                      HttpStatusCode.BAD_REQUEST,
+                      urnGenerator.generateUrn(HttpStatusCode.BAD_REQUEST.getPath()),
+                      failure.getMessage(),
+                      instance)
+                  .toString());
+      return;
+    }
+
+    HttpStatusCode statusCode = ExceptionHttpStatusMapper.map(failure);
+    LOGGER.debug("FailureHandlerNGSILD() statusCode: {}", statusCode.getValue());
+
+    // Log complete error with stack trace for diagnostics
+    LOGGER.error("error: {}", failure.getMessage(), failure);
+
+    // Avoid leaking internal exception messages
+    String safeDetail =
+        ThrowableUtils.isSafeToExpose(failure)
+            ? failure.getMessage()
+            : "An unexpected error occurred";
+
+    String urn = urnGenerator.generateUrn(statusCode.getPath());
+
+    DxErrorResponseNGSILD errorResponse =
+        new DxErrorResponseNGSILD(urn, statusCode.getDescription(), safeDetail, instance);
 
     if (!context.response().ended()) {
       int status = statusCode.getValue();
