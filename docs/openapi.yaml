@@ -83,7 +83,7 @@ servers:
 # Global security definition (applies to all paths unless overridden)
 
 paths:
-  /ngsi-ld/v2/temporal/entities:
+  /ngsi-ld/v1/temporal/entities:
     get:
       tags:
         - Temporal Entities
@@ -195,21 +195,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+        '413':
+          description: Payload Too Large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
 
-  /ngsi-ld/v2/entities:
+  /ngsi-ld/v1/entities:
     get:
       tags:
         - Entities Spatial
@@ -298,21 +304,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
         '404':
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+        '413':
+          description: Payload Too Large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
 
-  /ngsi-ld/v2/entityOperations/query:
+  /ngsi-ld/v1/entityOperations/query:
     post:
       tags:
         - Entities Spatial
@@ -374,38 +386,36 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-        204:
-          description: 'Empty Response'
+#        204:
+#          description: 'Empty Response'
 
         400:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/invalidPayloadFormatErrorResponse"
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse400"
           description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
 
         401:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
-          description: |-
-            - Unauthorized - `token` invalid/expired
-            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
+          description: UnAuthorized
 
         413:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/payloadTooLarge"
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
           description: 'Payload Too Large'
 
         404:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
-          description: 'Resource not found'
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse404"
+          description: 'Not found'
 
       description: |
         The `/entityOperations/query` end point allows a consumer to query on data published based on a <b>spatial</b> and <b>attribute</b> properties. The <b>spatial</b> queries should be submitted as a geo json as described in the API. All the queries requires a <b> valid data exchange</b> `id` of the resource within the `entities` json object as per the schema. These apis are intended to be used by DX(Data exchange) Data *Consumers*.
@@ -468,7 +478,7 @@ paths:
           - The value should be equal to `count` and it is <b>case sensitive</b>
       deprecated: false
 
-  /ngsi-ld/v2/temporal/entityOperations/query:
+  /ngsi-ld/v1/temporal/entityOperations/query:
     post:
       tags:
         - Temporal Entities
@@ -536,37 +546,35 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-        204:
-          description: 'Empty Response'
+#        204:
+#          description: 'Empty Response'
 
         400:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/invalidPayloadFormatErrorResponse"
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse400"
           description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
 
         401:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardInvalidTokenErrorResponse"
-          description: |-
-            - Unauthorized - `token` invalid/expired
-            - Unauthorized - `clientId` & `clientSecret` invalid/not match
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
+          description: UnAuthorized
 
         413:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/payloadTooLarge"
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
           description: 'Payload Too Large'
 
         404:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse404"
           description: 'Resource not found'
 
       description: |
@@ -2107,6 +2115,7 @@ components:
         - coordinates
         - georel
         - geoproperty
+      additionalProperties: false
       type: object
       properties:
         geometry:
@@ -2379,6 +2388,7 @@ components:
       required:
         - timerel
         - timeAt
+      additionalProperties: false
       type: object
       properties:
         timerel:
@@ -2625,7 +2635,74 @@ components:
             "id": "UUID"
           }
         ]
+    NgsiLdSubscriptionErrorResponse400:
+      title: NgsiLdSubscriptionErrorResponse400
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+    NgsiLdSubscriptionErrorResponse413:
+      title: NgsiLdSubscriptionErrorResponse413
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+    NgsiLdSubscriptionErrorResponse404:
+      title: NgsiLdSubscriptionErrorResponse404
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+    NgsiLdSubscriptionErrorResponse401:
+      title: NgsiLdSubscriptionErrorResponse401
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
 
+    NgsiLdSubscriptionErrorResponse409:
+      title: NgsiLdSubscriptionErrorResponse409
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+
+    NgsiLdSubscriptionErrorResponse500:
+      title: NgsiLdSubscriptionErrorResponse500
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
     spatialAttributeEntityresponse:
       title: spatialAttributeEntityresponse
       type: object
