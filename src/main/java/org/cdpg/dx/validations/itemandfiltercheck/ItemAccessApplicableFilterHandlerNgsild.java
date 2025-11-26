@@ -34,7 +34,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
   public void handle(RoutingContext context) {
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerNgsild");
 
-    if (context.user().containsKey("cons")) {
+    if (context.user().principal().containsKey("cons")) {
       LOGGER.debug("Processing access token");
 
       JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");

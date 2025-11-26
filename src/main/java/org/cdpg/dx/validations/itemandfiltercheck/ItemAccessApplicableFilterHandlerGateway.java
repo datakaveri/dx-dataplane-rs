@@ -34,7 +34,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
   public void handle(RoutingContext context) {
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerGateway");
 
-    if (context.user().containsKey("cons")) {
+    if (context.user().principal().containsKey("cons")) {
       LOGGER.debug("Processing access token");
       JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
       JsonObject ngsiLdServer =
