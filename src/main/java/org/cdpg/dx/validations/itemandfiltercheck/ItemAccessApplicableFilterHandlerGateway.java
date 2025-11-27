@@ -48,12 +48,12 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
               .orElseThrow(() -> new DxBadRequestException("GATEWAY resource server not found"));
 
       JsonArray accessTypes =
-          Optional.ofNullable(ngsiLdServer.getJsonArray("accessTypes"))
+          Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
               .filter(at -> !at.isEmpty())
               .orElseThrow(
                   () ->
                       new DxBadRequestException(
-                          "No access types(filters) found for GATEWAY server"));
+                          "No queryTypes types(filters) found for GATEWAY server"));
       RoutingContextHelper.setItemMetaData(context, context.user().principal());
       RoutingContextHelper.setApplicableFilter(context, accessTypes);
       context.next();
@@ -87,12 +87,12 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                             () -> new DxBadRequestException("GATEWAY resource server not found"));
 
                 JsonArray accessTypes =
-                    Optional.ofNullable(ngsiLdServer.getJsonArray("accessTypes"))
+                    Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
                         .filter(at -> !at.isEmpty())
                         .orElseThrow(
                             () ->
                                 new DxBadRequestException(
-                                    "No access types(filters) found for GATEWAY server"));
+                                    "No queryTypes types(filters) found for GATEWAY server"));
                 RoutingContextHelper.setApplicableFilter(context, accessTypes);
                 RoutingContextHelper.setItemMetaData(context, result);
                 context.next();
