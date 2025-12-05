@@ -25,6 +25,7 @@ public class NGSILDConstant {
     public static final String NGSILDQUERY_PICK = "pick";
     public static final String NGSILDQUERY_OMIT = "omit";
     public static final String NGSILDQUERY_COUNT = "count";
+    public static final String NGSILDQUERY_LASTN = "lastN";
     public static final String MSG_INVALID_PARAM = "Invalid parameter in request.";
 
 
@@ -33,6 +34,13 @@ public class NGSILDConstant {
     public static final String HEADER_CSV = "csv";
     public static final String HEADER_JSON = "json";
     public static final String HEADER_PARQUET = "parquet";
+    public static final String HEADER_NGSI_LD_JSON = "application/ld+json";
+    public static final String HEADER_NGSI_LD_JSON_BATCH = "application/ld+json; batch=true";
+    public static final String HEADER_CONTENT_TYPE = "Content-Type";
+    public static final String HEADER_ACCEPT = "Accept";
+    public static final String NGSILD_LINK = "Link";
+    public static final String NGSILD_VIA = "Via";
+    public static final String NGSILD_TENANT = "NGSILD-Tenant";
 
     public static final String NGSILD_RESULTS_COUNT = "NGSILD-Results-Count";
     public static final String NGSILD_LIMIT = "NGSILD-Limit";

@@ -84,7 +84,7 @@ public class NGSILDSearchController implements ApiController {
     LOGGER.debug("Info: Converted Params :: " + requestConvertedParam);
 
     try {
-      ngsildParamsValidator.validateQueryParams(requestConvertedParam);
+      ngsildParamsValidator.validateQueryParamsEntities(requestConvertedParam);
       ngsildParamsValidator.validateQueryParamsPost(params);
       ngsildParamsValidator.isValidQueryWithFilters(requestConvertedParam, applicableFilter);
       // temporal params validation
@@ -174,7 +174,7 @@ public class NGSILDSearchController implements ApiController {
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
       /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
-      ngsildParamsValidator.validateQueryParams(params);
+      ngsildParamsValidator.validateQueryParamsEntities(params);
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
 
       // temporal params validation
@@ -274,7 +274,7 @@ public class NGSILDSearchController implements ApiController {
     LOGGER.debug("Info: Converted Params :: " + requestConvertedParam);
 
     try {
-      ngsildParamsValidator.validateQueryParams(requestConvertedParam);
+      ngsildParamsValidator.validateQueryParamsTemporalEntities(requestConvertedParam);
       ngsildParamsValidator.validateQueryParamsPost(params);
       ngsildParamsValidator.isValidQueryWithFilters(requestConvertedParam, applicableFilter);
       // temporal params validation
@@ -362,9 +362,13 @@ public class NGSILDSearchController implements ApiController {
     LOGGER.debug("Handling Temporal entities GET data query");
 
     MultiMap params = routingContext.request().params(true);
+    /*params.add(NGSILD_LINK, routingContext.request().getHeader(NGSILD_LINK));*/
+    /*MultiMap headers = routingContext.request().headers();*/
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
+      /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
-      ngsildParamsValidator.validateQueryParams(params);
+      ngsildParamsValidator.validateQueryParamsTemporalEntities(params);
+      /*ngsildParamsValidator.validateHeaders(headers);*/
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
 
       // temporal params validation

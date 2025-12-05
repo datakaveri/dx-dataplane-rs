@@ -122,6 +122,16 @@ public class QueryDecoderNew {
       LOGGER.debug("Exclude fields set to: {}", ngsildQueryParams.getOmit());
     }
 
+    if (ngsildQueryParams.getLastN() > 0) {
+      q.setLimit(String.valueOf(ngsildQueryParams.getLastN()));
+      LOGGER.debug(
+          "LastN set to: {} and because of lastN limit change to lastN",
+          ngsildQueryParams.getLastN());
+      Map<String, String> sortFields = new HashMap<>();
+      sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");
+      q.setSortFields(sortFields);
+      LOGGER.debug("Sort fields set to: {} due to lastN in desc order", sortFields);
+    }
     // Optional: Add sorting if required
     /*Map<String, String> sortFields = new HashMap<>();
     sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");

@@ -40,6 +40,7 @@ public class NGSILDQueryParams {
   private int pageFrom = 0;
   private int pageSize = 100;
   private boolean count;
+  private int lastN;
 
   public NGSILDQueryParams() {}
 
@@ -153,6 +154,9 @@ public class NGSILDQueryParams {
           break;
         case NGSILDQUERY_FROM:
           this.pageFrom = Integer.parseInt(entry.getValue());
+          break;
+        case NGSILDQUERY_LASTN:
+          this.lastN = Integer.parseInt(entry.getValue());
           break;
         case NGSILDQUERY_COUNT:
           this.count = Boolean.parseBoolean(entry.getValue());
@@ -400,6 +404,16 @@ public class NGSILDQueryParams {
         + pageSize
         + ", count="
         + count
+        + ", lastN="
+        + lastN
         + '}';
+  }
+
+  public int getLastN() {
+    return lastN;
+  }
+
+  public void setLastN(int lastN) {
+    this.lastN = lastN;
   }
 }

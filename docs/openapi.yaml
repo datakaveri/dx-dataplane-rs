@@ -137,6 +137,12 @@ paths:
             type: integer
             minimum: 0
             default: 0
+        - name: lastN
+          in: query
+          description: Get the last N records
+          schema:
+            type: integer
+            minimum: 1
         - name: count
           in: query
           description: Include count of matching entities in the response
