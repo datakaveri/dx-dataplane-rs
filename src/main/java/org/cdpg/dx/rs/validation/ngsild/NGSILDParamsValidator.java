@@ -1,5 +1,6 @@
 package org.cdpg.dx.rs.validation.ngsild;
 
+import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_TOKEN;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 import io.vertx.core.MultiMap;
@@ -38,32 +39,53 @@ public class NGSILDParamsValidator {
   private static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile("^urn:ngsi-ld:[a-zA-Z0-9_-]+$");
   private static final String[] VALIDATION_ALLOWED_OPERATORS = {"==", ">", "<", ">=", "<=", "!="};
-  private static Set<String> validParams = new HashSet<String>();
+  private static Set<String> validParamsTemporalEntites = new HashSet<String>();
+  private static Set<String> validParamsEntities = new HashSet<String>();
   private static Set<String> validParamsPost = new HashSet<String>();
   private static Set<String> validHeaders = new HashSet<String>();
 
   static {
-    validParams.add(NGSILDQUERY_TYPE);
-    validParams.add(NGSILDQUERY_ID);
-    validParams.add(NGSILDQUERY_IDPATTERN);
-    validParams.add(NGSILDQUERY_OMIT);
-    validParams.add(NGSILDQUERY_PICK);
-    validParams.add(NGSILDQUERY_Q);
-    validParams.add(NGSILDQUERY_GEOREL);
-    validParams.add(NGSILDQUERY_GEOMETRY);
-    validParams.add(NGSILDQUERY_COORDINATES);
-    validParams.add(NGSILDQUERY_GEOPROPERTY);
-    validParams.add(NGSILDQUERY_TIMEPROPERTY);
-    validParams.add(NGSILDQUERY_TIMEAT);
-    validParams.add(NGSILDQUERY_TIMEREL);
-    validParams.add(NGSILDQUERY_ENDTIMEAT);
-    validParams.add(NGSILDQUERY_ENTITIES);
-    validParams.add(NGSILDQUERY_GEOQ);
-    validParams.add(NGSILDQUERY_TEMPORALQ);
-    validParams.add(NGSILDQUERY_FROM);
-    validParams.add(NGSILDQUERY_SIZE);
-    validParams.add(NGSILD_OPTIONS);
-    validParams.add(NGSILDQUERY_COUNT);
+    validParamsTemporalEntites.add(NGSILDQUERY_TYPE);
+    validParamsTemporalEntites.add(NGSILDQUERY_ID);
+    validParamsTemporalEntites.add(NGSILDQUERY_IDPATTERN);
+    validParamsTemporalEntites.add(NGSILDQUERY_OMIT);
+    validParamsTemporalEntites.add(NGSILDQUERY_PICK);
+    validParamsTemporalEntites.add(NGSILDQUERY_Q);
+    validParamsTemporalEntites.add(NGSILDQUERY_GEOREL);
+    validParamsTemporalEntites.add(NGSILDQUERY_GEOMETRY);
+    validParamsTemporalEntites.add(NGSILDQUERY_COORDINATES);
+    validParamsTemporalEntites.add(NGSILDQUERY_GEOPROPERTY);
+    validParamsTemporalEntites.add(NGSILDQUERY_TIMEPROPERTY);
+    validParamsTemporalEntites.add(NGSILDQUERY_TIMEAT);
+    validParamsTemporalEntites.add(NGSILDQUERY_TIMEREL);
+    validParamsTemporalEntites.add(NGSILDQUERY_ENDTIMEAT);
+    validParamsTemporalEntites.add(NGSILDQUERY_ENTITIES);
+    validParamsTemporalEntites.add(NGSILDQUERY_GEOQ);
+    validParamsTemporalEntites.add(NGSILDQUERY_TEMPORALQ);
+    validParamsTemporalEntites.add(NGSILDQUERY_FROM);
+    validParamsTemporalEntites.add(NGSILDQUERY_SIZE);
+    validParamsTemporalEntites.add(NGSILD_OPTIONS);
+    validParamsTemporalEntites.add(NGSILDQUERY_COUNT);
+    validParamsTemporalEntites.add(NGSILDQUERY_LASTN);
+  }
+
+  static {
+    validParamsEntities.add(NGSILDQUERY_TYPE);
+    validParamsEntities.add(NGSILDQUERY_ID);
+    validParamsEntities.add(NGSILDQUERY_IDPATTERN);
+    validParamsEntities.add(NGSILDQUERY_OMIT);
+    validParamsEntities.add(NGSILDQUERY_PICK);
+    validParamsEntities.add(NGSILDQUERY_Q);
+    validParamsEntities.add(NGSILDQUERY_GEOREL);
+    validParamsEntities.add(NGSILDQUERY_GEOMETRY);
+    validParamsEntities.add(NGSILDQUERY_COORDINATES);
+    validParamsEntities.add(NGSILDQUERY_GEOPROPERTY);
+    validParamsEntities.add(NGSILDQUERY_ENTITIES);
+    validParamsEntities.add(NGSILDQUERY_GEOQ);
+    validParamsEntities.add(NGSILDQUERY_FROM);
+    validParamsEntities.add(NGSILDQUERY_SIZE);
+    validParamsEntities.add(NGSILD_OPTIONS);
+    validParamsEntities.add(NGSILDQUERY_COUNT);
   }
 
   static {
@@ -74,12 +96,20 @@ public class NGSILDParamsValidator {
   }
 
   static {
-    /*validHeaders.add(HEADER_TOKEN);*/
+    validHeaders.add(HEADER_TOKEN);
     validHeaders.add("User-Agent");
-    validHeaders.add("Content-Type");
-    validHeaders.add(HEADER_CSV);
+    validHeaders.add("Accept");
+    validHeaders.add("Accept-Encoding");
+    validHeaders.add(HEADER_CONTENT_TYPE);
+    validHeaders.add("Connection");
+    validHeaders.add("Host");
+    validHeaders.add("Postman-Token");
+    /*validHeaders.add(HEADER_CSV);
     validHeaders.add(HEADER_JSON);
-    validHeaders.add(HEADER_PARQUET);
+    validHeaders.add(HEADER_PARQUET);*/
+    validHeaders.add(NGSILD_LINK);
+    validHeaders.add(NGSILD_TENANT);
+    validHeaders.add(NGSILD_VIA);
   }
 
   private final int maxDaysSync;
@@ -113,7 +143,7 @@ public class NGSILDParamsValidator {
   private void validateParamsRecursive(Object value) {
     if (value instanceof JsonObject obj) {
       for (String key : obj.fieldNames()) {
-        if (!validParams.contains(key)) {
+        if (!validParamsTemporalEntites.contains(key)) {
           throw new DxBadRequestException("Invalid parameter: " + key);
         }
         validateParamsRecursive(obj.getValue(key));
@@ -126,9 +156,17 @@ public class NGSILDParamsValidator {
   }
 
   /* ===== Optimized GET query validation ===== */
-  public void validateQueryParams(MultiMap params) {
+  public void validateQueryParamsTemporalEntities(MultiMap params) {
     for (var entry : params.entries()) {
-      if (!validParams.contains(entry.getKey())) {
+      if (!validParamsTemporalEntites.contains(entry.getKey())) {
+        throw new DxBadRequestException("Invalid query parameter: " + entry.getKey());
+      }
+    }
+  }
+
+  public void validateQueryParamsEntities(MultiMap params) {
+    for (var entry : params.entries()) {
+      if (!validParamsEntities.contains(entry.getKey())) {
         throw new DxBadRequestException("Invalid query parameter: " + entry.getKey());
       }
     }
@@ -150,7 +188,7 @@ public class NGSILDParamsValidator {
   /* ---- Public validation methods ---- */
 
   /* ===== Header validation ===== */
-  private void validateHeaders(MultiMap headers) {
+  public void validateHeaders(MultiMap headers) {
     for (String headerName : headers.names()) {
       if (!validHeaders.contains(headerName)) {
         throw new DxBadRequestException("Invalid header: " + headerName);

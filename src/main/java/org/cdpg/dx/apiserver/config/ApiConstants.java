@@ -18,7 +18,7 @@ public class ApiConstants {
   public static final String HEADER_ORIGIN = "Origin";
   public static final String HEADER_REFERER = "Referer";
   public static final String HEADER_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
-  public static final String HEADER_TOKEN = "token";
+  public static final String HEADER_TOKEN = "Authorization";
   public static final String HEADER_HOST = "Host";
   public static final String HEADER_OPTIONS = "options";
   public static final String HEADER_BEARER_AUTHORIZATION = "Bearer";
