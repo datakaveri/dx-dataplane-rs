@@ -7,6 +7,7 @@ public class DxErrorCodes {
   public static final int INTERNAL_ERROR = 10004;
   public static final int AUTH_ERROR = 10005;
   public static final int BAD_REQUEST = 10006;
+  public static final int NOT_ACCEPTABLE = 10007;
 
   // 11000 – 11999: PostgreSQL / DB
   public static final int PG_ERROR = 11000;

@@ -9,10 +9,12 @@ import io.vertx.core.json.JsonObject;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.exception.DxNotAcceptableException;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.wololo.jts2geojson.GeoJSONReader;
@@ -67,6 +69,7 @@ public class NGSILDParamsValidator {
     validParamsTemporalEntites.add(NGSILD_OPTIONS);
     validParamsTemporalEntites.add(NGSILDQUERY_COUNT);
     validParamsTemporalEntites.add(NGSILDQUERY_LASTN);
+    validParamsTemporalEntites.add(NGSILD_FORMAT);
   }
 
   static {
@@ -86,6 +89,7 @@ public class NGSILDParamsValidator {
     validParamsEntities.add(NGSILDQUERY_SIZE);
     validParamsEntities.add(NGSILD_OPTIONS);
     validParamsEntities.add(NGSILDQUERY_COUNT);
+    validParamsEntities.add(NGSILD_FORMAT);
   }
 
   static {
@@ -93,6 +97,7 @@ public class NGSILDParamsValidator {
     validParamsPost.add(NGSILDQUERY_SIZE);
     validParamsPost.add(NGSILD_OPTIONS);
     validParamsPost.add(NGSILDQUERY_COUNT);
+    validParamsPost.add(NGSILD_FORMAT);
   }
 
   static {
@@ -764,4 +769,158 @@ public class NGSILDParamsValidator {
         || params.contains(NGSILDQUERY_GEOPROPERTY)
         || params.contains(NGSILDQUERY_COORDINATES);
   }
+
+    // Supported NGSI-LD media types
+    private static final List<String> SUPPORTED_MEDIA_TYPES = Arrays.asList(
+            "application/json",
+            "application/ld+json",
+            "application/geo+json"
+    );
+
+    // Pattern to parse Accept header with quality values
+    private static final Pattern MEDIA_TYPE_PATTERN =
+            Pattern.compile("([a-zA-Z0-9*+\\-./]+)(?:;\\s*q=([0-9.]+))?");
+
+    /**
+     * Validates and parses Accept header from Vert.x RoutingContext
+     * Returns the best matching media type based on quality values
+     */
+    /*public static String validateAndSelectBestMediaType(RoutingContext context) {
+        String acceptHeader = context.request().getHeader("Accept");
+        return validateAndSelectBestMediaType(acceptHeader);
+    }*/
+
+    /**
+     * Validates and parses Accept header string
+     * Returns the best matching media type based on quality values
+     */
+    public String validateAndSelectBestMediaType(String acceptHeader) {
+        if (acceptHeader == null || acceptHeader.trim().isEmpty()) {
+            return "application/json"; // Default
+        }
+
+        try {
+            List<MediaTypeWithQuality> parsedTypes = parseAcceptHeader(acceptHeader);
+
+            // Sort by quality value (highest first)
+            parsedTypes.sort(Comparator.comparingDouble(
+                    MediaTypeWithQuality::getQuality).reversed());
+
+            // Find first supported type
+            for (MediaTypeWithQuality mediaType : parsedTypes) {
+                String type = mediaType.getMediaType();
+
+                // Handle wildcards
+                if ("*/*".equals(type)) {
+                    return "application/json"; // Default for wildcard
+                }
+
+                if ("application/*".equals(type)) {
+                    return "application/json"; // Default for application wildcard
+                }
+
+                // Check if supported
+                if (SUPPORTED_MEDIA_TYPES.contains(type)) {
+                    return type;
+                }
+            }
+
+      // No supported media type found
+      throw new DxNotAcceptableException(
+          "Not Acceptable: Supported accept types are " + String.join(", ", SUPPORTED_MEDIA_TYPES));
+
+        } catch (IllegalArgumentException e) {
+      throw new DxBadRequestException("Invalid Accept header format: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Parse Accept header into list of media types with quality values
+     */
+    private static List<MediaTypeWithQuality> parseAcceptHeader(String acceptHeader) {
+        List<MediaTypeWithQuality> result = new ArrayList<>();
+
+        // Split by comma
+        String[] types = acceptHeader.split(",");
+
+        for (String type : types) {
+            type = type.trim();
+
+            Matcher matcher = MEDIA_TYPE_PATTERN.matcher(type);
+            if (matcher.find()) {
+                String mediaType = matcher.group(1).trim();
+                String qualityStr = matcher.group(2);
+
+                double quality = 1.0; // Default quality
+                if (qualityStr != null) {
+                    try {
+                        quality = Double.parseDouble(qualityStr);
+                        if (quality < 0.0 || quality > 1.0) {
+                            throw new IllegalArgumentException(
+                                    "Quality value must be between 0.0 and 1.0");
+                        }
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(
+                                "Invalid quality value: " + qualityStr);
+                    }
+                }
+
+                result.add(new MediaTypeWithQuality(mediaType, quality));
+            } else {
+                throw new IllegalArgumentException(
+                        "Invalid media type format: " + type);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Check if Accept header contains any supported media type
+     */
+    public boolean isSupportedMediaType(String acceptHeader) {
+        try {
+            validateAndSelectBestMediaType(acceptHeader);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get list of all parsed media types with their quality values
+     */
+    public static List<MediaTypeWithQuality> getAcceptedMediaTypes(String acceptHeader) {
+        if (acceptHeader == null || acceptHeader.trim().isEmpty()) {
+            return Collections.singletonList(
+                    new MediaTypeWithQuality("application/json", 1.0));
+        }
+        return parseAcceptHeader(acceptHeader);
+    }
+
+    /**
+     * Inner class to represent media type with quality value
+     */
+    public static class MediaTypeWithQuality {
+        private final String mediaType;
+        private final double quality;
+
+        public MediaTypeWithQuality(String mediaType, double quality) {
+            this.mediaType = mediaType;
+            this.quality = quality;
+        }
+
+        public String getMediaType() {
+            return mediaType;
+        }
+
+        public double getQuality() {
+            return quality;
+        }
+
+        @Override
+        public String toString() {
+            return mediaType + ";q=" + quality;
+        }
+    }
 }

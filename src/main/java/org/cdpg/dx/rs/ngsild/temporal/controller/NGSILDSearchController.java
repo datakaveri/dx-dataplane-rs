@@ -50,27 +50,30 @@ public class NGSILDSearchController implements ApiController {
     builder
         .operation("getTemporalEntities")
         .handler(getIdFromParams)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
         .operation("postTemporalEntitiesSearch")
         .handler(getIdFromBodyHandler)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
         .operation("getEntitiesSpatial")
         .handler(getIdFromParams)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handleEntityAttributeDataSearch(context, false));
     builder
         .operation("postEntitiesSearch")
         .handler(getIdFromBodyHandler)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handlePostEntityAttributeDataSearch(context, false));
   }
 
   private void handlePostEntityAttributeDataSearch(RoutingContext context, boolean isTemporal) {
     LOGGER.debug("Handling handlePostEntityAttributeDataSearch data query");
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     JsonObject bodyJson =
@@ -122,7 +125,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", postEntitiesCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -142,7 +145,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -169,10 +172,13 @@ public class NGSILDSearchController implements ApiController {
 
   private void handleEntityAttributeDataSearch(RoutingContext routingContext, boolean isTemporal) {
     LOGGER.debug("Handling entities attribute GET data query");
-
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(
+            routingContext.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     MultiMap params = routingContext.request().params(true);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-      /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
       ngsildParamsValidator.validateQueryParamsEntities(params);
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
@@ -213,7 +219,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -233,7 +239,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -261,6 +267,9 @@ public class NGSILDSearchController implements ApiController {
 
   private void handlePostTemporalEntityDataSearch(RoutingContext context, boolean isTemporal) {
     LOGGER.debug("Handling Temporal entities POST data query");
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     JsonObject bodyJson =
@@ -312,7 +321,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", postTemporalEntitiesCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -332,7 +341,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -364,8 +373,13 @@ public class NGSILDSearchController implements ApiController {
     MultiMap params = routingContext.request().params(true);
     /*params.add(NGSILD_LINK, routingContext.request().getHeader(NGSILD_LINK));*/
     /*MultiMap headers = routingContext.request().headers();*/
-    JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-      /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(
+            routingContext.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
+    JsonArray applicableFilter = /*RoutingContextHelper.getApplicableFilter(routingContext);*/
+        new JsonArray().add("TEMPORAL").add("ATTR");
     try {
       ngsildParamsValidator.validateQueryParamsTemporalEntities(params);
       /*ngsildParamsValidator.validateHeaders(headers);*/
@@ -407,7 +421,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -422,12 +436,35 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
+      if (params.contains("format")) {
+        String format = params.get("format");
+        LOGGER.warn("format param :: " + format);
+        if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && headersAcceptType.equalsIgnoreCase("application/json")) {
+          LOGGER.debug("simplified format selected");
+        } else if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          LOGGER.debug("consised format selected");
+        } else {
+          LOGGER.error("invalid format param");
+        }
+      } else {
+        if (headersAcceptType.equalsIgnoreCase("application/ld+json")
+            || headersAcceptType.equalsIgnoreCase("application/geo+json")) {
+          LOGGER.debug("normalised format selected");
+        } else {
+          LOGGER.error("invalid accept headers");
+        }
+      }
       ngsildService
           .getTemporalSearchData(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")

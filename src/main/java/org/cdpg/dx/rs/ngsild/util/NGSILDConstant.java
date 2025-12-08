@@ -26,7 +26,8 @@ public class NGSILDConstant {
     public static final String NGSILDQUERY_OMIT = "omit";
     public static final String NGSILDQUERY_COUNT = "count";
     public static final String NGSILDQUERY_LASTN = "lastN";
-    public static final String MSG_INVALID_PARAM = "Invalid parameter in request.";
+    public static final String MSG_INVALID_PARAM = "Unused parameter in request for ngsi-ld api: ";
+    public static final String NGSILD_FORMAT = "format";
 
 
 

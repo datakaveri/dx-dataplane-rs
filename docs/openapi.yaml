@@ -196,6 +196,16 @@ paths:
                 anyOf:
                 - $ref: '#/components/schemas/temporalEntityresponse'
                 - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -305,6 +315,16 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -388,6 +408,17 @@ paths:
           description: 'Successful complex search query'
           content:
             application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
@@ -548,6 +579,16 @@ paths:
           description: 'Successful complex search query'
           content:
             application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
