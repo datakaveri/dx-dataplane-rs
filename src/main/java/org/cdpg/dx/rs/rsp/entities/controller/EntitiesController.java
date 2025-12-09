@@ -238,7 +238,7 @@ public class EntitiesController implements ApiController {
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(ctx),
-                        body.getString(ID),
+                        RoutingContextHelper.getId(ctx),
                         RoutingContextHelper.getRequestPath(ctx),
                         "POST",
                         ctx.user().subject(),
