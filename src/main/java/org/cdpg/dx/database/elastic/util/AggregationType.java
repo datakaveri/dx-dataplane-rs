@@ -7,8 +7,10 @@ public enum AggregationType {
   MAX,
   MIN,
   HISTOGRAM,
+  DATE_HISTOGRAM,
   CARDINALITY,
   VALUE_COUNT,
   FILTER,
-  GLOBAL
+  GLOBAL,
+  EXTENDED_STATS
 }

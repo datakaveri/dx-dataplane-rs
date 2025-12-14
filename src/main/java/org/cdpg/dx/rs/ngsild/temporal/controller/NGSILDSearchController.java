@@ -15,6 +15,7 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.temporal.service.NGSILDService;
 import org.cdpg.dx.rs.ngsild.temporal.util.Util;
@@ -71,6 +72,9 @@ public class NGSILDSearchController implements ApiController {
 
   private void handlePostEntityAttributeDataSearch(RoutingContext context, boolean isTemporal) {
     LOGGER.debug("Handling handlePostEntityAttributeDataSearch data query");
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     JsonObject bodyJson =
@@ -81,7 +85,7 @@ public class NGSILDSearchController implements ApiController {
     JsonObject requestJson = bodyJson.copy();
     MultiMap params = context.request().params(true);
     MultiMap requestConvertedParam = Util.convertBodyToParams(bodyJson);
-    LOGGER.debug("Info: Converted Params :: " + requestConvertedParam);
+    LOGGER.trace("Info: Converted Params :: " + requestConvertedParam);
 
     try {
       ngsildParamsValidator.validateQueryParamsEntities(requestConvertedParam);
@@ -122,7 +126,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", postEntitiesCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -142,7 +146,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -153,11 +157,6 @@ public class NGSILDSearchController implements ApiController {
                     .setStatusCode(200)
                     /*.end(JsonObject.mapFrom(response).encode());*/
                     .end(getEntityData.getElasticsearchResponses().toString());
-                /*ResponseBuilder.sendSuccess(
-                routingContext,
-                getTemporalEntityData.getElasticsearchResponses(),
-                getTemporalEntityData.getPaginationInfo(),
-                urnGenerator);*/
               })
           .onFailure(
               err -> {
@@ -169,10 +168,13 @@ public class NGSILDSearchController implements ApiController {
 
   private void handleEntityAttributeDataSearch(RoutingContext routingContext, boolean isTemporal) {
     LOGGER.debug("Handling entities attribute GET data query");
-
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(
+            routingContext.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     MultiMap params = routingContext.request().params(true);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-      /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
       ngsildParamsValidator.validateQueryParamsEntities(params);
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
@@ -213,7 +215,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -233,7 +235,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -261,6 +263,9 @@ public class NGSILDSearchController implements ApiController {
 
   private void handlePostTemporalEntityDataSearch(RoutingContext context, boolean isTemporal) {
     LOGGER.debug("Handling Temporal entities POST data query");
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     JsonObject bodyJson =
@@ -271,7 +276,7 @@ public class NGSILDSearchController implements ApiController {
     JsonObject requestJson = bodyJson.copy();
     MultiMap params = context.request().params(true);
     MultiMap requestConvertedParam = Util.convertBodyToParams(bodyJson);
-    LOGGER.debug("Info: Converted Params :: " + requestConvertedParam);
+    LOGGER.trace("Info: Converted Params :: " + requestConvertedParam);
 
     try {
       ngsildParamsValidator.validateQueryParamsTemporalEntities(requestConvertedParam);
@@ -312,7 +317,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", postTemporalEntitiesCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -332,7 +337,7 @@ public class NGSILDSearchController implements ApiController {
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -344,11 +349,6 @@ public class NGSILDSearchController implements ApiController {
                     .setStatusCode(200)
                     /*.end(JsonObject.mapFrom(response).encode());*/
                     .end(getTemporalEntityData.getElasticsearchResponses().toString());
-                /*ResponseBuilder.sendSuccess(
-                routingContext,
-                getTemporalEntityData.getElasticsearchResponses(),
-                getTemporalEntityData.getPaginationInfo(),
-                urnGenerator);*/
               })
           .onFailure(
               err -> {
@@ -363,14 +363,18 @@ public class NGSILDSearchController implements ApiController {
 
     MultiMap params = routingContext.request().params(true);
     /*params.add(NGSILD_LINK, routingContext.request().getHeader(NGSILD_LINK));*/
-    /*MultiMap headers = routingContext.request().headers();*/
+
+    String headersAcceptType =
+        ngsildParamsValidator.validateAndSelectBestMediaType(
+            routingContext.request().getHeader("Accept"));
+    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-      /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     try {
       ngsildParamsValidator.validateQueryParamsTemporalEntities(params);
-      /*ngsildParamsValidator.validateHeaders(headers);*/
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
-
+      ngsildParamsValidator.validateAggrs(
+          params.get(NGSILD_OPTIONS), params.get(NGSILDQUERY_AGGR_METHODS));
       // temporal params validation
       // TODO: refactor to make it more readable
       ngsildParamsValidator.validateTemporal(
@@ -407,7 +411,7 @@ public class NGSILDSearchController implements ApiController {
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -422,12 +426,40 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
+      /*if (params.contains("format")) {
+        String format = params.get("format");
+        LOGGER.warn("format param :: " + format);
+        if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && headersAcceptType.equalsIgnoreCase("application/json")) {
+          LOGGER.debug("simplified format selected");
+        } else if (format != null
+            && format.equalsIgnoreCase("concise")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          LOGGER.debug("concise format selected");
+        } else if (format != null
+            && format.equalsIgnoreCase("normalized")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          LOGGER.debug("normalized format selected");
+        } else {
+          LOGGER.error("invalid format param");
+        }
+      } else {
+        if (headersAcceptType.equalsIgnoreCase("application/ld+json")
+            || headersAcceptType.equalsIgnoreCase("application/geo+json")) {
+          LOGGER.debug("normalized format selected");
+        } else {
+          LOGGER.error("invalid accept headers");
+        }
+      }*/
       ngsildService
           .getTemporalSearchData(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityData -> {
                 response
-                    .putHeader("Content-Type", "application/json")
+                    .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
@@ -436,14 +468,28 @@ public class NGSILDSearchController implements ApiController {
                         NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityData.getTotalHits()))
                     .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                     .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                    .setStatusCode(200)
-                    /*.end(JsonObject.mapFrom(response).encode());*/
-                    .end(getTemporalEntityData.getElasticsearchResponses().toString());
-                /*ResponseBuilder.sendSuccess(
-                routingContext,
-                getTemporalEntityData.getElasticsearchResponses(),
-                getTemporalEntityData.getPaginationInfo(),
-                urnGenerator);*/
+                    .setStatusCode(200);
+                // Return raw aggregations if requested, otherwise original hits
+                {
+                  String opts = ngsildQueryParams.getOptions();
+                  String format = ngsildQueryParams.getFormat();
+                  boolean wantsAggregated = false;
+                  if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
+                    wantsAggregated = true;
+                  if (format != null && format.toLowerCase().contains("aggregatedvalues"))
+                    wantsAggregated = true;
+                  if (wantsAggregated) {
+                    JsonObject aggs = ElasticsearchResponse.getAggregations();
+                    if (aggs == null) aggs = new JsonObject();
+                    if (aggs.containsKey("results")
+                        && aggs.getValue("results") instanceof JsonObject) {
+                      aggs = aggs.getJsonObject("results");
+                    }
+                    response.end(aggs.encode());
+                  } else {
+                    response.end(getTemporalEntityData.getElasticsearchResponses().toString());
+                  }
+                }
               })
           .onFailure(
               err -> {

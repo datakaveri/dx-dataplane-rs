@@ -9,10 +9,12 @@ import io.vertx.core.json.JsonObject;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
+import org.cdpg.dx.common.exception.DxNotAcceptableException;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.wololo.jts2geojson.GeoJSONReader;
@@ -39,6 +41,12 @@ public class NGSILDParamsValidator {
   private static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile("^urn:ngsi-ld:[a-zA-Z0-9_-]+$");
   private static final String[] VALIDATION_ALLOWED_OPERATORS = {"==", ">", "<", ">=", "<=", "!="};
+  // Supported NGSI-LD media types
+  private static final List<String> SUPPORTED_MEDIA_TYPES =
+      Arrays.asList("application/json", "application/ld+json", "application/geo+json");
+  // Pattern to parse Accept header with quality values
+  private static final Pattern MEDIA_TYPE_PATTERN =
+      Pattern.compile("([a-zA-Z0-9*+\\-./]+)(?:;\\s*q=([0-9.]+))?");
   private static Set<String> validParamsTemporalEntites = new HashSet<String>();
   private static Set<String> validParamsEntities = new HashSet<String>();
   private static Set<String> validParamsPost = new HashSet<String>();
@@ -59,6 +67,8 @@ public class NGSILDParamsValidator {
     validParamsTemporalEntites.add(NGSILDQUERY_TIMEAT);
     validParamsTemporalEntites.add(NGSILDQUERY_TIMEREL);
     validParamsTemporalEntites.add(NGSILDQUERY_ENDTIMEAT);
+    validParamsTemporalEntites.add(NGSILDQUERY_AGGR_METHODS);
+    validParamsTemporalEntites.add(NGSILDQUERY_AGGR_PERIOD_DURATION);
     validParamsTemporalEntites.add(NGSILDQUERY_ENTITIES);
     validParamsTemporalEntites.add(NGSILDQUERY_GEOQ);
     validParamsTemporalEntites.add(NGSILDQUERY_TEMPORALQ);
@@ -67,11 +77,15 @@ public class NGSILDParamsValidator {
     validParamsTemporalEntites.add(NGSILD_OPTIONS);
     validParamsTemporalEntites.add(NGSILDQUERY_COUNT);
     validParamsTemporalEntites.add(NGSILDQUERY_LASTN);
+    validParamsTemporalEntites.add(NGSILD_FORMAT);
   }
 
   static {
     validParamsEntities.add(NGSILDQUERY_TYPE);
     validParamsEntities.add(NGSILDQUERY_ID);
+    // Aggregation supported only for temporal, keep here if needed later
+    // validParamsEntities.add(NGSILDQUERY_AGGR_METHODS);
+    // validParamsEntities.add(NGSILDQUERY_AGGR_DURATIONS);
     validParamsEntities.add(NGSILDQUERY_IDPATTERN);
     validParamsEntities.add(NGSILDQUERY_OMIT);
     validParamsEntities.add(NGSILDQUERY_PICK);
@@ -86,6 +100,7 @@ public class NGSILDParamsValidator {
     validParamsEntities.add(NGSILDQUERY_SIZE);
     validParamsEntities.add(NGSILD_OPTIONS);
     validParamsEntities.add(NGSILDQUERY_COUNT);
+    validParamsEntities.add(NGSILD_FORMAT);
   }
 
   static {
@@ -93,6 +108,7 @@ public class NGSILDParamsValidator {
     validParamsPost.add(NGSILDQUERY_SIZE);
     validParamsPost.add(NGSILD_OPTIONS);
     validParamsPost.add(NGSILDQUERY_COUNT);
+    validParamsPost.add(NGSILD_FORMAT);
   }
 
   static {
@@ -139,6 +155,50 @@ public class NGSILDParamsValidator {
     return value;
   }
 
+  /** Parse Accept header into list of media types with quality values */
+  private static List<MediaTypeWithQuality> parseAcceptHeader(String acceptHeader) {
+    List<MediaTypeWithQuality> result = new ArrayList<>();
+
+    // Split by comma
+    String[] types = acceptHeader.split(",");
+
+    for (String type : types) {
+      type = type.trim();
+
+      Matcher matcher = MEDIA_TYPE_PATTERN.matcher(type);
+      if (matcher.find()) {
+        String mediaType = matcher.group(1).trim();
+        String qualityStr = matcher.group(2);
+
+        double quality = 1.0; // Default quality
+        if (qualityStr != null) {
+          try {
+            quality = Double.parseDouble(qualityStr);
+            if (quality < 0.0 || quality > 1.0) {
+              throw new IllegalArgumentException("Quality value must be between 0.0 and 1.0");
+            }
+          } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid quality value: " + qualityStr);
+          }
+        }
+
+        result.add(new MediaTypeWithQuality(mediaType, quality));
+      } else {
+        throw new IllegalArgumentException("Invalid media type format: " + type);
+      }
+    }
+
+    return result;
+  }
+
+  /** Get list of all parsed media types with their quality values */
+  public static List<MediaTypeWithQuality> getAcceptedMediaTypes(String acceptHeader) {
+    if (acceptHeader == null || acceptHeader.trim().isEmpty()) {
+      return Collections.singletonList(new MediaTypeWithQuality("application/json", 1.0));
+    }
+    return parseAcceptHeader(acceptHeader);
+  }
+
   /* ===== Unified recursive parameter validation ===== */
   private void validateParamsRecursive(Object value) {
     if (value instanceof JsonObject obj) {
@@ -154,6 +214,8 @@ public class NGSILDParamsValidator {
       }
     }
   }
+
+  /* ---- Public validation methods ---- */
 
   /* ===== Optimized GET query validation ===== */
   public void validateQueryParamsTemporalEntities(MultiMap params) {
@@ -184,8 +246,6 @@ public class NGSILDParamsValidator {
   public void validateBodyParams(JsonObject body) {
     validateParamsRecursive(body);
   }
-
-  /* ---- Public validation methods ---- */
 
   /* ===== Header validation ===== */
   public void validateHeaders(MultiMap headers) {
@@ -268,6 +328,8 @@ public class NGSILDParamsValidator {
       return;
     }
 
+    // No-op validation for aggregation params here; they are optional and validated where used
+
     if (timeRel == null || timeAt == null) {
       throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
     }
@@ -280,20 +342,24 @@ public class NGSILDParamsValidator {
 
     ZonedDateTime start;
     try {
-      start = ZonedDateTime.parse(timeAt);
+      String timeAtNormalized = timeAt.trim().replaceAll("\\s", "+");
+      start = ZonedDateTime.parse(timeAtNormalized);
     } catch (Exception e) {
-      throw new DxBadRequestException("time must be in ISO 8601 format");
+      throw new DxBadRequestException("timeAt must be in ISO 8601 format");
     }
 
     ZonedDateTime end = null;
-    if ("between".equalsIgnoreCase(timeRel) || "during".equalsIgnoreCase(timeRel)) {
+    if ("between".equalsIgnoreCase(timeRel)) {
       if (endTime == null)
-        throw new DxBadRequestException("endTime is mandatory when timerel=between or during");
+        throw new DxBadRequestException("endTimeAt is mandatory when timerel=between");
       try {
-        end = ZonedDateTime.parse(endTime);
-        if (end.isBefore(start)) throw new DxBadRequestException("endTime must be after timeAt");
+        String endTimeNormalized = endTime.trim().replaceAll("\\s", "+");
+        end = ZonedDateTime.parse(endTimeNormalized);
+        if (end.isBefore(start)) {
+          throw new DxBadRequestException("endTimeAt must be after timeAt");
+        }
       } catch (Exception e) {
-        throw new DxBadRequestException("endTime must be in ISO 8601 format");
+        throw new DxBadRequestException("endTimeAt must be in ISO 8601 format");
       }
     }
     // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
@@ -319,8 +385,6 @@ public class NGSILDParamsValidator {
       }
     }
   }
-
-  /* ---- Q-type validation ---- */
 
   public void validateQ(String q) {
     if (q == null || q.isBlank()) return;
@@ -445,8 +509,6 @@ public class NGSILDParamsValidator {
       }
     }
   }
-
-  /* ---- Private helpers for geometry ---- */
 
   public void validateGeoRel(String geom, String georel) {
 
@@ -754,6 +816,15 @@ public class NGSILDParamsValidator {
         || params.contains(NGSILDQUERY_TIMEPROPERTY);
   }
 
+  /**
+   * Validates and parses Accept header from Vert.x RoutingContext Returns the best matching media
+   * type based on quality values
+   */
+  /*public static String validateAndSelectBestMediaType(RoutingContext context) {
+      String acceptHeader = context.request().getHeader("Accept");
+      return validateAndSelectBestMediaType(acceptHeader);
+  }*/
+
   private Boolean isAttributeQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_ATTRIBUTE);
   }
@@ -763,5 +834,94 @@ public class NGSILDParamsValidator {
         || params.contains(NGSILDQUERY_GEOMETRY)
         || params.contains(NGSILDQUERY_GEOPROPERTY)
         || params.contains(NGSILDQUERY_COORDINATES);
+  }
+
+  /**
+   * Validates and parses Accept header string Returns the best matching media type based on quality
+   * values
+   */
+  public String validateAndSelectBestMediaType(String acceptHeader) {
+    if (acceptHeader == null || acceptHeader.trim().isEmpty()) {
+      return "application/json"; // Default
+    }
+
+    try {
+      List<MediaTypeWithQuality> parsedTypes = parseAcceptHeader(acceptHeader);
+
+      // Sort by quality value (highest first)
+      parsedTypes.sort(Comparator.comparingDouble(MediaTypeWithQuality::getQuality).reversed());
+
+      // Find first supported type
+      for (MediaTypeWithQuality mediaType : parsedTypes) {
+        String type = mediaType.getMediaType();
+
+        // Handle wildcards
+        if ("*/*".equals(type)) {
+          return "application/json"; // Default for wildcard
+        }
+
+        if ("application/*".equals(type)) {
+          return "application/json"; // Default for application wildcard
+        }
+
+        // Check if supported
+        if (SUPPORTED_MEDIA_TYPES.contains(type)) {
+          return type;
+        }
+      }
+
+      // No supported media type found
+      throw new DxNotAcceptableException(
+          "Not Acceptable: Supported accept types are " + String.join(", ", SUPPORTED_MEDIA_TYPES));
+
+    } catch (IllegalArgumentException e) {
+      throw new DxBadRequestException("Invalid Accept header format: " + e.getMessage());
+    }
+  }
+
+  /** Check if Accept header contains any supported media type */
+  public boolean isSupportedMediaType(String acceptHeader) {
+    try {
+      validateAndSelectBestMediaType(acceptHeader);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  public void validateAggrs(String options, String aggrMethods) {
+    if (options != null && options.toLowerCase().contains("aggregatedvalues")) {
+      if (aggrMethods == null || aggrMethods.isBlank()) {
+        throw new DxBadRequestException("aggrMethods is required when requesting aggregatedValues");
+      }
+      /*if(aggrPeriodDuration == null || aggrPeriodDuration.isBlank()) {
+          throw new DxBadRequestException("aggrPeriodDuration is required when requesting aggregatedValues");
+      }*/
+      // Further validation of aggrMethods and aggrPeriodDuration can be added here
+    }
+  }
+
+  /** Inner class to represent media type with quality value */
+  public static class MediaTypeWithQuality {
+    private final String mediaType;
+    private final double quality;
+
+    public MediaTypeWithQuality(String mediaType, double quality) {
+      this.mediaType = mediaType;
+      this.quality = quality;
+    }
+
+    public String getMediaType() {
+      return mediaType;
+    }
+
+    public double getQuality() {
+      return quality;
+    }
+
+    @Override
+    public String toString() {
+      return mediaType + ";q=" + quality;
+    }
   }
 }

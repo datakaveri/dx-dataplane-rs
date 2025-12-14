@@ -132,11 +132,41 @@ public class QueryDecoderNew {
       q.setSortFields(sortFields);
       LOGGER.debug("Sort fields set to: {} due to lastN in desc order", sortFields);
     }
-    // Optional: Add sorting if required
-    /*Map<String, String> sortFields = new HashMap<>();
-    sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");
-    q.setSortFields(sortFields);
-    LOGGER.debug("Sort fields set to: {}", sortFields);*/
+    // Handle aggregations if supplied
+    if (ngsildQueryParams.getAggrMethods() != null
+        && !ngsildQueryParams.getAggrMethods().isEmpty()) {
+      // ETSI NGSI-LD: aggrMethods is only applicable if aggregatedValues is present in format or
+      // options
+      boolean wantsAggregated = false;
+      String opts = ngsildQueryParams.getOptions();
+      String format = ngsildQueryParams.getFormat();
+      if (opts != null && opts.toLowerCase().contains("aggregatedvalues")) wantsAggregated = true;
+      if (format != null && format.toLowerCase().contains("aggregatedvalues"))
+        wantsAggregated = true;
+      if (!wantsAggregated) {
+        throw new DxBadRequestException(
+            "aggrMethods is only applicable when format=aggregatedValues or options includes 'aggregatedValues'");
+      }
+      try {
+        Map<String, org.cdpg.dx.database.elastic.model.QueryModel> aggrMap =
+            parseAggregations(
+                ngsildQueryParams, ngsildQueryParams.getTemporalQuery().getTimeproperty());
+        q.setAggregationsMap(aggrMap);
+        // Also set the aggregations list expected by ElasticsearchServiceImpl
+        if (aggrMap != null && !aggrMap.isEmpty()) {
+          List<org.cdpg.dx.database.elastic.model.QueryModel> aggrList = new ArrayList<>();
+          for (Map.Entry<String, org.cdpg.dx.database.elastic.model.QueryModel> e :
+              aggrMap.entrySet()) {
+            org.cdpg.dx.database.elastic.model.QueryModel qm = e.getValue();
+            qm.setAggregationName(e.getKey());
+            aggrList.add(qm);
+          }
+          q.setAggregations(aggrList);
+        }
+      } catch (Exception e) {
+        throw new DxBadRequestException("Invalid aggregation specification: " + e.getMessage());
+      }
+    }
 
     return q;
   }
@@ -398,5 +428,203 @@ public class QueryDecoderNew {
     QueryModel q = new QueryModel();
     q.setQueries(getBoolQuery(queryMap));
     return q;
+  }
+
+  /**
+   * Parse aggrMethods and aggrDurations from NGSILDQueryParams and build a map of QueryModel
+   * aggregations Expected aggrMethods format: methodName:field or methodName (for time histograms)
+   * Supported methods: avg,sum,min,max,value_count,cardinality,terms,histogram aggrDurations aligns
+   * by position and used for histogram interval (ISO-8601 duration or seconds)
+   */
+  private Map<String, org.cdpg.dx.database.elastic.model.QueryModel> parseAggregations(
+      NGSILDQueryParams params, String timeProperty) {
+    Map<String, org.cdpg.dx.database.elastic.model.QueryModel> map = new HashMap<>();
+    List<String> methods = params.getAggrMethods();
+
+    if (methods == null || methods.isEmpty())
+      throw new IllegalArgumentException("aggrMethods requires");
+    ;
+
+    // Per user request: use `pick` (picked attributes) as the aggregation targets.
+    // The i-th method in aggrMethods applies to the i-th picked field.
+    List<String> picks = params.getPick();
+    if (picks == null || picks.isEmpty()) {
+      throw new IllegalArgumentException(
+          "aggrMethods requires pick to be specified (pick parameter)");
+    }
+    String period = params.getAggrPeriodDuration();
+
+    for (int i = 0; i < methods.size(); i++) {
+      String method = methods.get(i).trim().toLowerCase();
+      if (i >= picks.size()) {
+        throw new IllegalArgumentException(
+            "aggrMethods and pick length mismatch: method at index "
+                + i
+                + " has no corresponding picked field");
+      }
+      String field = picks.get(i).trim();
+
+      // Only allowed ETSI NGSI-LD aggregation methods
+      switch (method) {
+        case "totalcount":
+        case "distinctcount":
+        case "sum":
+        case "avg":
+        case "min":
+        case "max":
+        case "stddev":
+        case "sumsq":
+          break;
+        default:
+          throw new IllegalArgumentException(
+              "Unsupported aggregation method (must be one of totalCount, distinctCount, sum, avg, min, max, stddev): "
+                  + method);
+      }
+
+      Map<String, Object> aggrParams = new HashMap<>();
+      aggrParams.put(org.cdpg.dx.database.elastic.util.Constants.FIELD, field);
+
+      switch (method) {
+        case "totalcount":
+          {
+            String aggName = "totalCount_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.VALUE_COUNT, aggrParams));
+            break;
+          }
+        case "distinctcount":
+          {
+            String aggName = "distinctCount_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.CARDINALITY, aggrParams));
+            break;
+          }
+        case "sum":
+          {
+            String aggName = "sum_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.SUM, aggrParams));
+            break;
+          }
+        case "avg":
+          {
+            String aggName = "avg_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.AVG, aggrParams));
+            break;
+          }
+        case "min":
+          {
+            String aggName = "min_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.MIN, aggrParams));
+            break;
+          }
+        case "max":
+          {
+            String aggName = "max_" + field;
+            map.put(
+                aggName,
+                new org.cdpg.dx.database.elastic.model.QueryModel(
+                    org.cdpg.dx.database.elastic.util.AggregationType.MAX, aggrParams));
+            break;
+          }
+        case "stddev":
+        case "sumsq":
+          {
+            // create/merge extended_stats per field
+            String extAggName = "extendedStats_" + field;
+            if (!map.containsKey(extAggName)) {
+              map.put(
+                  extAggName,
+                  new org.cdpg.dx.database.elastic.model.QueryModel(
+                      org.cdpg.dx.database.elastic.util.AggregationType.EXTENDED_STATS,
+                      aggrParams));
+            }
+            break;
+          }
+      }
+    }
+
+    // If a period is supplied, ES date_histogram must be added as a parent aggregation that buckets
+    // by time.
+    if (period != null && !period.isBlank()) {
+      // convert ISO-8601 period (PT4M) to ES interval string (e.g., '4m' or 'PT4M' -> '4m')
+      String interval = isoDurationToEsInterval(period);
+      // wrap existing aggregations under a date_histogram
+      Map<String, org.cdpg.dx.database.elastic.model.QueryModel> wrapped = new HashMap<>();
+      Map<String, Object> dhParams = new HashMap<>();
+      // Use the timeProperty (temporal property) for bucketing
+      String timeField = timeProperty != null ? timeProperty : "observationDateTime";
+      dhParams.put(org.cdpg.dx.database.elastic.util.Constants.FIELD, timeField);
+      // Prefer calendar interval for larger units, fixed interval for seconds/minutes/hours
+      if (interval.endsWith("d") || interval.endsWith("M") || interval.endsWith("y")) {
+        dhParams.put("calendar_interval", interval);
+      } else {
+        dhParams.put("fixed_interval", interval);
+      }
+      // Use HISTOGRAM on the time field with interval in seconds (double)
+      // convert interval string to seconds
+      double secondsInterval = isoIntervalToSeconds(interval);
+      dhParams.put("interval", secondsInterval);
+      // Use DATE_HISTOGRAM aggregation type so we generate an ES date_histogram instead
+      org.cdpg.dx.database.elastic.model.QueryModel dh =
+          new org.cdpg.dx.database.elastic.model.QueryModel(
+              org.cdpg.dx.database.elastic.util.AggregationType.DATE_HISTOGRAM, dhParams);
+      dh.setAggregationsMap(map);
+      wrapped.put("results", dh);
+      return wrapped;
+    }
+
+    return map;
+  }
+
+  private String isoDurationToEsInterval(String dur) {
+    // naive conversion from ISO-8601 duration (PT4M -> 4m, PT1H -> 1h, P1D -> 1d)
+    try {
+      if (dur == null || dur.isBlank()) return "1h";
+      dur = dur.trim().toUpperCase();
+      if (dur.startsWith("PT")) {
+        // time-based
+        dur = dur.substring(2);
+        if (dur.endsWith("H")) return dur.replace("H", "h");
+        if (dur.endsWith("M")) return dur.replace("M", "m");
+        if (dur.endsWith("S")) return dur.replace("S", "s");
+      } else if (dur.startsWith("P")) {
+        // date-based
+        dur = dur.substring(1);
+        if (dur.endsWith("D")) return dur.replace("D", "d");
+        if (dur.endsWith("M")) return dur.replace("M", "M");
+        if (dur.endsWith("Y")) return dur.replace("Y", "y");
+      }
+      // fallback to raw value
+      return dur;
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid aggrPeriodDuration: " + dur);
+    }
+  }
+
+  private double isoIntervalToSeconds(String s) {
+    // s like 4m, 1h, 15m, 1d, 30s
+    try {
+      if (s.endsWith("h")) return Double.parseDouble(s.substring(0, s.length() - 1)) * 3600.0;
+      if (s.endsWith("m")) return Double.parseDouble(s.substring(0, s.length() - 1)) * 60.0;
+      if (s.endsWith("s")) return Double.parseDouble(s.substring(0, s.length() - 1));
+      if (s.endsWith("d")) return Double.parseDouble(s.substring(0, s.length() - 1)) * 86400.0;
+      // fallback: parse as seconds
+      return Double.parseDouble(s);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid interval string: " + s);
+    }
   }
 }

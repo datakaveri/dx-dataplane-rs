@@ -11,13 +11,10 @@ import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
 public class NGSILDServiceImpl implements NGSILDService {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDServiceImpl.class);
-  /*private final NewQueryMapper queryMapper;*/
-
   private final SearchService searchService;
 
   public NGSILDServiceImpl(SearchService searchService) {
     this.searchService = searchService;
-    /*this.queryMapper = new NewQueryMapper();*/
   }
 
   @Override
@@ -31,6 +28,21 @@ public class NGSILDServiceImpl implements NGSILDService {
               LOGGER.debug(
                   "Successfully fetched count for ID: {}",
                   ngsildQueryParams.getId().get(0).toString());
+              // If client requested aggregatedValues (either via format or options), return
+              // aggregations instead of document hits. The ElasticsearchServiceImpl already
+              // parsed aggregations into ElasticsearchResponse.getAggregations(). Use the
+              // ResponseModel constructor that populates the response with aggregations.
+              String fmt = ngsildQueryParams.getFormat();
+              String opts = ngsildQueryParams.getOptions();
+              boolean wantsAggregated = false;
+              if (fmt != null && fmt.equalsIgnoreCase("aggregatedValues")) wantsAggregated = true;
+              if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
+                wantsAggregated = true;
+              if (wantsAggregated) {
+                return new ResponseModel(searchResultWithCount.getResults());
+              }
+
+              // Default behavior: return paginated hits
               return new ResponseModel(
                   searchResultWithCount.getResults(),
                   ngsildQueryParams.getPageSize(),

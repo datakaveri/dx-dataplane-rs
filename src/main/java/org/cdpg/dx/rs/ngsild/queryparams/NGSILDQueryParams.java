@@ -30,8 +30,10 @@ public class NGSILDQueryParams {
   private List<String> pick;
   private List<String> omit;
   private String q;
+  private List<String> attrs;
   private TemporalQuery temporalQuery;
   private String options;
+  private String format;
   private GeoRelation geoRel;
   private String geometry;
   private String coordinates;
@@ -41,6 +43,9 @@ public class NGSILDQueryParams {
   private int pageSize = 100;
   private boolean count;
   private int lastN;
+  // Aggregation parameters (NGSI-LD extensions)
+  private List<String> aggrMethods;
+  private String aggrPeriodDuration;
 
   public NGSILDQueryParams() {}
 
@@ -110,6 +115,7 @@ public class NGSILDQueryParams {
   private void create(MultiMap paramsMap) {
     List<Entry<String, String>> entries = paramsMap.entries();
     for (final Entry<String, String> entry : entries) {
+      LOGGER.warn(entry.getKey() + " : " + entry.getValue());
       switch (entry.getKey()) {
         case NGSILDQUERY_ID:
           this.id = new ArrayList<URI>();
@@ -129,16 +135,24 @@ public class NGSILDQueryParams {
           this.temporalQuery.setTimerel(entry.getValue());
           break;
         case NGSILDQUERY_TIMEAT:
-          this.temporalQuery.setTimeAt(entry.getValue());
+          String timeAtNormalized = entry.getValue().trim().replaceAll("\\s", "+");
+          this.temporalQuery.setTimeAt(timeAtNormalized);
           break;
         case NGSILDQUERY_ENDTIMEAT:
-          this.temporalQuery.setEndtimeAt(entry.getValue());
+          String endTimeAtNormalized = entry.getValue().trim().replaceAll("\\s", "+");
+          this.temporalQuery.setEndtimeAt(endTimeAtNormalized);
           break;
         case NGSILDQUERY_TIMEPROPERTY:
           this.temporalQuery.setTimeproperty(entry.getValue());
           break;
         case NGSILDQUERY_Q:
           this.q = entry.getValue();
+          break;
+        case NGSILDQUERY_ATTRIBUTE:
+          this.attrs =
+              Arrays.stream(entry.getValue().split(","))
+                  .map(String::trim)
+                  .collect(Collectors.toList());
           break;
         case NGSILDQUERY_TYPE:
           this.type = entry.getValue();
@@ -149,9 +163,19 @@ public class NGSILDQueryParams {
         case NGSILD_OPTIONS:
           this.options = entry.getValue();
           break;
+        case NGSILD_FORMAT:
+          this.format = entry.getValue();
+          break;
         case NGSILDQUERY_SIZE:
           this.pageSize = Integer.parseInt(entry.getValue());
           break;
+        case NGSILDQUERY_AGGR_METHODS:
+          this.aggrMethods =
+              Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList());
+          break;
+        /*case NGSILDQUERY_AGGR_PERIOD_DURATION:
+          this.aggrPeriodDuration = entry.getValue();
+          break;*/
         case NGSILDQUERY_FROM:
           this.pageFrom = Integer.parseInt(entry.getValue());
           break;
@@ -252,6 +276,8 @@ public class NGSILDQueryParams {
             }
           } else if (entry.getKey().equalsIgnoreCase(NGSILD_OPTIONS)) {
             this.options = requestJson.getString(entry.getKey());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILD_FORMAT)) {
+            this.format = requestJson.getString(entry.getKey());
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_COUNT)) {
             this.count = Boolean.parseBoolean(requestJson.getString(entry.getKey()));
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_FROM)) {
@@ -303,6 +329,14 @@ public class NGSILDQueryParams {
 
   public void setOptions(String options) {
     this.options = options;
+  }
+
+  public String getFormat() {
+    return format;
+  }
+
+  public List<String> getAttrs() {
+    return attrs;
   }
 
   public GeoRelation getGeoRel() {
@@ -379,10 +413,15 @@ public class NGSILDQueryParams {
         + ", q='"
         + q
         + '\''
+        + ", attrs="
+        + attrs
         + ", temporalQuery="
         + temporalQuery.toJson()
         + ", options='"
         + options
+        + '\''
+        + ", format='"
+        + format
         + '\''
         + ", geoRel="
         + geoRel.toString()
@@ -406,6 +445,9 @@ public class NGSILDQueryParams {
         + count
         + ", lastN="
         + lastN
+        + ", aggrMethods="
+        + aggrMethods
+        + '\''
         + '}';
   }
 
@@ -415,5 +457,21 @@ public class NGSILDQueryParams {
 
   public void setLastN(int lastN) {
     this.lastN = lastN;
+  }
+
+  public List<String> getAggrMethods() {
+    return aggrMethods;
+  }
+
+  public void setAggrMethods(List<String> aggrMethods) {
+    this.aggrMethods = aggrMethods;
+  }
+
+  public String getAggrPeriodDuration() {
+    return aggrPeriodDuration;
+  }
+
+  public void setAggrPeriodDuration(String aggrPeriodDuration) {
+    this.aggrPeriodDuration = aggrPeriodDuration;
   }
 }
