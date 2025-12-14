@@ -138,10 +138,14 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
                 }
 
                 // 2. Handle aggregations if needed
-                if (options.startsWith(AGGREGATION_ONLY)
-                    || options.equals(COUNT_AGGREGATION_ONLY)) {
-                  aggregationsJson = parseAggregations(response, options);
-                }
+                // Always parse aggregations and attach them to the response when present.
+                // This allows returning both hits and aggregations when a client requests
+                // aggregatedValues (format/options) while still returning document hits.
+                /*if (options.startsWith(AGGREGATION_ONLY)
+                        || options.equals(COUNT_AGGREGATION_ONLY)) {
+                    aggregationsJson = parseAggregations(response, options);
+                }*/
+                aggregationsJson = parseAggregations(response, options);
 
                 if (!aggregationsJson.isEmpty()) {
                   ElasticsearchResponse.setAggregations(aggregationsJson);

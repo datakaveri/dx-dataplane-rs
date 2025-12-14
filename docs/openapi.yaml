@@ -153,12 +153,12 @@ paths:
           in: query
           description: For attribute based search. The attribute query is used for querying allowed quantitative properties. Used to query on a value of a resource attribute using <,>,<=,>=,!=, == operators. For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. Allowed values for all operators is double. For the operator == if the query is on id then the only value allowed is an data exchange ID of a resource. Multiple value is allow with comma(,) separate, maximum 10 values is allowed.
           schema:
-              type: string
+            type: string
         - name: omit
           in: query
           description: Comma-separated list of properties to omit from the response, maximum value is allow is 5.
           schema:
-              type: string
+            type: string
         - name: pick
           in: query
           description: Comma-separated list of properties to pick from the response, maximum value is allow is 5.
@@ -187,6 +187,23 @@ paths:
           schema:
             type: string
             enum: [ location ]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ aggregatedValues, simplified ]
+        - name: options
+          in: query
+          description: Perform aggregation
+          schema:
+            type: string
+            enum: [ aggregatedValues ]
+        - name: aggrMethods
+          in: query
+          description: Comma separated list of aggregation methods, only applicable when options=aggregatedValues. Supported values are totalCount, distinctCount, min, max, sum, avg, stddev.
+          schema:
+            type: string
+            #enum: [ totalCount, distinctCount, min, max, sum, avg, stddev ]
       responses:
         '200':
           description: Successful retrieval of temporal entities
@@ -194,18 +211,18 @@ paths:
             application/json:
               schema:
                 anyOf:
-                - $ref: '#/components/schemas/temporalEntityresponse'
-                - $ref: '#/components/schemas/countResponse'
-            application/ld+json:
-              schema:
-                anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-            application/geo+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
+        #            application/ld+json:
+        #              schema:
+        #                anyOf:
+        #                  - $ref: '#/components/schemas/temporalEntityresponse'
+        #                  - $ref: '#/components/schemas/countResponse'
+        #            application/geo+json:
+        #              schema:
+        #                anyOf:
+        #                  - $ref: '#/components/schemas/temporalEntityresponse'
+        #                  - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -315,16 +332,6 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-            application/ld+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
-            application/geo+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -412,19 +419,6 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-
-            application/ld+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
-            application/geo+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
-#        204:
-#          description: 'Empty Response'
 
         400:
           content:
@@ -583,18 +577,6 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-            application/ld+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
-            application/geo+json:
-              schema:
-                anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
-                  - $ref: '#/components/schemas/countResponse'
-#        204:
-#          description: 'Empty Response'
 
         400:
           content:
@@ -2659,7 +2641,7 @@ components:
           items:
             type: object
       example:
-       [
+        [
           {
             "trip_direction": "NT",
             "trip_id": "24374871",
