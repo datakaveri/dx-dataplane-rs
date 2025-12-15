@@ -560,7 +560,7 @@ paths:
                 "temporalQ": {
                   "timerel": "between",
                   "timeAt": "2020-10-18T14:20:00Z",
-                  "endtimeAt": "2020-10-19T14:20:00Z",
+                  "endTimeAt": "2020-10-19T14:20:00Z",
                   "timeproperty": "observationDateTime"
                 },
                 "q": "speed>30.0",
@@ -619,9 +619,9 @@ paths:
         Temporal search accepts time property based queries which are specified in ISO 8601 format. The params and their accepted values are -
           - <b>timerel</b>: The time relation of the query. Should be either `between`, `before` or `after`.
           - <b>timeAt</b>: Start time for the temporal query in `ISO 8601` format. 
-          - <b>endtimeAt</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
+          - <b>endTimeAt</b>: End time for the temporal query in `ISO 8601` format. Applicable only for `timerel = between`. 
           - <b>timeproperty</b>: The time property tell us on which field we are applying time. By default it is 'observationDateTime'. Allowed values are `observationDateTime` and `observedAt`.
-          - Note, The time difference between `timeAt` and `endtimeAt` should be less than `20 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
+          - Note, The time difference between `timeAt` and `endTimeAt` should be less than `20 days`. For `before` and `after` queries, `10 days` of data `before` or `after` the specified time will be provided.
 
         #### Spatial (Geo) Search
         Geo search accepts geojson based queries. The params and their accepted values are briefed below -
@@ -2427,7 +2427,7 @@ components:
         timeAt:
           type: string
           description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
-        endtimeAt:
+        endTimeAt:
           type: string
           description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
         timeproperty:
@@ -2436,7 +2436,7 @@ components:
       example:
         timerel: between
         timeAt: 2020-06-01T14:20:00Z
-        endtimeAt: 2020-06-03T15:00:00Z
+        endTimeAt: 2020-06-03T15:00:00Z
         timeproperty: observationDateTime
     time-beforerequest:
       title: time-beforerequest
@@ -2528,7 +2528,7 @@ components:
         temporalQ:
           timerel: between
           timeAt: 2020-06-01T14:20:00Z
-          endtimeAt: 2020-06-03T15:00:00Z
+          endTimeAt: 2020-06-03T15:00:00Z
           timeproperty: observationDateTime
 
     complex-entities-geo:
