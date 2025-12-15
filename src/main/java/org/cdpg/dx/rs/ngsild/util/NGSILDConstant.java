@@ -10,7 +10,7 @@ public class NGSILDConstant {
   public static final String NGSILDQUERY_GEOREL = "georel";
   public static final String NGSILDQUERY_TIMEREL = "timerel";
   public static final String NGSILDQUERY_TIMEAT = "timeAt";
-  public static final String NGSILDQUERY_ENDTIMEAT = "endtimeAt";
+  public static final String NGSILDQUERY_ENDTIMEAT = "endTimeAt";
   public static final String NGSILDQUERY_Q = "q";
   public static final String NGSILD_OPTIONS = "options";
   public static final String NGSILDQUERY_GEOPROPERTY = "geoproperty";

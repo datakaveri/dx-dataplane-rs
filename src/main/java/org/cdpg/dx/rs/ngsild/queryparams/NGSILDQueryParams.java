@@ -249,11 +249,11 @@ public class NGSILDQueryParams {
             }
           } else if (entry.getKey().equalsIgnoreCase("temporalQ")) {
             JsonObject temporalJson = requestJson.getJsonObject(entry.getKey());
-            this.temporalQuery.setTimerel(temporalJson.getString("timerel"));
-            this.temporalQuery.setTimeAt(temporalJson.getString("timeAt"));
-            this.temporalQuery.setEndtimeAt(temporalJson.getString("endtimeAt"));
+            this.temporalQuery.setTimerel(temporalJson.getString(NGSILDQUERY_TIMEREL));
+            this.temporalQuery.setTimeAt(temporalJson.getString(NGSILDQUERY_TIMEAT));
+            this.temporalQuery.setEndtimeAt(temporalJson.getString(NGSILDQUERY_ENDTIMEAT));
             this.temporalQuery.setTimeproperty(
-                temporalJson.getString("timeproperty", "observationDateTime"));
+                temporalJson.getString(NGSILDQUERY_TIMEPROPERTY, "observationDateTime"));
           } else if (entry.getKey().equalsIgnoreCase("entities")) {
             JsonArray array = new JsonArray(entry.getValue().toString());
             Iterator<?> iter = array.iterator();

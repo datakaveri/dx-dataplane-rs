@@ -51,12 +51,12 @@ public class NGSILDSearchController implements ApiController {
     builder
         .operation("getTemporalEntities")
         .handler(getIdFromParams)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
         .operation("postTemporalEntitiesSearch")
         .handler(getIdFromBodyHandler)
-        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
         .operation("getEntitiesSpatial")
@@ -266,8 +266,8 @@ public class NGSILDSearchController implements ApiController {
     String headersAcceptType =
         ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
     LOGGER.warn("headersAcceptType :: " + headersAcceptType);
-    JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
-    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+    JsonArray applicableFilter = /*RoutingContextHelper.getApplicableFilter(context);*/
+    new JsonArray().add("TEMPORAL").add("ATTR");
     JsonObject bodyJson =
         context.body() != null && context.body().asJsonObject() != null
             ? context.body().asJsonObject()
@@ -368,8 +368,8 @@ public class NGSILDSearchController implements ApiController {
         ngsildParamsValidator.validateAndSelectBestMediaType(
             routingContext.request().getHeader("Accept"));
     LOGGER.warn("headersAcceptType :: " + headersAcceptType);
-    JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
-    /*new JsonArray().add("TEMPORAL").add("ATTR");*/
+    JsonArray applicableFilter = /*RoutingContextHelper.getApplicableFilter(routingContext);*/
+    new JsonArray().add("TEMPORAL").add("ATTR");
     try {
       ngsildParamsValidator.validateQueryParamsTemporalEntities(params);
       ngsildParamsValidator.isValidQueryWithFilters(params, applicableFilter);
