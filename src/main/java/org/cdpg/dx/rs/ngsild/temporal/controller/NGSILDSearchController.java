@@ -51,12 +51,12 @@ public class NGSILDSearchController implements ApiController {
     builder
         .operation("getTemporalEntities")
         .handler(getIdFromParams)
-        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
         .operation("postTemporalEntitiesSearch")
         .handler(getIdFromBodyHandler)
-        /*.handler(itemAccessApplicableFilterHandlerNgsild)*/
+        .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
         .operation("getEntitiesSpatial")
