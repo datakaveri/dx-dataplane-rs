@@ -30,7 +30,6 @@ public class NGSILDQueryParams {
   private List<String> pick;
   private List<String> omit;
   private String q;
-  private List<String> attrs;
   private TemporalQuery temporalQuery;
   private String options;
   private String format;
@@ -46,6 +45,7 @@ public class NGSILDQueryParams {
   // Aggregation parameters (NGSI-LD extensions)
   private List<String> aggrMethods;
   private String aggrPeriodDuration;
+  private String orderBy;
 
   public NGSILDQueryParams() {}
 
@@ -70,6 +70,14 @@ public class NGSILDQueryParams {
     this.setTemporalQuery(new TemporalQuery());
     this.setGeoRel(new GeoRelation());
     this.create(json);
+  }
+
+  public String getOrderBy() {
+    return orderBy;
+  }
+
+  public void setOrderBy(String orderBy) {
+    this.orderBy = orderBy;
   }
 
   public String getIdPattern() {
@@ -148,12 +156,6 @@ public class NGSILDQueryParams {
         case NGSILDQUERY_Q:
           this.q = entry.getValue();
           break;
-        case NGSILDQUERY_ATTRIBUTE:
-          this.attrs =
-              Arrays.stream(entry.getValue().split(","))
-                  .map(String::trim)
-                  .collect(Collectors.toList());
-          break;
         case NGSILDQUERY_TYPE:
           this.type = entry.getValue();
           break;
@@ -174,8 +176,8 @@ public class NGSILDQueryParams {
               Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList());
           break;
         /*case NGSILDQUERY_AGGR_PERIOD_DURATION:
-          this.aggrPeriodDuration = entry.getValue();
-          break;*/
+        this.aggrPeriodDuration = entry.getValue();
+        break;*/
         case NGSILDQUERY_FROM:
           this.pageFrom = Integer.parseInt(entry.getValue());
           break;
@@ -206,6 +208,9 @@ public class NGSILDQueryParams {
           break;
         case NGSILDQUERY_GEOPROPERTY:
           this.geoProperty = entry.getValue();
+          break;
+        case NGSILD_ORDERBY:
+          this.orderBy = entry.getValue();
           break;
         default:
           LOGGER.warn(MSG_INVALID_PARAM + ":" + entry.getKey());
@@ -285,6 +290,8 @@ public class NGSILDQueryParams {
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_SIZE)) {
             this.pageSize =
                 Integer.parseInt(requestJson.getString(NGSILDConstant.NGSILDQUERY_SIZE));
+          } else if (entry.getKey().equalsIgnoreCase(NGSILD_ORDERBY)) {
+            this.orderBy = requestJson.getString(entry.getKey());
           }
         });
   }
@@ -335,8 +342,8 @@ public class NGSILDQueryParams {
     return format;
   }
 
-  public List<String> getAttrs() {
-    return attrs;
+  public void setFormat(String format) {
+    this.format = format;
   }
 
   public GeoRelation getGeoRel() {
@@ -413,8 +420,8 @@ public class NGSILDQueryParams {
         + ", q='"
         + q
         + '\''
-        + ", attrs="
-        + attrs
+        + ", orderBy="
+        + orderBy
         + ", temporalQuery="
         + temporalQuery.toJson()
         + ", options='"

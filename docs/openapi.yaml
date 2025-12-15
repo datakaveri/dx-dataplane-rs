@@ -139,7 +139,7 @@ paths:
             default: 0
         - name: lastN
           in: query
-          description: Get the last N records
+          description: Get the last N records, and it will sort on time property in descending order.
           schema:
             type: integer
             minimum: 1
@@ -157,6 +157,11 @@ paths:
         - name: omit
           in: query
           description: Comma-separated list of properties to omit from the response, maximum value is allow is 5.
+          schema:
+            type: string
+        - name: orderBy
+          in: query
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observationDateTime:desc,speed:asc`, or `observationDateTime,speed:asc`, or `observationDateTime:desc,speed`, or `observationDateTime,speed`
           schema:
             type: string
         - name: pick
@@ -200,7 +205,7 @@ paths:
             enum: [ aggregatedValues ]
         - name: aggrMethods
           in: query
-          description: Comma separated list of aggregation methods, only applicable when options=aggregatedValues. Supported values are totalCount, distinctCount, min, max, sum, avg, stddev.
+          description: Comma separated list of aggregation methods, only applicable when options=aggregatedValues. Supported values are `totalCount`, `distinctCount`, `min`, `max`, `sum`, `avg`, `stddev`.
           schema:
             type: string
             #enum: [ totalCount, distinctCount, min, max, sum, avg, stddev ]
@@ -285,6 +290,11 @@ paths:
           schema:
             type: boolean
             default: false
+        - name: orderBy
+          in: query
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
+          schema:
+            type: string
         - name: q
           in: query
           description: For attribute based search. The attribute query is used for querying allowed quantitative properties. Used to query on a value of a resource attribute using <,>,<=,>=,!=, == operators. For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. Allowed values for all operators is double. For the operator == if the query is on id then the only value allowed is an data exchange ID of a resource. Multiple value is allow with comma(,) separate, maximum 10 values is allowed.
@@ -2502,6 +2512,10 @@ components:
           $ref: '#/components/schemas/GeoQ'
         temporalQ:
           $ref: '#/components/schemas/TemporalQ'
+        orderBy:
+          type: string
+          maxLength: 512
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
         q:
           type: string
           maxLength: 512
@@ -2549,6 +2563,10 @@ components:
           description: ''
         geoQ:
           $ref: '#/components/schemas/GeoQ'
+        orderBy:
+          type: string
+          maxLength: 512
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
         q:
           type: string
           maxLength: 512

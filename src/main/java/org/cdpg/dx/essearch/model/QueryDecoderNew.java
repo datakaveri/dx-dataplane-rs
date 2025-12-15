@@ -132,6 +132,54 @@ public class QueryDecoderNew {
       q.setSortFields(sortFields);
       LOGGER.debug("Sort fields set to: {} due to lastN in desc order", sortFields);
     }
+
+    /*if(ngsildQueryParams.getOrderBy()!=null && !ngsildQueryParams.getOrderBy().isEmpty()){
+      Map<String, String> sortFields = new HashMap<>();
+      String[] orderByParams = ngsildQueryParams.getOrderBy().split(":");
+      if(orderByParams.length==2){
+        sortFields.put(orderByParams[0], orderByParams[1]);
+      }else{
+        sortFields.put(orderByParams[0], "desc");
+      }
+      q.setSortFields(sortFields);
+      LOGGER.debug("Sort fields set to: {} ", sortFields);
+    }*/
+
+    if (ngsildQueryParams.getOrderBy() != null
+        && !ngsildQueryParams.getOrderBy().isEmpty()
+        && ngsildQueryParams.getLastN() <= 0) {
+      String orderBy = ngsildQueryParams.getOrderBy().trim();
+      Map<String, String> sortFields =
+          Arrays.stream(orderBy.split(","))
+              .map(String::trim)
+              .filter(s -> !s.isEmpty())
+              .map(
+                  s -> {
+                    String[] parts = s.split(":", 2);
+                    String field = parts[0].trim();
+                    String direction = "desc";
+                    if (parts.length == 2 && parts[1] != null && !parts[1].trim().isEmpty()) {
+                      String dir = parts[1].trim().toLowerCase();
+                      if ("asc".equals(dir) || "desc".equals(dir)) {
+                        direction = dir;
+                      }
+                    }
+                    return new AbstractMap.SimpleEntry<>(field, direction);
+                  })
+              .filter(e -> e.getKey() != null && !e.getKey().isEmpty())
+              .collect(
+                  Collectors.toMap(
+                      Map.Entry::getKey,
+                      Map.Entry::getValue,
+                      (existing, replacement) -> existing,
+                      LinkedHashMap::new));
+
+      if (!sortFields.isEmpty()) {
+        q.setSortFields(sortFields);
+        LOGGER.debug("Sort fields set to: {} ", sortFields);
+      }
+    }
+
     // Handle aggregations if supplied
     if (ngsildQueryParams.getAggrMethods() != null
         && !ngsildQueryParams.getAggrMethods().isEmpty()) {
@@ -379,11 +427,40 @@ public class QueryDecoderNew {
       LOGGER.debug("Exclude fields set to: {}", ngsildQueryParams.getOmit());
     }
 
-    // Optional: Add sorting if required
-    /*Map<String, String> sortFields = new HashMap<>();
-    sortFields.put(ngsildQueryParams.getTemporalQuery().getTimeproperty(), "desc");
-    q.setSortFields(sortFields);
-    LOGGER.debug("Sort fields set to: {}", sortFields);*/
+    if (ngsildQueryParams.getOrderBy() != null
+        && !ngsildQueryParams.getOrderBy().isEmpty()
+        && ngsildQueryParams.getLastN() <= 0) {
+      String orderBy = ngsildQueryParams.getOrderBy().trim();
+      Map<String, String> sortFields =
+          Arrays.stream(orderBy.split(","))
+              .map(String::trim)
+              .filter(s -> !s.isEmpty())
+              .map(
+                  s -> {
+                    String[] parts = s.split(":", 2);
+                    String field = parts[0].trim();
+                    String direction = "desc";
+                    if (parts.length == 2 && parts[1] != null && !parts[1].trim().isEmpty()) {
+                      String dir = parts[1].trim().toLowerCase();
+                      if ("asc".equals(dir) || "desc".equals(dir)) {
+                        direction = dir;
+                      }
+                    }
+                    return new AbstractMap.SimpleEntry<>(field, direction);
+                  })
+              .filter(e -> e.getKey() != null && !e.getKey().isEmpty())
+              .collect(
+                  Collectors.toMap(
+                      Map.Entry::getKey,
+                      Map.Entry::getValue,
+                      (existing, replacement) -> existing,
+                      LinkedHashMap::new));
+
+      if (!sortFields.isEmpty()) {
+        q.setSortFields(sortFields);
+        LOGGER.debug("Sort fields set to: {} ", sortFields);
+      }
+    }
 
     return q;
   }

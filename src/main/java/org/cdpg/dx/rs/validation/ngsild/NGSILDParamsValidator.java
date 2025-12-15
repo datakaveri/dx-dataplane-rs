@@ -78,6 +78,7 @@ public class NGSILDParamsValidator {
     validParamsTemporalEntites.add(NGSILDQUERY_COUNT);
     validParamsTemporalEntites.add(NGSILDQUERY_LASTN);
     validParamsTemporalEntites.add(NGSILD_FORMAT);
+    validParamsTemporalEntites.add(NGSILD_ORDERBY);
   }
 
   static {
@@ -101,6 +102,7 @@ public class NGSILDParamsValidator {
     validParamsEntities.add(NGSILD_OPTIONS);
     validParamsEntities.add(NGSILDQUERY_COUNT);
     validParamsEntities.add(NGSILD_FORMAT);
+    validParamsEntities.add(NGSILD_ORDERBY);
   }
 
   static {

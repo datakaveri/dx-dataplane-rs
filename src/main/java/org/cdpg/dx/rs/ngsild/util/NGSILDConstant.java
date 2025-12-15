@@ -28,6 +28,7 @@ public class NGSILDConstant {
   public static final String NGSILDQUERY_LASTN = "lastN";
   public static final String MSG_INVALID_PARAM = "Unused parameter in request for ngsi-ld api: ";
   public static final String NGSILD_FORMAT = "format";
+    public static final String NGSILD_ORDERBY = "orderBy";
 
   // New aggregation related query params
   public static final String NGSILDQUERY_AGGR_METHODS = "aggrMethods";
