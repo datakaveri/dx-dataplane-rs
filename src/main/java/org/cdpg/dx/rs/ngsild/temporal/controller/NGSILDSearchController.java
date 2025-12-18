@@ -141,28 +141,92 @@ public class NGSILDSearchController implements ApiController {
                 context.fail(err);
               });
     } else {
-      ngsildService
-          .getEntitiesAttributeSearchData(ngsildQueryParams)
-          .onSuccess(
-              getEntityData -> {
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                    .setStatusCode(200)
-                    /*.end(JsonObject.mapFrom(response).encode());*/
-                    .end(getEntityData.getElasticsearchResponses().toString());
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Search request failed: {}", err.getMessage(), err);
-                context.fail(err);
-              });
+      if (params.contains("format")) {
+        String format = params.get("format");
+        LOGGER.warn("format param :: " + format);
+        if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && headersAcceptType.equalsIgnoreCase("application/json")) {
+          LOGGER.warn("simplified format selected ");
+          ngsildService
+              .getEntitiesAttributeSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getEntityData.getElasticsearchResponses().toString());
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    context.fail(err);
+                  });
+        } else if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          ngsildService
+              .getEntitiesAttributeSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getEntityData.getElasticsearchResponses().toString());
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    context.fail(err);
+                  });
+        } else {
+          LOGGER.error("invalid format param");
+        }
+      } else {
+        ngsildService
+            .getEntitiesAttributeSearchData(ngsildQueryParams)
+            .onSuccess(
+                getEntityData -> {
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .setStatusCode(200)
+                      /*.end(JsonObject.mapFrom(response).encode());*/
+                      .end(getEntityData.getElasticsearchResponses().toString());
+                })
+            .onFailure(
+                err -> {
+                  LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                  context.fail(err);
+                });
+      }
     }
   }
 
@@ -230,34 +294,105 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
-      ngsildService
-          .getEntitiesAttributeSearchData(ngsildQueryParams)
-          .onSuccess(
-              getTemporalEntityData -> {
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(
-                        NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityData.getTotalHits()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                    .setStatusCode(200)
-                    /*.end(JsonObject.mapFrom(response).encode());*/
-                    .end(getTemporalEntityData.getElasticsearchResponses().toString());
-                /*ResponseBuilder.sendSuccess(
-                routingContext,
-                getTemporalEntityData.getElasticsearchResponses(),
-                getTemporalEntityData.getPaginationInfo(),
-                urnGenerator);*/
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Search request failed: {}", err.getMessage(), err);
-                routingContext.fail(err);
-              });
+      if (params.contains("format")) {
+        String format = params.get("format");
+        LOGGER.warn("format param :: " + format);
+        if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && headersAcceptType.equalsIgnoreCase("application/json")) {
+          LOGGER.warn("simplified format selected ");
+          ngsildService
+              .getEntitiesAttributeSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .putHeader(NGSILD_LINK, "Link of context")
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                    /*ResponseBuilder.sendSuccess(
+                    routingContext,
+                    getTemporalEntityData.getElasticsearchResponses(),
+                    getTemporalEntityData.getPaginationInfo(),
+                    urnGenerator);*/
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    routingContext.fail(err);
+                  });
+        } else if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          LOGGER.warn("concise format selected");
+          // TODO: Correct response once item id extended for context
+          ngsildService
+              .getEntitiesAttributeSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .putHeader(NGSILD_LINK, "Link of context")
+                        .setStatusCode(200)
+                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    routingContext.fail(err);
+                  });
+        } else {
+          LOGGER.error("invalid format param");
+        }
+      } else {
+        LOGGER.warn("simplified format selected ");
+        ngsildService
+            .getEntitiesAttributeSearchData(ngsildQueryParams)
+            .onSuccess(
+                getTemporalEntityData -> {
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(
+                          NGSILD_RESULTS_COUNT,
+                          String.valueOf(getTemporalEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .putHeader(NGSILD_LINK, "Link of context")
+                      .setStatusCode(200)
+                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                })
+            .onFailure(
+                err -> {
+                  LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                  routingContext.fail(err);
+                });
+      }
     }
   }
 
@@ -332,29 +467,95 @@ public class NGSILDSearchController implements ApiController {
                 context.fail(err);
               });
     } else {
-      ngsildService
-          .getTemporalSearchData(ngsildQueryParams)
-          .onSuccess(
-              getTemporalEntityData -> {
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(
-                        NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityData.getTotalHits()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                    .setStatusCode(200)
-                    /*.end(JsonObject.mapFrom(response).encode());*/
-                    .end(getTemporalEntityData.getElasticsearchResponses().toString());
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Search request failed: {}", err.getMessage(), err);
-                context.fail(err);
-              });
+      if (params.contains("format")) {
+        String format = params.get("format");
+        LOGGER.warn("format param :: " + format);
+        if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && headersAcceptType.equalsIgnoreCase("application/json")) {
+          ngsildService
+              .getTemporalSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    context.fail(err);
+                  });
+        } else if (format != null
+            && format.equalsIgnoreCase("simplified")
+            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+          ngsildService
+              .getTemporalSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    context.fail(err);
+                  });
+        } else {
+          LOGGER.error("invalid format param");
+        }
+      } else {
+        ngsildService
+            .getTemporalSearchData(ngsildQueryParams)
+            .onSuccess(
+                getTemporalEntityData -> {
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(
+                          NGSILD_RESULTS_COUNT,
+                          String.valueOf(getTemporalEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .setStatusCode(200)
+                      /*.end(JsonObject.mapFrom(response).encode());*/
+                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                })
+            .onFailure(
+                err -> {
+                  LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                  context.fail(err);
+                });
+      }
     }
   }
 
@@ -426,76 +627,172 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
-      /*if (params.contains("format")) {
+      if (params.contains("format")) {
         String format = params.get("format");
         LOGGER.warn("format param :: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
-          LOGGER.debug("simplified format selected");
+          LOGGER.warn("simplified format selected ");
+          ngsildService
+              .getTemporalSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .putHeader(NGSILD_LINK, "Link of context")
+                        .setStatusCode(200);
+                    // Return raw aggregations if requested, otherwise original hits
+                    {
+                      String opts = ngsildQueryParams.getOptions();
+                      /*String format = ngsildQueryParams.getFormat();*/
+                      boolean wantsAggregated = false;
+                      if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
+                        wantsAggregated = true;
+                      /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
+                      wantsAggregated = true;*/
+                      if (wantsAggregated) {
+                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        if (aggs == null) aggs = new JsonObject();
+                        if (aggs.containsKey("results")
+                            && aggs.getValue("results") instanceof JsonObject) {
+                          aggs = aggs.getJsonObject("results");
+                        }
+                        response.end(aggs.encode());
+                      } else {
+                        response.end(getTemporalEntityData.getElasticsearchResponses().toString());
+                      }
+                    }
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    routingContext.fail(err);
+                  });
         } else if (format != null
-            && format.equalsIgnoreCase("concise")
+            && format.equalsIgnoreCase("simplified")
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-          LOGGER.debug("concise format selected");
-        } else if (format != null
-            && format.equalsIgnoreCase("normalized")
-            && (headersAcceptType.equalsIgnoreCase("application/ld+json")
-                || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-          LOGGER.debug("normalized format selected");
-        } else {
+          LOGGER.warn("concise format selected");
+          // TODO: Correct response once item id extended for context
+          ngsildService
+              .getTemporalSearchData(ngsildQueryParams)
+              .onSuccess(
+                  getTemporalEntityData -> {
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .putHeader(NGSILD_LINK, "Link of context")
+                        .setStatusCode(200);
+                    // Return raw aggregations if requested, otherwise original hits
+                    {
+                      String opts = ngsildQueryParams.getOptions();
+                      /*String format = ngsildQueryParams.getFormat();*/
+                      boolean wantsAggregated = false;
+                      if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
+                        wantsAggregated = true;
+                      /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
+                      wantsAggregated = true;*/
+                      if (wantsAggregated) {
+                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        if (aggs == null) aggs = new JsonObject();
+                        if (aggs.containsKey("results")
+                            && aggs.getValue("results") instanceof JsonObject) {
+                          aggs = aggs.getJsonObject("results");
+                        }
+                        response.end(aggs.encode());
+                      } else {
+                        response.end(getTemporalEntityData.getElasticsearchResponses().toString());
+                      }
+                    }
+                  })
+              .onFailure(
+                  err -> {
+                    LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                    routingContext.fail(err);
+                  });
+
+        } /*else if (format != null
+              && format.equalsIgnoreCase("normalized")
+              && (headersAcceptType.equalsIgnoreCase("application/ld+json")
+                  || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
+            LOGGER.debug("normalized format selected");
+          }*/ else {
           LOGGER.error("invalid format param");
         }
       } else {
-        if (headersAcceptType.equalsIgnoreCase("application/ld+json")
+        /*if (headersAcceptType.equalsIgnoreCase("application/ld+json")
             || headersAcceptType.equalsIgnoreCase("application/geo+json")) {
           LOGGER.debug("normalized format selected");
         } else {
           LOGGER.error("invalid accept headers");
-        }
-      }*/
-      ngsildService
-          .getTemporalSearchData(ngsildQueryParams)
-          .onSuccess(
-              getTemporalEntityData -> {
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(
-                        NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityData.getTotalHits()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                    .setStatusCode(200);
-                // Return raw aggregations if requested, otherwise original hits
-                {
-                  String opts = ngsildQueryParams.getOptions();
-                  String format = ngsildQueryParams.getFormat();
-                  boolean wantsAggregated = false;
-                  if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
-                    wantsAggregated = true;
-                  if (format != null && format.toLowerCase().contains("aggregatedvalues"))
-                    wantsAggregated = true;
-                  if (wantsAggregated) {
-                    JsonObject aggs = ElasticsearchResponse.getAggregations();
-                    if (aggs == null) aggs = new JsonObject();
-                    if (aggs.containsKey("results")
-                        && aggs.getValue("results") instanceof JsonObject) {
-                      aggs = aggs.getJsonObject("results");
+        }*/
+        LOGGER.warn("simplified format selected");
+
+        ngsildService
+            .getTemporalSearchData(ngsildQueryParams)
+            .onSuccess(
+                getTemporalEntityData -> {
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(
+                          NGSILD_RESULTS_COUNT,
+                          String.valueOf(getTemporalEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .putHeader(NGSILD_LINK, "Link of context")
+                      .setStatusCode(200);
+                  // Return raw aggregations if requested, otherwise original hits
+                  {
+                    String opts = ngsildQueryParams.getOptions();
+                    /*String format = ngsildQueryParams.getFormat();*/
+                    boolean wantsAggregated = false;
+                    if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
+                      wantsAggregated = true;
+                    /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
+                    wantsAggregated = true;*/
+                    if (wantsAggregated) {
+                      JsonObject aggs = ElasticsearchResponse.getAggregations();
+                      if (aggs == null) aggs = new JsonObject();
+                      if (aggs.containsKey("results")
+                          && aggs.getValue("results") instanceof JsonObject) {
+                        aggs = aggs.getJsonObject("results");
+                      }
+                      response.end(aggs.encode());
+                    } else {
+                      response.end(getTemporalEntityData.getElasticsearchResponses().toString());
                     }
-                    response.end(aggs.encode());
-                  } else {
-                    response.end(getTemporalEntityData.getElasticsearchResponses().toString());
                   }
-                }
-              })
-          .onFailure(
-              err -> {
-                LOGGER.error("Search request failed: {}", err.getMessage(), err);
-                routingContext.fail(err);
-              });
+                })
+            .onFailure(
+                err -> {
+                  LOGGER.error("Search request failed: {}", err.getMessage(), err);
+                  routingContext.fail(err);
+                });
+      }
     }
   }
 }
