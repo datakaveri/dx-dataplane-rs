@@ -48,7 +48,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
               .findFirst()
               .orElseThrow(() -> new DxBadRequestException("NGSI-LD resource server not found"));
 
-      JsonArray accessTypes =
+      JsonArray queryTypes =
           Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
               .filter(at -> !at.isEmpty())
               .orElseThrow(
@@ -56,7 +56,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                       new DxBadRequestException(
                           "No queryTypes types(filters) found for NGSI-LD server"));
       RoutingContextHelper.setItemMetaData(context, context.user().principal());
-      RoutingContextHelper.setApplicableFilter(context, accessTypes);
+      RoutingContextHelper.setApplicableFilter(context, queryTypes);
       context.next();
       return;
     } else {
@@ -87,14 +87,15 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                         .orElseThrow(
                             () -> new DxBadRequestException("NGSI-LD resource server not found"));
 
-                JsonArray accessTypes =
+                JsonArray queryTypes =
                     Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
                         .filter(at -> !at.isEmpty())
                         .orElseThrow(
                             () ->
                                 new DxBadRequestException(
                                     "No queryTypes types(filters) found for NGSI-LD server"));
-                RoutingContextHelper.setApplicableFilter(context, accessTypes);
+
+                RoutingContextHelper.setApplicableFilter(context, queryTypes);
                 RoutingContextHelper.setItemMetaData(context, result);
                 context.next();
               })

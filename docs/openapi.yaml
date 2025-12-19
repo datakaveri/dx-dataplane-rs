@@ -196,7 +196,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [ aggregatedValues, simplified ]
+            enum: [ simplified ]
         - name: options
           in: query
           description: Perform aggregation
@@ -218,16 +218,16 @@ paths:
                 anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
                   - $ref: '#/components/schemas/countResponse'
-        #            application/ld+json:
-        #              schema:
-        #                anyOf:
-        #                  - $ref: '#/components/schemas/temporalEntityresponse'
-        #                  - $ref: '#/components/schemas/countResponse'
-        #            application/geo+json:
-        #              schema:
-        #                anyOf:
-        #                  - $ref: '#/components/schemas/temporalEntityresponse'
-        #                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
           content:
@@ -333,11 +333,26 @@ paths:
           schema:
             type: string
             enum: [ location ]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ simplified ]
       responses:
         '200':
           description: Successful retrieval of temporal entities
           content:
             application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
@@ -395,6 +410,11 @@ paths:
           description: Include count of matching entities in the response
           schema:
             type: boolean
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ simplified ]
       requestBody:
         description: 'Entities Spatial and Attribute request body'
         content:
@@ -425,6 +445,16 @@ paths:
           description: 'Successful complex search query'
           content:
             application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/spatialAttributeEntityresponse'
@@ -547,6 +577,11 @@ paths:
           description: Include count of matching entities in the response
           schema:
             type: boolean
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [ simplified ]
       requestBody:
         description: 'Temporal Entities request body'
         content:
@@ -583,6 +618,16 @@ paths:
           description: 'Successful complex search query'
           content:
             application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/geo+json:
               schema:
                 anyOf:
                   - $ref: '#/components/schemas/temporalEntityresponse'
