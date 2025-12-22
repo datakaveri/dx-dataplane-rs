@@ -221,12 +221,12 @@ paths:
             application/ld+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/temporalEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
             application/geo+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/temporalEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
@@ -350,12 +350,12 @@ paths:
             application/ld+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
             application/geo+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
         '400':
           description: Bad Request
@@ -452,12 +452,12 @@ paths:
             application/ld+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
             application/geo+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
 
         400:
@@ -465,14 +465,14 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse400"
-          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+          description: 'Bad query | Missing/Invalid temporal parameters | Missing/Invalid geo parameters'
 
         401:
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
-          description: UnAuthorized
+          description: Unauthorized
 
         413:
           content:
@@ -625,12 +625,12 @@ paths:
             application/ld+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/temporalEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
             application/geo+json:
               schema:
                 anyOf:
-                  - $ref: '#/components/schemas/temporalEntityresponse'
+                  - $ref: '#/components/schemas/temporalEntityresponse2'
                   - $ref: '#/components/schemas/countResponse'
 
         400:
@@ -638,14 +638,14 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse400"
-          description: 'Bad query - Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering'
+          description: 'Bad query | Missing/Invalid temporal parameters | Missing/Invalid geo parameters'
 
         401:
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
-          description: UnAuthorized
+          description: Unauthorized
 
         413:
           content:
@@ -2727,6 +2727,40 @@ components:
             "id": "UUID"
           }
         ]
+    temporalEntityresponse2:
+      title: temporalentityresponse2
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        [
+          {
+            "@context": "<Link to explain json+ld> example: https://schema.org/context.jsonld",
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "trip_delay": 948,
+            "last_stop_arrival_time": "15:09:58",
+            "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+            "vehicle_label": "A09",
+            "observationDateTime": "2020-11-03T15:12:08+05:30",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
     NgsiLdSubscriptionErrorResponse400:
       title: NgsiLdSubscriptionErrorResponse400
       properties:
@@ -2825,6 +2859,36 @@ components:
           }
         ]
 
+    spatialAttributeEntityresponse2:
+      title: spatialAttributeEntityresponse2
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        [
+          {
+            "@context": "<Link to explain json+ld> example: https://schema.org/context.jsonld",
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "vehicle_label": "A09",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
     countResponse:
       title: Count response
       type: object
