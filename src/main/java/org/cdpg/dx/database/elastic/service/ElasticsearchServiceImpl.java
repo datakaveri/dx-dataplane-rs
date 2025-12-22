@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.exception.DxConflictException;
 import org.cdpg.dx.common.exception.DxInternalServerErrorException;
+import org.cdpg.dx.common.exception.DxNotFoundException;
 import org.cdpg.dx.database.elastic.ElasticClient;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.database.elastic.model.QueryModel;
@@ -257,9 +258,13 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
 
                 // You might want to handle specific exceptions differently
                 {
-                  LOGGER.error("Elasticsearch cluster is unreachable");
-                  promise.fail(
-                      new DxInternalServerErrorException("Elasticsearch cluster is unreachable"));
+                  if (error.getMessage() != null && error.getMessage().contains("no such index")) {
+                    promise.fail(new DxNotFoundException("Resources not Found - no such index"));
+                  } else {
+                    LOGGER.error("Elasticsearch cluster is unreachable");
+                    promise.fail(
+                        new DxInternalServerErrorException("Elasticsearch cluster is unreachable"));
+                  }
                 }
               } else {
                 try {
