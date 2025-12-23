@@ -30,7 +30,7 @@ info:
     \ in query parameters to limit numbers of records to be returned.\n\n- ** Pagination\
     \ is applicable only for**\n   - **/entities**\n   - **/temporal/entities**\n\
     \   - **/temporal/entityOperations/query**\n   - **/entityOperations/query**\n\
-    \   - **/consumer/audit**\n   - **/provider/audit**\n\nAdditional query parameters\
+    \   \n\nAdditional query parameters\
     \ to be used:\n  - **offset** : The from parameter defines the offset from the\
     \ first result you want to fetch,  ( <i>default : 0</i> ,<i>minValue: 0</i>, <i>maxValue:\
     \ 49999</i> )\n  - **limit** : The size parameter allows you to configure the\
@@ -242,6 +242,173 @@ paths:
         \ - It should be used along with the ** valid ** `spatial`, `attribute` or\
         \ `complex` queries. \n  - It **cannot** be used along with a **attrs** filter.\
         \ \n  - The value should be equal to `count` and it is **case sensitive**\n"
+  /ngsi-ld/v2/entities:
+    get:
+      tags:
+        - Spatial Entities
+      operationId: get-Spatial-Search2
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/GeoPropertyParam'
+        - $ref: '#/components/parameters/GeoRelParam'
+        - $ref: '#/components/parameters/GeometryParam'
+        - $ref: '#/components/parameters/CoordinatesParam'
+        - $ref: '#/components/parameters/MaxDistanceParam'
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/PickParam'
+        - $ref: '#/components/parameters/OmitParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FormatParam'
+        - $ref: '#/components/parameters/CountParam'
+        - $ref: '#/components/parameters/OrderByParam'
+      responses:
+        200:
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
+                  - $ref: '#/components/schemas/countResponse'
+        204:
+          description: Empty Response
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+          description: Bad query
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
+      x-codeSamples:
+        - lang: cURL
+          label: search by attribute
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by circle
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by polygon
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by bbox
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by linestring
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by attribute and filter
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: count by circle
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+      deprecated: false
+      description: "The `/entities` end point allows a consumer to query on data published\
+        \ based on a **spatial** and **attribute** properties. The **spatial** queries\
+        \ should be submitted as a geo json as described in the API. All the queries\
+        \ requires a ** valid data exchange ** `id` of the resource. These apis are\
+        \ intended to be used by DX(Data exchange) Data *Consumers*.\n\n  - **Allowed\
+        \ Search Operations**: \n      - ** Spatial (Geo) Search : ** which queries\
+        \ the geo property of the resource.\n      - ** Attribute Search : ** which\
+        \ queries the valid attributes as per the data descriptor.\n      - ** Complex\
+        \ Search : ** which queries using the combination of the above two.\n\n\n\
+        #### Spatial (Geo) Search\nGeo search accepts geojson based queries. The params\
+        \ and their accepted values are briefed below -\n  - **geoproperty**: \n \
+        \     - Specifies the name of the ** geospatial ** property in the ** DX(Data\
+        \ exchange) data descriptor **.\n      - The current version of the API **\
+        \ mandates ** it to be equal to `location`\n  - **georel**:   \n      - Specifies\
+        \ the spatial relationship to be queried.\n      - The relation type of **geoquery**\
+        \ can be **one of** `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.\n\
+        \      - The relation ** near ** should be always accomodated with a ** maxdistance\
+        \ ** property.\n      - Apart from ** maxdistance** , all other fields in\
+        \ the Enum list are ** case sensitive ** fields.\n      - The relation **\
+        \ near;maxdistance ** is applicable only for a ** point **.\n      - The relation\
+        \ ** within ** and  ** intersects ** are applicable only for ** bbox, polygon\
+        \ and linestring**.\n\n  - **geometry**:  \n      - Specifies the GeoJson\
+        \ geometries. \n      - Should be One of `Point`(equivalent for a circle),\
+        \ `Polygon`, `LineString`, `bbox`.\n      - **Point**: Point and radius query\n\
+        \          - coordinates: Specifies the  center point of the circle, for e.g,\
+        \ `[73,13]`. \nNote, format is [longitude, latitude]\n          - maxDistance:\
+        \ Specifies the Radius from the center point in meters, for e.g `100`. `maxValue`\
+        \ : 1000\n          - georel: In this version of DX(Data exchange) API, the\
+        \ allowed relationship search for a circle is `near` with a `maxdistance`\
+        \ in meters specified. This will be equivalent to a `within` query. Format\
+        \ is `near;maxdistance=<distance_in_meters>` \n      - **Polygon**: Polygon/Multi-Polygon\
+        \ query\n          - coordinates: Specifies the  coordinates of the polygon,\
+        \ for e.g, `[[[73,13],[73,12],[73,13]]]`.  \nNote, format is [longitude, latitude]\
+        \ and the first coordinate must be same as last. \n          - `minNumberOfCoOrdinates`\
+        \ : 4 and `maxnNumberOfCoOrdinates` : 10\n          - georel: `within`, `intersects`\n\
+        \      - **LineString**: Multi line string\n          - coordinates: Specifies\
+        \ the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`.\
+        \ \nNote, format is [longitude, latitude]\n          - `minNumberOfCoOrdinates`\
+        \ : 2 and `maxnNumberOfCoOrdinates` : 10\n          - georel:  `within`, `intersects`\n\
+        \      - **bbox**: Bounding box\n          - coordinates: `[[top-left],[bottom-right]]`.\
+        \ e.g, `[[73,13],[74,12]]`. \nNote, format is [longitude, latitude].\n   \
+        \       - georel:  `within`, `intersects`\n\n#### Attribute search\nThe attribute\
+        \ query is used for querying ** allowed quantitative** properties. \n  - Used\
+        \ to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==`\
+        \ operators. \n  - For e.g, attribute > value, attribute < value, attribute\
+        \ >= value, attribute <= value and attribute == value. \n  - Allowed values\
+        \ for all operators is double. \n  - For the operator `==` if the query is\
+        \ on `id` then the only value allowed is an `data exchange ID` of a resource.\
+        \ \n  - e.g, `q=attribute-name>attribute-value`\n\n#### Complex search\nA\
+        \ combination of the above is allowed to make searches more  complex.\n\n\
+        #### Filters\n  - A subset of properties of returned documents can be filtered\
+        \ out. This is an option parameter (pick and omit). \nFor e.g, `pick=[id]` returns documents\
+        \ with only the `id` property retained in them. \n  - `minNumberOfAttributes`\
+        \ : 1 and `maxNumberOfAttributes` : 5\n"
   /ngsi-ld/v1/temporal/entities:
     get:
       tags:
@@ -410,6 +577,188 @@ paths:
         \ - It should be used along with the ** valid ** `temporal`, or `complex`\
         \ queries. \n  - It **cannot** be used along with a **attrs** filter. \n \
         \ - The value should be equal to `count` and it is **case sensitive**\n"
+  /ngsi-ld/v2/temporal/entities:
+    get:
+      tags:
+        - Temporal Entities
+      summary: Temporal Search
+      operationId: get-temporal-entity-search2
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/TimePropertyParam'
+        - $ref: '#/components/parameters/TimerelParam2'
+        - $ref: '#/components/parameters/TimeParam2'
+        - $ref: '#/components/parameters/EndtimeParam2'
+        - $ref: '#/components/parameters/GeoPropertyParam'
+        - $ref: '#/components/parameters/GeoRelParam'
+        - $ref: '#/components/parameters/GeometryParam'
+        - $ref: '#/components/parameters/CoordinatesParam'
+        - $ref: '#/components/parameters/MaxDistanceParam'
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/PickParam'
+        - $ref: '#/components/parameters/OmitParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/LastNParam'
+        - $ref: '#/components/parameters/AggrMethodParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/FormatParam'
+        - $ref: '#/components/parameters/CountParam'
+        - $ref: '#/components/parameters/OrderByParam'
+        - $ref: '#/components/parameters/OptionsParam2'
+      responses:
+        200:
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
+                  - $ref: '#/components/schemas/countResponse'
+        204:
+          description: Empty Response
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+          description: Bad query
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
+      x-codeSamples:
+        - lang: cURL
+          label: search by between
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+
+        - lang: cURL
+          label: search by before
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by after
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: search by between and filter
+          source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
+          \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
+        - lang: cURL
+          label: count by after
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: complex search
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+        - lang: cURL
+          label: complex count
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>''
+
+          '
+      deprecated: false
+      description: "The `/temporal/entities` end point allows a consumer to query\
+        \ on data published based on a **spatial**, **temporal** and **attribute**\
+        \ properties. The **spatial** queries should be submitted as a geo json as\
+        \ described in the API. All the queries requires a ** valid data exchange**\
+        \ `id`  of the resource and a `temporal` parameter. These apis are intended\
+        \ to be used by DX(Data exchange) Data *Consumers*.\n\n  - **Allowed Search\
+        \ Operations**: \n      - ** Temporal Search : ** which queries the temporal\
+        \ property of the resource.\n      - ** Spatial (Geo) Search : ** which queries\
+        \ the geo property of the resource.\n      - ** Attribute Search : ** which\
+        \ queries the valid attributes as per the data descriptor.\n      - ** Complex\
+        \ Search : ** which queries using the combination of the above three.\n\n\
+        #### Temporal search\nTemporal search accepts time property based queries\
+        \ which are specified in ISO 8601 format. The params and their accepted values\
+        \ are -\n  - **timerel**: The time relation of the query. Should be either\
+        \ `between`, `before` or `after`.\n  - **timeAt**: Start time for the temporal query in `ISO 8601`\
+        \ format. \n  - **endTimeAt**: End time for the temporal query in `ISO 8601`\
+        \ format. Applicable only for `timerel = between`. \n\n\n#### Spatial (Geo) Search\nGeo search accepts\
+        \ geojson based queries. The params and their accepted values are briefed\
+        \ below -\n  - **geoproperty**: \n      - Specifies the name of the ** geospatial\
+        \ ** property in the ** DX(Data exchange) data descriptor **.\n      - The\
+        \ current version of the API ** mandates ** it to be equal to `location`\n\
+        \  - **georel**:   \n      - Specifies the spatial relationship to be queried.\n\
+        \      - The relation type of **geoquery** can be **one of** `near;maxdistance=<distance_in_meters>`,\
+        \ `within`, `intersects`.\n      - The relation ** near ** should be always\
+        \ accomodated with a ** maxdistance ** property.\n      - Apart from ** maxdistance**\
+        \ , all other fields in the Enum list are ** case sensitive ** fields.\n \
+        \     - The relation ** near;maxdistance ** is applicable only for a ** point\
+        \ **.\n      - The relation ** within ** and  ** intersects ** are applicable\
+        \ only for ** bbox, polygon and linestring**.\n\n  - **geometry**:  \n   \
+        \   - Specifies the GeoJson geometries. \n      - Should be One of `Point`(equivalent\
+        \ for a circle), `Polygon`, `LineString`, `bbox`.\n      - **Point**: Point\
+        \ and radius query\n          - coordinates: Specifies the  center point of\
+        \ the circle, for e.g, `[73,13]`. \nNote, format is [longitude, latitude]\n\
+        \          - maxDistance: Specifies the Radius from the center point in meters,\
+        \ for e.g `100`. `maxValue` : 1000\n          - georel: In this version of\
+        \ DX(Data exchange) API, the allowed relationship search for a circle is `near`\
+        \ with a `maxdistance` in meters specified. This will be equivalent to a `within`\
+        \ query. Format is `near;maxdistance=<distance_in_meters>` \n      - **Polygon**:\
+        \ Polygon/Multi-Polygon query\n          - coordinates: Specifies the  coordinates\
+        \ of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  \nNote, format\
+        \ is [longitude, latitude] and the first coordinate must be same as last.\
+        \ \n          - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates`\
+        \ : 10\n          - georel: `within`, `intersects`\n      - **LineString**:\
+        \ Multi line string\n          - coordinates: Specifies the coordinates of\
+        \ the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. \nNote, format is\
+        \ [longitude, latitude]\n          - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates`\
+        \ : 10\n          - georel:  `within`, `intersects`\n      - **bbox**: Bounding\
+        \ box\n          - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`.\
+        \ \nNote, format is [longitude, latitude].\n          - georel:  `within`,\
+        \ `intersects`\n\n#### Attribute search\nThe attribute query is used for querying\
+        \ ** allowed quantitative** properties. \n  - Used to query on a value of\
+        \ a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. \n  -\
+        \ For e.g, attribute > value, attribute < value, attribute >= value, attribute\
+        \ <= value and attribute == value. \n  - Allowed values for all operators\
+        \ is double. \n  - For the operator `==` if the query is on `id` then the\
+        \ only value allowed is an `data exchange ID` of a resource. \n  - e.g, `q=attribute-name>attribute-value`\n\
+        \n#### Complex search\nA combination of the above is allowed to make searches\
+        \ more  complex.\n\n#### Filters\n  - A subset of properties of returned documents\
+        \ can be filtered out. This is an option parameter (pick and omit). \nFor e.g, `pick=[id]`\
+        \ returns documents with only the `id` property retained in them. \n  - `minNumberOfAttributes`\
+        \ : 1 and `maxNumberOfAttributes` : 5 \n\n#### Options\n  - The **options**\
+        \ parameter is used for obtaining the **aggregation values** for a query. \n \
+        \ - It should be used along with the ** valid ** `temporal`, or `complex`\
+        \ queries."
   /ngsi-ld/v1/entityOperations/query:
     post:
       tags:
@@ -519,6 +868,124 @@ paths:
         \ - It should be used along with the ** valid ** `temporal`, or `complex`\
         \ queries. \n  - It **cannot** be used along with a **attrs** filter. \n \
         \ - The value should be equal to `count` and it is **case sensitive**\n"
+      deprecated: false
+  /ngsi-ld/v2/entityOperations/query:
+    post:
+      tags:
+        - Entities Post Query
+      summary: post spatial search
+      operationId: post-spatial-complex-query2
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/CountParam'
+        - $ref: '#/components/parameters/FormatParam'
+      x-codeSamples:
+        - lang: cURL
+          label: Spatial complex query
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/entityOperations/query''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>'' \
+
+          --header ''Content-Type: application/json'' \
+
+          --data-raw ''<payload>''
+
+          '
+      requestBody:
+        $ref: '#/components/requestBodies/PostEntitiesRequest2'
+      responses:
+        200:
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
+                  - $ref: '#/components/schemas/countResponse'
+        204:
+          description: Empty Response
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+          description: Bad query
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
+      description: "The `/entityOperations/query` end point allows a consumer to query\
+        \ on data published based on a **spatial** and **attribute** properties. The\
+        \ **spatial** queries should be submitted as a geo json as described in the\
+        \ API. All the queries requires a ** valid data exchange** `id` of the resource\
+        \ within the `entities` json object as per the schema. These apis are intended\
+        \ to be used by DX(Data exchange) Data *Consumers*.\n\n  - **Allowed Search\
+        \ Operations**: \n      - ** Spatial (Geo) Search : ** which queries the geo\
+        \ property of the resource.\n      - ** Attribute Search : ** which queries\
+        \ the valid attributes as per the data descriptor.\n      - ** Complex Search\
+        \ : ** which queries using the combination of the above three.\n\n#### Spatial\
+        \ (Geo) Search\nGeo search accepts geojson based queries. The params and their\
+        \ accepted values are briefed below -\n  - **geoproperty**: \n      - Specifies\
+        \ the name of the ** geospatial ** property in the ** DX(Data exchange) data\
+        \ descriptor **.\n      - The current version of the API ** mandates ** it\
+        \ to be equal to `location`\n  - **georel**:   \n      - Specifies the spatial\
+        \ relationship to be queried.\n      - The relation type of **geoquery** can\
+        \ be **one of** `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.\n\
+        \      - The relation ** near ** should be always accomodated with a ** maxdistance\
+        \ ** property.\n      - Apart from ** maxdistance** , all other fields in\
+        \ the Enum list are ** case sensitive ** fields.\n      - The relation **\
+        \ near;maxdistance ** is applicable only for a ** point **.\n      - The relation\
+        \ ** within ** and  ** intersects ** are applicable only for ** bbox, polygon\
+        \ and linestring**.\n\n  - **geometry**:  \n      - Specifies the GeoJson\
+        \ geometries. \n      - Should be One of `Point`(equivalent for a circle),\
+        \ `Polygon`, `LineString`, `bbox`.\n      - **Point**: Point and radius query\n\
+        \          - coordinates: Specifies the  center point of the circle, for e.g,\
+        \ `[73,13]`. \nNote, format is [longitude, latitude]\n          - maxDistance:\
+        \ Specifies the Radius from the center point in meters, for e.g `100`. `maxValue`\
+        \ : 1000\n          - georel: In this version of DX(Data exchange) API, the\
+        \ allowed relationship search for a circle is `near` with a `maxdistance`\
+        \ in meters specified. This will be equivalent to a `within` query. Format\
+        \ is `near;maxdistance=<distance_in_meters>` \n      - **Polygon**: Polygon/Multi-Polygon\
+        \ query\n          - coordinates: Specifies the  coordinates of the polygon,\
+        \ for e.g, `[[[73,13],[73,12],[73,13]]]`.  \nNote, format is [longitude, latitude]\
+        \ and the first coordinate must be same as last. \n          - `minNumberOfCoOrdinates`\
+        \ : 4 and `maxnNumberOfCoOrdinates` : 10\n          - georel: `within`, `intersects`\n\
+        \      - **LineString**: Multi line string\n          - coordinates: Specifies\
+        \ the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`.\
+        \ \nNote, format is [longitude, latitude]\n          - `minNumberOfCoOrdinates`\
+        \ : 2 and `maxnNumberOfCoOrdinates` : 10\n          - georel:  `within`, `intersects`\n\
+        \      - **bbox**: Bounding box\n          - coordinates: `[[top-left],[bottom-right]]`.\
+        \ e.g, `[[73,13],[74,12]]`. \nNote, format is [longitude, latitude].\n   \
+        \       - georel:  `within`, `intersects`\n\n#### Attribute search\nThe attribute\
+        \ query is used for querying ** allowed quantitative** properties. \n  - Used\
+        \ to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==`\
+        \ operators. \n  - For e.g, attribute > value, attribute < value, attribute\
+        \ >= value, attribute <= value and attribute == value. \n  - Allowed values\
+        \ for all operators is double. \n  - For the operator `==` if the query is\
+        \ on `id` then the only value allowed is an `data exchange ID` of a resource.\
+        \ \n  - e.g, `q=attribute-name>attribute-value`\n\n#### Complex search\nA\
+        \ combination of the above is allowed to make searches more  complex.\n\n\
+        #### Filters\n  - A subset of properties of returned documents can be filtered\
+        \ out. This is an option parameter(pick and omit). \nFor e.g, `pick=[id]` returns documents\
+        \ with only the `id` property retained in them. \n  - `minNumberOfAttributes`\
+        \ : 1 and `maxNumberOfAttributes` : 5 \n\
+        \ queries."
       deprecated: false
   /ngsi-ld/v1/temporal/entityOperations/query:
     post:
@@ -640,6 +1107,130 @@ paths:
         \ It **cannot** be used along with a **attrs** filter. \n  - The value should\
         \ be equal to `count` and it is **case sensitive**\n"
       deprecated: false
+  /ngsi-ld/v2/temporal/entityOperations/query:
+    post:
+      tags:
+        - Entities Post Query
+      summary: Spatial + temporal search
+      operationId: post-spatial-temporal-complex-query2
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationHeader'
+      x-codeSamples:
+        - lang: cURL
+          label: Spatial + temporal complex query
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entityOperations/query''
+          \
+
+          --header ''Authorization: Bearer <tokenValue>'' \
+
+          --header ''Content-Type: application/json'' \
+
+          --data-raw ''<payload>''
+
+          '
+
+      requestBody:
+        $ref: '#/components/requestBodies/PostTemporalRequest2'
+      responses:
+        200:
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse'
+                  - $ref: '#/components/schemas/countResponse'
+            application/ld+json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/spatialAttributeEntityresponse2'
+                  - $ref: '#/components/schemas/countResponse'
+        204:
+          description: Empty Response
+        400:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardBadRequestErrorResponse'
+          description: Bad query
+        401:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardInvalidTokenErrorResponse'
+          description: Unauthorized
+        404:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/standardResourceNotFoundErrorResponse'
+          description: Resource not found
+      description: "The `/temporal/entityOperations/query` end point allows a consumer\
+        \ to query on data published based on a **spatial**,** temporal ** and **attribute**\
+        \ properties. The **spatial** queries should be submitted as a geo json as\
+        \ described in the API. All the queries requires a ** valid data exchange**\
+        \ `id` of the resource within the `entities` json object as per the schema.\
+        \ These apis are intended to be used by DX(Data exchange) Data *Consumers*.\n\
+        \n  - **Allowed Search Operations**:\n      - ** Temporal Search : ** which\
+        \ queries the temporal property of the resource.\n      - ** Spatial (Geo)\
+        \ Search : ** which queries the geo property of the resource.\n      - **\
+        \ Attribute Search : ** which queries the valid attributes as per the data\
+        \ descriptor.\n      - ** Complex Search : ** which queries using the combination\
+        \ of the above three.\n\n#### Temporal search\nTemporal search accepts time\
+        \ property based queries which are specified in ISO 8601 format. The params\
+        \ and their accepted values are -\n  - **timerel**: The time relation of the\
+        \ query. Should be either `between`, `before` or `after`.\n  - **timeAt**: Start time for the\
+        \ temporal query in `ISO 8601` format. \n  - **endTimeAt**: End time for the\
+        \ temporal query in `ISO 8601` format. Applicable only for `timerel = between`.\
+        \ \n\n#### Spatial (Geo) Search\n\
+        Geo search accepts geojson based queries. The params and their accepted values\
+        \ are briefed below -\n  - **geoproperty**: \n      - Specifies the name of\
+        \ the ** geospatial ** property in the ** DX(Data exchange) data descriptor\
+        \ **.\n      - The current version of the API ** mandates ** it to be equal\
+        \ to `location`\n  - **georel**:   \n      - Specifies the spatial relationship\
+        \ to be queried.\n      - The relation type of **geoquery** can be **one of**\
+        \ `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.\n     \
+        \ - The relation ** near ** should be always accomodated with a ** maxdistance\
+        \ ** property.\n      - Apart from ** maxdistance** , all other fields in\
+        \ the Enum list are ** case sensitive ** fields.\n      - The relation **\
+        \ near;maxdistance ** is applicable only for a ** point **.\n      - The relation\
+        \ ** within ** and  ** intersects ** are applicable only for ** bbox, polygon\
+        \ and linestring**.\n\n  - **geometry**:  \n      - Specifies the GeoJson\
+        \ geometries. \n      - Should be One of `Point`(equivalent for a circle),\
+        \ `Polygon`, `LineString`, `bbox`.\n      - **Point**: Point and radius query\n\
+        \          - coordinates: Specifies the  center point of the circle, for e.g,\
+        \ `[73,13]`. \nNote, format is [longitude, latitude]\n          - maxDistance:\
+        \ Specifies the Radius from the center point in meters, for e.g `100`. `maxValue`\
+        \ : 1000\n          - georel: In this version of DX(Data exchange) API, the\
+        \ allowed relationship search for a circle is `near` with a `maxdistance`\
+        \ in meters specified. This will be equivalent to a `within` query. Format\
+        \ is `near;maxdistance=<distance_in_meters>` \n      - **Polygon**: Polygon/Multi-Polygon\
+        \ query\n          - coordinates: Specifies the  coordinates of the polygon,\
+        \ for e.g, `[[[73,13],[73,12],[73,13]]]`.  \nNote, format is [longitude, latitude]\
+        \ and the first coordinate must be same as last. \n          - `minNumberOfCoOrdinates`\
+        \ : 4 and `maxnNumberOfCoOrdinates` : 10\n          - georel: `within`, `intersects`\n\
+        \      - **LineString**: Multi line string\n          - coordinates: Specifies\
+        \ the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`.\
+        \ \nNote, format is [longitude, latitude]\n          - `minNumberOfCoOrdinates`\
+        \ : 2 and `maxnNumberOfCoOrdinates` : 10\n          - georel:  `within`, `intersects`\n\
+        \      - **bbox**: Bounding box\n          - coordinates: `[[top-left],[bottom-right]]`.\
+        \ e.g, `[[73,13],[74,12]]`. \nNote, format is [longitude, latitude].\n   \
+        \       - georel:  `within`, `intersects`\n\n#### Attribute search\nThe attribute\
+        \ query is used for querying ** allowed quantitative** properties. \n  - Used\
+        \ to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,`==`\
+        \ operators. \n  - For e.g, attribute > value, attribute < value, attribute\
+        \ >= value, attribute <= value and attribute == value. \n  - Allowed values\
+        \ for all operators is double. \n  - For the operator `==` if the query is\
+        \ on `id` then the only value allowed is an `data exchange ID` of a resource.\
+        \ \n  - e.g, `q=attribute-name>attribute-value`\n\n#### Complex search\nA\
+        \ combination of the above is allowed to make searches more  complex.\n\n\
+        #### Filters\n  - A subset of properties of returned documents can be filtered\
+        \ out. This is an option parameter(pick and omit). \nFor e.g, `pick=[id]` returns documents\
+        \ with only the `id` property retained in them. \n  - `minNumberOfAttributes`\
+        \ : 1 and `maxNumberOfAttributes` : 5 \n\n#### Options\n  - The **options**\
+        \ parameter is used for obtaining the **aggregated values** for a query. \n \
+        \ - It should be used along with the ** valid ** `complex` queries.\n"
+      deprecated: false
 components:
   securitySchemes:
     authorization:
@@ -755,6 +1346,51 @@ components:
         - entities
         - type
       additionalProperties: false
+    complex-entities-geo:
+      title: complex-geo+attribute+filterrequest
+      required:
+        - type
+        - entities
+      additionalProperties: false
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Query ]
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ3'
+        orderBy:
+          type: string
+          maxLength: 512
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
+        q:
+          type: string
+          maxLength: 512
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+        omit:
+          type: string
+          maxLength: 512
+          description: 'The omit is used as an <b>omit filter</b>. <br/> This is an optional parameter. It can be used to provide the omit of attributes which the consumer expects to be avoided by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        pick:
+          type: string
+          maxLength: 512
+          description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+      example:
+        type: Query
+        entities:
+          - id: 32cf54e7-be31-474c-ae4c-3d41e556dd2d
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
     postTemporalSchema:
       type: object
       properties:
@@ -891,6 +1527,59 @@ components:
         - entities
         - type
       additionalProperties: false
+    complex-temporal-geo:
+      title: complex-geo+time+filterrequest
+      required:
+        - type
+        - entities
+        - temporalQ
+      additionalProperties: false
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ Query ]
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+          description: ''
+        geoQ:
+          $ref: '#/components/schemas/GeoQ'
+        temporalQ:
+          $ref: '#/components/schemas/TemporalQ3'
+        orderBy:
+          type: string
+          maxLength: 512
+          description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
+        q:
+          type: string
+          maxLength: 512
+          description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+        omit:
+          type: string
+          maxLength: 512
+          description: 'The omit is used as an <b>omit filter</b>. <br/> This is an optional parameter. It can be used to provide the omit of attributes which the consumer expects to be avoided by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        pick:
+          type: string
+          maxLength: 512
+          description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+      example:
+        type: Query
+        entities:
+          - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+        geoQ:
+          geometry: Point
+          coordinates:
+            - 25.319768
+            - 82.987988000000001
+          georel: near;maxDistance=1000
+          geoproperty: geoJsonLocation
+        temporalQ:
+          timerel: between
+          timeAt: 2020-06-01T14:20:00Z
+          endTimeAt: 2020-06-03T15:00:00Z
+          timeproperty: observationDateTime
     geospatial-circlerequest:
       title: geospatial-circlerequest
       required:
@@ -933,9 +1622,77 @@ components:
             \ token ** is ** mandatory **  in the header parameter of the request.\
             \  \n Information about the data exchange ID of the resource and security\
             \ scope of the resource can be obtained from the ** DX(Data exchange)\
-            \ catalogue server ** ."
+            \ controlplane server ** ."
       example:
-        id: UUID
+        id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    GeoQ3:
+      title: GeoQ3
+      required:
+        - geometry
+        - coordinates
+        - georel
+        - geoproperty
+      additionalProperties: false
+      type: object
+      properties:
+        geometry:
+          type: string
+          enum: [ Point, point, Polygon, polygon, bbox, LineString, linestring ]
+          description: >
+            The geometry type of <b>geoquery</b> to be performed. <br/>
+            This <b>should</b> be one from the available options in the Enum list. <br/>
+            The list is <b>case sensitive</b>.
+        coordinates:
+          oneOf:
+            - type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+              description: >
+                Used for geometry type <b>Point</b>. Represents a single longitude, latitude pair.
+            - type: array
+              minItems: 2
+              maxItems: 10
+              items:
+                type: array
+                minItems: 2
+                maxItems: 2
+                items:
+                  type: number
+              description: >
+                Used for geometry types <b>LineString</b> and <b>bbox</b>. Each sub-array is a longitude, latitude pair.
+            - type: array
+              minItems: 1
+              maxItems: 1
+              items:
+                type: array
+                minItems: 4
+                maxItems: 10
+                items:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: number
+              description: >
+                Used for geometry type <b>Polygon</b>. A single polygon defined as an array of linear ring coordinates.
+
+        georel:
+          type: string
+          #          enum: [ near, within, intersects ]
+          description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+        geoproperty:
+          type: string
+          enum: [ location ]
+          description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+      example:
+        geometry: Point
+        coordinates:
+          - 25.319768
+          - 82.987988000000001
+        georel: near;maxDistance=1000
+        geoproperty: geoJsonLocation
     GeoQ:
       title: GeoQ
       required:
@@ -1253,6 +2010,32 @@ components:
         time: 2020-06-01 14:20:00+00:00
         endtime: 2020-06-03 15:00:00+00:00
         timeProperty: observationDateTime
+    TemporalQ3:
+      title: TemporalQ
+      required:
+        - timerel
+        - timeAt
+      additionalProperties: false
+      type: object
+      properties:
+        timerel:
+          type: string
+          enum: [ between, before, after ]
+          description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+        timeAt:
+          type: string
+          description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+        endTimeAt:
+          type: string
+          description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
+        timeproperty:
+          type: string
+          enum: [ observationDateTime, observedAt ]
+      example:
+        timerel: between
+        timeAt: 2020-06-01T14:20:00Z
+        endTimeAt: 2020-06-03T15:00:00Z
+        timeproperty: observationDateTime
     time-beforerequest:
       title: time-beforerequest
       required:
@@ -1427,6 +2210,80 @@ components:
           georel: near;maxDistance=1000
           geoproperty: geoJsonLocation
         attrs: resource-id,latitude,longitude
+    spatialAttributeEntityresponse:
+      title: spatialAttributeEntityresponse
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        [
+          {
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "vehicle_label": "A09",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
+
+    spatialAttributeEntityresponse2:
+      title: spatialAttributeEntityresponse2
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        [
+          {
+            "@context": "<Link to explain json+ld> example: https://schema.org/context.jsonld",
+            "trip_direction": "NT",
+            "trip_id": "24374871",
+            "route_id": "17AD",
+            "vehicle_label": "A09",
+            "speed": 25.0,
+            "license_plate": "GJ05BX1916",
+            "last_stop_id": "2028",
+            "location": {
+              "coordinates": [
+                72.870511,
+                21.218943
+              ],
+              "type": "Point"
+            },
+            "id": "UUID"
+          }
+        ]
+    countResponse:
+      title: Count response
+      type: object
+      properties:
+        results:
+          description: An objects
+          type: object
+          items:
+            type: object
+      example:
+        {
+          "type": "CountResult",
+          "value": 145
+        }
     entityresponse:
       title: entityresponse
       type: object
@@ -1490,7 +2347,7 @@ components:
         type: dx:dataplaneProxy:badRequest
         title: Bad Request Data
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid
-          geo parameters | Count is not supported with filtering
+          geo parameters
     standardInvalidTokenErrorResponse:
       title: standardInvalidTokenErrorResponse
       properties:
@@ -1726,6 +2583,74 @@ components:
         type: string
         maxLength: 512
         minLength: 1
+    PickParam:
+      name: pick
+      in: query
+      description: "The pick parameter is used as an **application filter**. \n This\
+        \ is an optional parameter. It can be used to provide the list of pick attributes\
+        \ which the consumer expects to be responded by the server. \n The consumer\
+        \ is expected to provide **only** the attributes available in the **data descriptor**\
+        \ of the item in the DX(Data exchange) Catalogue. \n Minimum of 1 and a Maximum\
+        \ of 5 attributes can be provided in a comma separated fashion."
+      schema:
+        type: string
+        maxLength: 512
+        minLength: 1
+    OmitParam:
+      name: omit
+      in: query
+      description: "The pick parameter is used as an **application filter**. \n This\
+        \ is an optional parameter. It can be used to provide the list of omit attributes\
+        \ which the consumer expects to be omitted by the server. \n The consumer\
+        \ is expected to provide **only** the attributes available in the **data descriptor**\
+        \ of the item in the DX(Data exchange) Catalogue. \n Minimum of 1 and a Maximum\
+        \ of 5 attributes can be provided in a comma separated fashion."
+      schema:
+        type: string
+        maxLength: 512
+        minLength: 1
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 100
+    LastNParam:
+      name: lastN
+      in: query
+      description: Get the last N records, and it will sort on time property in descending order.
+      schema:
+        type: integer
+        minimum: 1
+    AggrMethodParam:
+      name: aggrMethods
+      in: query
+      description: "Aggregation method to be applied on the attribute. \n Supported\
+        \ aggregation methods are `avg`, `sum`, `min`, `max`, `count`."
+      schema:
+        type: string
+    OffsetParam:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    CountParam:
+      name: count
+      in: query
+      description: "Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`"
+      schema:
+          type: boolean
+          default: false
+    OrderByParam:
+      name: orderBy
+      in: query
+      description: "Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`"
+      schema:
+        type: string
+        maxLength: 512
     OptionsParam:
       name: options
       in: query
@@ -1738,6 +2663,22 @@ components:
         type: string
         enum:
           - count
+    OptionsParam2:
+      name: options
+      in: query
+      description: "Perform aggregation"
+      schema:
+        type: string
+        enum:
+          - aggregatedValues
+    FormatParam:
+      name: format
+      in: query
+      description: "Control response format type with combination with accept headers"
+      schema:
+        type: string
+        enum:
+          - simplified
     TimerelParam:
       name: timerel
       in: query
@@ -1749,6 +2690,28 @@ components:
           - before
           - after
           - during
+    TimerelParam2:
+      name: timerel
+      in: query
+      description: The temporal relation type of **timerel** to be performed.
+      schema:
+        type: string
+        enum:
+          - between
+          - before
+          - after
+    TimePropertyParam:
+      name: timeproperty
+      in: query
+      description: "Name of the ** temporal ** property in the ** DX(Data exchange)\
+        \ data descriptor **. <br /> The current version of the API ** mandates **\
+        \ it to be equal to `observationDateTime` and `observedAt`"
+      schema:
+        type: string
+        enum:
+          - observationDateTime
+          - observedAt
+        default: observationDateTime
     TimeParam:
       name: time
       in: query
@@ -1759,6 +2722,23 @@ components:
         type: string
     EndtimeParam:
       name: endtime
+      in: query
+      description: "This parameter specifies the **end time** for the temporal-query\
+        \ in `ISO8601` format. \n data exchange currently accepts `IST` and `UTC`\
+        \ time zones for the temporal query. \nIf **timerel** is `between` time and\
+        \ endtime are mandatory"
+      schema:
+        type: string
+    TimeParam2:
+      name: timeAt
+      in: query
+      description: "This parameter specifies the **start time** for the temporal-query\
+        \ in `ISO8601` format. \n data exchange currently accepts `IST` and `UTC`\
+        \ time zones for the temporal query."
+      schema:
+        type: string
+    EndtimeParam2:
+      name: endtimeAt
       in: query
       description: "This parameter specifies the **end time** for the temporal-query\
         \ in `ISO8601` format. \n data exchange currently accepts `IST` and `UTC`\
@@ -1792,6 +2772,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/postEntitiesSchema'
+    PostEntitiesRequest2:
+      description: Post entities query request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/complex-entities-geo'
     PostTemporalRequest:
       description: Post temporal entities query request
       required: true
@@ -1799,3 +2786,10 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/postTemporalSchema'
+    PostTemporalRequest2:
+      description: Post temporal entities query request
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/complex-temporal-geo'

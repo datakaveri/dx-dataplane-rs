@@ -75,23 +75,7 @@ public class ApiConstants {
   public static final String DOWNLOAD_PUT_SEARCH_DATA = "downloadPutSearchData";
   public static final String TEMPORAL_SEARCH = "temporalSearch";
   public static final String TEMPORAL_QUERY = "temporal-query";
-  public static final String POST_TEMPORAL_SEARCH = "postTemporalSearch";
-  public static final String POST_SPATIAL_SEARCH = "postSpatialSearch";
-  public static final String GET_ADAPTER_EXCHANGE = "getAdapterexchange";
-  public static final String REGISTER_ADAPTER = "registerAdapter";
-  public static final String GET_ADAPTOR_DETAILS_BY_ID_ALT = "getAdaptorDetailsById";
-  public static final String DELETE_ADAPTOR_BY_ID = "deleteAdaptorById";
-  public static final String POST_INGESTION_ADAPTOR_ENTITIES = "PostingestionAdaptorEntities";
-  public static final String GET_LIST_OF_SUBSCRIBERS = "getListOfSubscribers";
-  public static final String POST_SUBSCRIPTION = "postSubscription";
-  public static final String APPEND_SUBSCRIPTION = "appendStreamingSubscription";
-  public static final String UPDATE_SUBSCRIPTION = "updateStreamingSubscription";
-  public static final String GET_SUBSCRIBER_BY_ID = "getSubscriberById";
-  public static final String DELETE_SUBSCRIBER_BY_ID = "deleteSubscriberById";
-  public static final String RESET_PASSWORD = "resetPassword";
-  public static final String ASYNC_SEARCH = "asyncSearch";
-  public static final String ASYNC_SEARCH_STATUS = "asyncSearchStatus";
-    public static final String ONBOARD_ELASTICSEARCH_INDEX = "onboardElasticsearchIndex";
+  public static final String ONBOARD_ELASTICSEARCH_INDEX = "onboardElasticsearchIndex";
 
   public static final String EVENT = "event";
   public static final String API_ENDPOINT = "apiEndpoint";
@@ -194,23 +178,6 @@ public class ApiConstants {
   public static final String JSON_TIMEPROPERTY = "timeproperty";
   public static final String JSON_ATTR_QUERY = "attr-query";
   public static final String JSON_GEOPROPERTY = "geoproperty";
-  public static final String JSON_ATTRIBUTE = "attribute";
-  public static final String JSON_OPERATOR = "operator";
-  public static final String JSON_VALUE = "value";
-  public static final String JSON_TITLE = "title";
-  public static final String JSON_DETAIL = "detail";
-  public static final String JSON_VHOST_NAME = "vHostName";
-  public static final String JSON_VHOST = "vHost";
-  public static final String JSON_VHOST_ID = "vhostId";
-  public static final String DOMAIN = "domain";
-  public static final String USERSHA = "userSha";
-  public static final String JSON_ALIAS = "alias";
-  public static final String JSON_COUNT = "Count";
-  public static final String RESOURCE_SERVER = "resourceServer";
-  public static final String RESOURCE_GROUP = "resourceGroup";
-  public static final String RESOURCE_NAME = "resourceName";
-  public static final String USER_ID = "userid";
-  public static final String EXPIRY = "expiry";
   public static final String IID = "iid";
   public static final String API = "api";
   public static final String DRL = "drl";
@@ -310,13 +277,6 @@ public class ApiConstants {
 
   public static final String ENTITY_QUERY =
       "select entity from subscriptions where queue_name='$0'";
-  public static final String LIMITPARAM = "limit";
-  public static final String OFFSETPARAM = "offset";
-  public static final String TOTALHITS = "totalHits";
-  public static final String EVENTTYPE_CREATED = "SUBS_CREATED";
-  public static final String EVENTTYPE_DELETED = "SUBS_DELETED";
-  public static final String EVENTTYPE_APPEND = "SUBS_APPEND";
-  public static final String EVENTTYPE_UPDATE = "SUBS_UPDATED";
 
   public static final String DEFAULT_PAGE_FROM = "0";
   public static final String DEFAULT_PAGE_SIZE = "5000";

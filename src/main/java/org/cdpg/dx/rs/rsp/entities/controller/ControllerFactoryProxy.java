@@ -10,6 +10,7 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.databroker.service.DataBrokerService;
+import org.cdpg.dx.rs.rsp.gateway.controller.GatewayControllerFactory;
 
 public class ControllerFactoryProxy {
 
@@ -28,7 +29,10 @@ public class ControllerFactoryProxy {
     ApiController entitiesController =
         EntityControllerfactory.createEntitiesController(
             dataBrokerService, urnGenerator, config, auditingHandler);
+    ApiController gatewayController =
+        GatewayControllerFactory.createGatewayController(
+            dataBrokerService, urnGenerator, config, auditingHandler);
 
-    return List.of(entitiesController);
+    return List.of(entitiesController, gatewayController);
   }
 }

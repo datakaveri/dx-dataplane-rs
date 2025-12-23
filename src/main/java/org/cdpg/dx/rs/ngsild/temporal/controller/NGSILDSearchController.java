@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.ngsild.temporal.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
+import static org.cdpg.dx.rs.ngsild.util.Constants.*;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
 import io.vertx.core.MultiMap;
@@ -49,22 +50,22 @@ public class NGSILDSearchController implements ApiController {
   @Override
   public void register(RouterBuilder builder) {
     builder
-        .operation("getTemporalEntities")
+        .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
-        .operation("postTemporalEntitiesSearch")
+        .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
-        .operation("getEntitiesSpatial")
+        .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handleEntityAttributeDataSearch(context, false));
     builder
-        .operation("postEntitiesSearch")
+        .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(context -> handlePostEntityAttributeDataSearch(context, false));

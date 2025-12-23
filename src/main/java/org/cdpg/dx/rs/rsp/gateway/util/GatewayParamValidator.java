@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.validation.ngsild;
+package org.cdpg.dx.rs.rsp.gateway.util;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_TOKEN;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
@@ -7,6 +7,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -15,13 +16,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.exception.DxNotAcceptableException;
+import org.cdpg.dx.rs.validation.ParamsValidator;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.wololo.jts2geojson.GeoJSONReader;
 
-public class NGSILDParamsValidator {
-
-  private static final Logger LOGGER = LogManager.getLogger(NGSILDParamsValidator.class);
+public class GatewayParamValidator {
+  private static final Logger LOGGER = LogManager.getLogger(GatewayParamValidator.class);
 
   private static final int MAX_DISTANCE = 1000;
   private static final int MAX_POLYGON_COORDS = 10;
@@ -31,7 +32,6 @@ public class NGSILDParamsValidator {
 
   private static final int MAX_ATTRS_ITEMS = 5; // same as VALIDATION_MAX_ATTRS
   private static final int MAX_ATTR_LENGTH = 100; // same as VALIDATIONS_MAX_ATTR_LENGTH
-  private static final int MAX_Q_ITEMS = 10;
   private static final Pattern ATTRS_REGEX = Pattern.compile("^[a-zA-Z0-9_]+$");
 
   private static final Pattern DECIMAL_PATTERN =
@@ -41,16 +41,16 @@ public class NGSILDParamsValidator {
   private static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile("^urn:ngsi-ld:[a-zA-Z0-9_-]+$");
   private static final String[] VALIDATION_ALLOWED_OPERATORS = {"==", ">", "<", ">=", "<=", "!="};
-  // Supported NGSI-LD media types
   private static final List<String> SUPPORTED_MEDIA_TYPES =
       Arrays.asList("application/json", "application/ld+json", "application/geo+json");
   // Pattern to parse Accept header with quality values
   private static final Pattern MEDIA_TYPE_PATTERN =
       Pattern.compile("([a-zA-Z0-9*+\\-./]+)(?:;\\s*q=([0-9.]+))?");
-  private static Set<String> validParamsTemporalEntites = new HashSet<String>();
+
+  private static Set<String> validHeaders = new HashSet<String>();
   private static Set<String> validParamsEntities = new HashSet<String>();
   private static Set<String> validParamsPost = new HashSet<String>();
-  private static Set<String> validHeaders = new HashSet<String>();
+  private static Set<String> validParamsTemporalEntites = new HashSet<String>();
 
   static {
     validParamsTemporalEntites.add(NGSILDQUERY_TYPE);
@@ -115,24 +115,18 @@ public class NGSILDParamsValidator {
   static {
     validHeaders.add(HEADER_TOKEN);
     validHeaders.add("User-Agent");
-    validHeaders.add("Accept");
-    validHeaders.add("Accept-Encoding");
-    validHeaders.add(HEADER_CONTENT_TYPE);
-    validHeaders.add("Connection");
-    validHeaders.add("Host");
-    validHeaders.add("Postman-Token");
-    /*validHeaders.add(HEADER_CSV);
-    validHeaders.add(HEADER_JSON);
-    validHeaders.add(HEADER_PARQUET);*/
+    validHeaders.add("Content-Type");
     validHeaders.add(NGSILD_LINK);
     validHeaders.add(NGSILD_TENANT);
     validHeaders.add(NGSILD_VIA);
+    validHeaders.add("Accept");
+    validHeaders.add("Accept-Encoding");
   }
 
   private final int maxDaysSync;
   private final int maxDaysAsync;
 
-  public NGSILDParamsValidator(int maxDaysSync, int maxDaysAsync) {
+  public GatewayParamValidator(int maxDaysSync, int maxDaysAsync) {
     this.maxDaysSync = maxDaysSync;
     this.maxDaysAsync = maxDaysAsync;
   }
@@ -200,24 +194,6 @@ public class NGSILDParamsValidator {
     return parseAcceptHeader(acceptHeader);
   }
 
-  /* ===== Unified recursive parameter validation ===== */
-  private void validateParamsRecursive(Object value) {
-    if (value instanceof JsonObject obj) {
-      for (String key : obj.fieldNames()) {
-        if (!validParamsTemporalEntites.contains(key)) {
-          throw new DxBadRequestException("Invalid parameter: " + key);
-        }
-        validateParamsRecursive(obj.getValue(key));
-      }
-    } else if (value instanceof JsonArray arr) {
-      for (Object item : arr) {
-        validateParamsRecursive(item);
-      }
-    }
-  }
-
-  /* ---- Public validation methods ---- */
-
   /* ===== Optimized GET query validation ===== */
   public void validateQueryParamsTemporalEntities(MultiMap params) {
     for (var entry : params.entries()) {
@@ -243,13 +219,29 @@ public class NGSILDParamsValidator {
     }
   }
 
+  /* ===== Unified recursive parameter validation ===== */
+  private void validateParamsRecursive(Object value) {
+    if (value instanceof JsonObject obj) {
+      for (String key : obj.fieldNames()) {
+        if (!validParamsTemporalEntites.contains(key)) {
+          throw new DxBadRequestException("Invalid parameter: " + key);
+        }
+        validateParamsRecursive(obj.getValue(key));
+      }
+    } else if (value instanceof JsonArray arr) {
+      for (Object item : arr) {
+        validateParamsRecursive(item);
+      }
+    }
+  }
+
   /* ===== Optimized POST body validation ===== */
   public void validateBodyParams(JsonObject body) {
     validateParamsRecursive(body);
   }
 
   /* ===== Header validation ===== */
-  public void validateHeaders(MultiMap headers) {
+  private void validateHeaders(MultiMap headers) {
     for (String headerName : headers.names()) {
       if (!validHeaders.contains(headerName)) {
         throw new DxBadRequestException("Invalid header: " + headerName);
@@ -329,49 +321,33 @@ public class NGSILDParamsValidator {
       return;
     }
 
-    // No-op validation for aggregation params here; they are optional and validated where used
-
     if (timeRel == null || timeAt == null) {
-      throw new DxBadRequestException("timerel and time are mandatory for temporal queries");
+      throw new DxBadRequestException("timerel and timeAt are mandatory for temporal queries");
     }
 
     if (!timeRel.equalsIgnoreCase("before")
         && !timeRel.equalsIgnoreCase("after")
         && !timeRel.equalsIgnoreCase("between")) {
-      throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between, during");
+      throw new DxBadRequestException("Invalid timerel. Allowed: before, after, between");
     }
 
-    ZonedDateTime start;
-    try {
-      String timeAtNormalized = timeAt.trim().replaceAll("\\s", "+");
-      start = ZonedDateTime.parse(timeAtNormalized);
-    } catch (Exception e) {
-      throw new DxBadRequestException("timeAt must be in ISO 8601 format");
-    }
+    ZonedDateTime start = parseIsoTime(timeAt, "timeAt");
 
     ZonedDateTime end = null;
     if ("between".equalsIgnoreCase(timeRel)) {
-      if (endTimeAt == null)
+      if (endTimeAt == null) {
         throw new DxBadRequestException("endTimeAt is mandatory when timerel=between");
+      }
       try {
-        String endTimeNormalized = endTimeAt.trim().replaceAll("\\s", "+");
-        end = ZonedDateTime.parse(endTimeNormalized);
+        end = parseIsoTime(endTimeAt, "endTimeAt");
+
         if (end.isBefore(start)) {
           throw new DxBadRequestException("endTimeAt must be after timeAt");
         }
-      } catch (Exception e) {
-        throw new DxBadRequestException("endTimeAt must be in ISO 8601 format");
+      } catch (Exception ex) {
+        throw new DxBadRequestException("Must be in ISO 8601 format");
       }
     }
-    // todo check with the timeProperty in Post Query property for NGSI-LD release v1.3.1
-    /*Set<String> ALLOWED_TIME_PROPERTIES =
-        Set.of("observedAt", "createdAt", "modifiedAt", "observationDateTime");
-
-    if (timeProperty != null && !ALLOWED_TIME_PROPERTIES.contains(timeProperty)) {
-      String supported = String.join(", ", ALLOWED_TIME_PROPERTIES);
-      throw new DxBadRequestException(
-          "Unsupported timeProperty: " + timeProperty + ", Supported values are: " + supported);
-    }*/
 
     if (end != null) {
       long days = Duration.between(start, end).toDays();
@@ -387,13 +363,30 @@ public class NGSILDParamsValidator {
     }
   }
 
+  /**
+   * Parses time strings in ISO 8601 format. Accepts both ZonedDateTime and OffsetDateTime inputs
+   * (e.g. "+05:30" or "[Asia/Kolkata]").
+   */
+  private ZonedDateTime parseIsoTime(String value, String fieldName) {
+    // Trim & normalize spaces before timezone
+    String normalized = value.trim().replace(" ", "+");
+    try {
+      return ZonedDateTime.parse(normalized);
+    } catch (Exception e1) {
+      try {
+        return OffsetDateTime.parse(normalized).toZonedDateTime();
+      } catch (Exception e2) {
+        throw new DxBadRequestException(fieldName + " must be in ISO 8601 format");
+      }
+    }
+  }
+
+  /* ---- Q-type validation ---- */
+
   public void validateQ(String q) {
     if (q == null || q.isBlank()) return;
 
-    String[] attributes = q.split(",");
-    if (attributes.length > MAX_Q_ITEMS) {
-      throw new DxBadRequestException("Too many q, maximum allowed = " + MAX_Q_ITEMS);
-    }
+    String[] attributes = q.split(";");
     for (String attr : attributes) {
       String[] terms = attr.split("((?=>)|(?<=>)|(?=<)|(?<=<)|(?<==)|(?=!)|(?<=!)|(?==)|(?===))");
       if (terms.length < 3 || terms.length > 4)
@@ -510,6 +503,8 @@ public class NGSILDParamsValidator {
       }
     }
   }
+
+  /* ---- Private helpers for geometry ---- */
 
   public void validateGeoRel(String geom, String georel) {
 
@@ -798,7 +793,7 @@ public class NGSILDParamsValidator {
   }
 
   public void isValidQueryWithFilters(String searchType, JsonArray applicableFilters) {
-    LOGGER.info("validation filter : " + applicableFilters);
+    LOGGER.info("validation filter {}", applicableFilters);
     if (searchType.contains("temporalSearch") && !applicableFilters.contains("TEMPORAL")) {
       throw new DxBadRequestException("Temporal parameters are not supported by RS Item.");
     }
@@ -816,15 +811,6 @@ public class NGSILDParamsValidator {
         || params.contains(NGSILDQUERY_ENDTIMEAT)
         || params.contains(NGSILDQUERY_TIMEPROPERTY);
   }
-
-  /**
-   * Validates and parses Accept header from Vert.x RoutingContext Returns the best matching media
-   * type based on quality values
-   */
-  /*public static String validateAndSelectBestMediaType(RoutingContext context) {
-      String acceptHeader = context.request().getHeader("Accept");
-      return validateAndSelectBestMediaType(acceptHeader);
-  }*/
 
   private Boolean isAttributeQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_ATTRIBUTE);
@@ -899,6 +885,14 @@ public class NGSILDParamsValidator {
           throw new DxBadRequestException("aggrPeriodDuration is required when requesting aggregatedValues");
       }*/
       // Further validation of aggrMethods and aggrPeriodDuration can be added here
+    }
+  }
+
+  public void validatePickAndAggrs(String pick, String aggrMethods) {
+    if (pick != null && !pick.isBlank() && aggrMethods != null && !aggrMethods.isBlank()) {
+      if (pick.split(",").length != aggrMethods.split(",").length) {
+        throw new DxBadRequestException("pick and aggrMethods must have same number");
+      }
     }
   }
 
