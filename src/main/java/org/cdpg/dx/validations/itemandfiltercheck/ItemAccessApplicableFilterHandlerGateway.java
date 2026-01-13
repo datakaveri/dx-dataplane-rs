@@ -54,8 +54,18 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                   () ->
                       new DxBadRequestException(
                           "No queryTypes types(filters) found for GATEWAY server"));
+      JsonArray allowedAttributes =
+          Optional.ofNullable(context.user().principal().getJsonObject("cons"))
+              .map(cons -> cons.getJsonArray("allowedAttributes"))
+              .orElse(new JsonArray());
+
       RoutingContextHelper.setItemMetaData(context, context.user().principal());
       RoutingContextHelper.setApplicableFilter(context, queryTypes);
+      RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
+      RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
+      RoutingContextHelper.setAccessPolicy(
+          context, context.user().principal().getString("accessPolicy"));
+
       context.next();
       return;
     } else {
@@ -93,8 +103,16 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                             () ->
                                 new DxBadRequestException(
                                     "No queryTypes types(filters) found for GATEWAY server"));
+                JsonArray allowedAttributes =
+                    Optional.ofNullable(result.getJsonObject("cons"))
+                        .map(cons -> cons.getJsonArray("allowedAttributes"))
+                        .orElse(new JsonArray());
+
                 RoutingContextHelper.setApplicableFilter(context, queryTypes);
                 RoutingContextHelper.setItemMetaData(context, result);
+                RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
+                RoutingContextHelper.setIid(context, result.getString("id"));
+                RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
                 context.next();
               })
           .onFailure(

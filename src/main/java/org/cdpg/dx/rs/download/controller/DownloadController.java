@@ -25,6 +25,7 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class DownloadController implements ApiController {
@@ -34,6 +35,7 @@ public class DownloadController implements ApiController {
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
+  private final IdValidation idValidation;
 
   public DownloadController(
       DownloadService downloadService,
@@ -45,6 +47,7 @@ public class DownloadController implements ApiController {
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
+    this.idValidation = new IdValidation();
   }
 
   @Override
@@ -54,12 +57,14 @@ public class DownloadController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
