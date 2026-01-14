@@ -38,6 +38,7 @@ import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
 import org.cdpg.dx.rs.rsp.gateway.util.QueryMapper2;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
 public class GatewayController implements ApiController {
@@ -49,6 +50,7 @@ public class GatewayController implements ApiController {
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
+  private final IdValidation idValidation;
 
   public GatewayController(
       DataBrokerService dataBrokerService,
@@ -62,6 +64,7 @@ public class GatewayController implements ApiController {
     this.itemAccessApplicableFilterHandlerGateway =
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
+    this.idValidation = new IdValidation();
   }
 
   @Override
@@ -71,12 +74,14 @@ public class GatewayController implements ApiController {
         /*.handler(auditingHandler::handleApiAudit)*/
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         /*.handler(auditingHandler::handleApiAudit)*/
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -85,12 +90,14 @@ public class GatewayController implements ApiController {
         /*.handler(auditingHandler::handleApiAudit)*/
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         /*.handler(auditingHandler::handleApiAudit)*/
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handlePost(ctx, true));
   }
 
@@ -202,12 +209,11 @@ public class GatewayController implements ApiController {
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
                     .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(
+                    /*.putHeader(
                         NGSILD_RESULTS_COUNT,
                         String.valueOf(rpcResponse.getJsonArray("results").size()))
                     .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))
-                    .putHeader(NGSILD_LINK, "Link of context")
+                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
                     .setStatusCode(200)
                     .end(rpcResponse.getJsonArray("results").encodePrettily());
               } else {
@@ -307,12 +313,11 @@ public class GatewayController implements ApiController {
                     .putHeader(
                         "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
                     .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(
+                    /*.putHeader(
                         NGSILD_RESULTS_COUNT,
                         String.valueOf(rpcResponse.getJsonArray("results").size()))
                     .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))
-                    .putHeader(NGSILD_LINK, "Link of context")
+                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
                     .setStatusCode(200)
                     .end(rpcResponse.getJsonArray("results").encodePrettily());
               } else {

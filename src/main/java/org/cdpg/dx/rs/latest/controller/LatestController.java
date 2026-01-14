@@ -25,6 +25,7 @@ import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 /** Controller to handle latest entity data retrieval endpoints. */
@@ -35,6 +36,7 @@ public class LatestController implements ApiController {
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
+  private final IdValidation idValidation;
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
@@ -47,6 +49,7 @@ public class LatestController implements ApiController {
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
+    this.idValidation = new IdValidation();
   }
 
   @Override
@@ -56,12 +59,14 @@ public class LatestController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");

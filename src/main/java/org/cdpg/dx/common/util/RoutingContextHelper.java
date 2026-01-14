@@ -29,6 +29,9 @@ public final class RoutingContextHelper {
   private static final String ID = "id";
   private static final String APPLICABLE_FILTER = "applicableFilter";
   private static final String ITEM_META_DATA = "itemMetaData";
+  private static final String IID = "iid";
+  private static final String ACCESS_POLICY = "accessPolicy";
+  private static final String ALLOWED_ATTRIBUTES = "allowedattributes";
 
   private RoutingContextHelper() {
     // Prevent instantiation
@@ -162,5 +165,29 @@ public final class RoutingContextHelper {
 
   public static JsonObject getItemMetaData(RoutingContext event) {
     return event.get(ITEM_META_DATA);
+  }
+
+  public static void setIid(RoutingContext context, String iid) {
+    context.put(IID, iid);
+  }
+
+  public static String getIid(RoutingContext event) {
+    return event.get(IID);
+  }
+
+  public static void setAccessPolicy(RoutingContext context, String accessPolicy) {
+    context.put(ACCESS_POLICY, accessPolicy);
+  }
+
+  public static String getAccessPolicy(RoutingContext event) {
+    return event.get(ACCESS_POLICY);
+  }
+
+  public static void setAllowedAttributes(RoutingContext context, JsonArray allowedAttributes) {
+    context.put(ALLOWED_ATTRIBUTES, allowedAttributes);
+  }
+
+  public static JsonArray getAllowedAttributes(RoutingContext event) {
+    return event.get(ALLOWED_ATTRIBUTES);
   }
 }

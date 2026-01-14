@@ -23,12 +23,14 @@ import org.cdpg.dx.rs.ngsild.temporal.util.Util;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class NGSILDSearchController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDSearchController.class);
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
+  private final IdValidation idValidation;
   GetIdFromParams getIdFromParams = new GetIdFromParams();
   GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   NGSILDParamsValidator ngsildParamsValidator;
@@ -43,6 +45,7 @@ public class NGSILDSearchController implements ApiController {
     this.ngsildService = ngsildService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.idValidation = new IdValidation();
     this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
     this.urnGenerator = urnGenerator;
   }
@@ -53,21 +56,25 @@ public class NGSILDSearchController implements ApiController {
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
         .operation(GET_SPATIAL_SEARCH)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(context -> handleEntityAttributeDataSearch(context, false));
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        .handler(idValidation)
         .handler(context -> handlePostEntityAttributeDataSearch(context, false));
   }
 

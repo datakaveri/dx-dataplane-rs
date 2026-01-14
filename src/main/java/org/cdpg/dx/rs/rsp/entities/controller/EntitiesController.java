@@ -29,6 +29,7 @@ import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ParamsValidator;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
 public class EntitiesController implements ApiController {
@@ -40,6 +41,7 @@ public class EntitiesController implements ApiController {
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
+  private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
 
   public EntitiesController(
@@ -53,6 +55,7 @@ public class EntitiesController implements ApiController {
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerGateway =
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
+    this.idValidation = new IdValidation();
     this.auditingHandler = auditingHandler;
   }
 
@@ -64,12 +67,14 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handleGet(ctx, true));
 
     // POST endpoints
@@ -78,12 +83,14 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
+        .handler(idValidation)
         .handler(ctx -> handlePost(ctx, true));
   }
 
