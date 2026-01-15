@@ -1,5 +1,6 @@
 package org.cdpg.dx.rs.ngsild.queryparams;
 
+import static org.cdpg.dx.apiserver.config.ApiConstants.NGSILDQUERY_ATTRIBUTE;
 import static org.cdpg.dx.apiserver.util.Util.toUriFunction;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
@@ -29,6 +30,7 @@ public class NGSILDQueryParams {
   private String type;
   private List<String> pick;
   private List<String> omit;
+  private List<String> attrs;
   private String q;
   private TemporalQuery temporalQuery;
   private String options;
@@ -70,6 +72,14 @@ public class NGSILDQueryParams {
     this.setTemporalQuery(new TemporalQuery());
     this.setGeoRel(new GeoRelation());
     this.create(json);
+  }
+
+  public List<String> getAttrs() {
+    return attrs;
+  }
+
+  public void setAttrs(List<String> attrs) {
+    this.attrs = attrs;
   }
 
   public String getOrderBy() {
@@ -123,7 +133,7 @@ public class NGSILDQueryParams {
   private void create(MultiMap paramsMap) {
     List<Entry<String, String>> entries = paramsMap.entries();
     for (final Entry<String, String> entry : entries) {
-      LOGGER.warn(entry.getKey() + " : " + entry.getValue());
+      LOGGER.info(entry.getKey() + " : " + entry.getValue());
       switch (entry.getKey()) {
         case NGSILDQUERY_ID:
           this.id = new ArrayList<URI>();
@@ -139,6 +149,10 @@ public class NGSILDQueryParams {
           this.omit = new ArrayList<String>();
           this.omit.addAll(Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
           break;
+        case NGSILDQUERY_ATTRIBUTE:
+          this.attrs = new ArrayList<String>();
+          this.attrs.addAll(
+              Arrays.stream(entry.getValue().split(",")).collect(Collectors.toList()));
         case NGSILDQUERY_TIMEREL:
           this.temporalQuery.setTimerel(entry.getValue());
           break;
@@ -233,6 +247,10 @@ public class NGSILDQueryParams {
           } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_OMIT)) {
             this.omit = new ArrayList<String>();
             this.omit =
+                Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
+          } else if (entry.getKey().equalsIgnoreCase(NGSILDQUERY_ATTRIBUTE)) {
+            this.attrs = new ArrayList<String>();
+            this.attrs =
                 Arrays.stream(entry.getValue().toString().split(",")).collect(Collectors.toList());
           } else if (entry.getKey().equalsIgnoreCase("geoQ")) {
             JsonObject geoJson = requestJson.getJsonObject(entry.getKey());
@@ -417,6 +435,8 @@ public class NGSILDQueryParams {
         + pick
         + ", omit="
         + omit
+        + ", attrs="
+        + attrs
         + ", q='"
         + q
         + '\''
