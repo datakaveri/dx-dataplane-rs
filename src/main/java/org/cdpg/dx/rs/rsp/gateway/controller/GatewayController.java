@@ -2,7 +2,10 @@ package org.cdpg.dx.rs.rsp.gateway.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
 import static org.cdpg.dx.apiserver.config.ApiConstants.IUDX_SEARCH_TYPE;
+import static org.cdpg.dx.rs.audit.util.Constants.DOWNLOAD;
+import static org.cdpg.dx.rs.audit.util.Constants.GATEWAY;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
+import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.NGSILDQUERY_ATTRIBUTE;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.NGSILDQUERY_COORDINATES;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.NGSILDQUERY_ENDTIMEAT;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.NGSILDQUERY_GEOMETRY;
@@ -25,13 +28,16 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.apiserver.config.ApiConstants;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.databroker.service.DataBrokerService;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.temporal.util.Util;
 import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
@@ -71,14 +77,14 @@ public class GatewayController implements ApiController {
   public void register(RouterBuilder builder) {
     builder
         .operation(GET_SPATIAL_SEARCH)
-        /*.handler(auditingHandler::handleApiAudit)*/
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
-        /*.handler(auditingHandler::handleApiAudit)*/
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerGateway)
         .handler(idValidation)
@@ -87,14 +93,14 @@ public class GatewayController implements ApiController {
     // POST endpoints
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
-        /*.handler(auditingHandler::handleApiAudit)*/
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
-        /*.handler(auditingHandler::handleApiAudit)*/
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         .handler(idValidation)
@@ -160,6 +166,9 @@ public class GatewayController implements ApiController {
       if (body.containsKey(NGSILDQUERY_OMIT)) {
         gatewayParamValidator.validateOmit(body.getString(NGSILDQUERY_OMIT));
       }
+      if (body.containsKey(NGSILDQUERY_ATTRIBUTE)) {
+        gatewayParamValidator.validateAttrs(body.getString(NGSILDQUERY_ATTRIBUTE));
+      }
       gatewayParamValidator.validatePickAndAggrs(
           requestConvertedParam.get(NGSILDQUERY_PICK),
           requestConvertedParam.get(NGSILDQUERY_AGGR_METHODS));
@@ -192,7 +201,7 @@ public class GatewayController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
-                /*AuditLog auditLog =
+                AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(ctx),
                         RoutingContextHelper.getId(ctx),
@@ -202,7 +211,7 @@ public class GatewayController implements ApiController {
                         GATEWAY,
                         "consumer",
                         DOWNLOAD);
-                RoutingContextHelper.setAuditingLog(ctx, auditLog);*/
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 response
                     .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -267,6 +276,7 @@ public class GatewayController implements ApiController {
 
       gatewayParamValidator.validatePick(params.get(NGSILDQUERY_PICK));
       gatewayParamValidator.validateOmit(params.get(NGSILDQUERY_OMIT));
+      gatewayParamValidator.validateAttrs(params.get(ApiConstants.NGSILDQUERY_ATTRIBUTE));
       gatewayParamValidator.validatePickAndAggrs(
           params.get(NGSILDQUERY_PICK), params.get(NGSILDQUERY_AGGR_METHODS));
       LOGGER.debug("Gateway param validator completed");
@@ -296,7 +306,7 @@ public class GatewayController implements ApiController {
 
               if (statusCode >= 200 && statusCode < 300) {
                 // success
-                /*AuditLog auditLog =
+                AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(ctx),
                         params.get(ID),
@@ -306,7 +316,7 @@ public class GatewayController implements ApiController {
                         GATEWAY,
                         "consumer",
                         DOWNLOAD);
-                RoutingContextHelper.setAuditingLog(ctx, auditLog);*/
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 response
                     .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")

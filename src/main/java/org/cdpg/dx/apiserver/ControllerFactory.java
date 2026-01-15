@@ -61,7 +61,12 @@ public class ControllerFactory {
 
     ApiController temporalController =
         TemporalControllerFactory.create(
-            searchService, controlPlaneDomain, urnGenerator, maxDaysSync, maxDaysAsync);
+            searchService,
+            controlPlaneDomain,
+            urnGenerator,
+            maxDaysSync,
+            maxDaysAsync,
+            auditingHandler);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, temporalController);

@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.ngsild.temporal.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.ngsild.util.Constants.*;
 import static org.cdpg.dx.rs.ngsild.util.NGSILDConstant.*;
 
@@ -13,10 +14,13 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.temporal.service.NGSILDService;
 import org.cdpg.dx.rs.ngsild.temporal.util.Util;
@@ -31,6 +35,7 @@ public class NGSILDSearchController implements ApiController {
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final IdValidation idValidation;
+  private final AuditingHandler auditingHandler;
   GetIdFromParams getIdFromParams = new GetIdFromParams();
   GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   NGSILDParamsValidator ngsildParamsValidator;
@@ -41,37 +46,43 @@ public class NGSILDSearchController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       int maxDaysSync,
-      int maxDaysAsync) {
+      int maxDaysAsync,
+      AuditingHandler auditingHandler) {
     this.ngsildService = ngsildService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.idValidation = new IdValidation();
     this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
     this.urnGenerator = urnGenerator;
+    this.auditingHandler = auditingHandler;
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
         .operation(GET_SPATIAL_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
         .handler(context -> handleEntityAttributeDataSearch(context, false));
     builder
         .operation(POST_SPATIAL_COMPLEX_QUERY)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
@@ -82,18 +93,18 @@ public class NGSILDSearchController implements ApiController {
     LOGGER.debug("Handling handlePostEntityAttributeDataSearch data query");
     String headersAcceptType =
         ngsildParamsValidator.validateAndSelectBestMediaType(context.request().getHeader("Accept"));
-    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
+    LOGGER.warn("headersAcceptType : " + headersAcceptType);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(context);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
     JsonObject bodyJson =
         context.body() != null && context.body().asJsonObject() != null
             ? context.body().asJsonObject()
             : new JsonObject();
-    LOGGER.info("Info: request Json :: " + bodyJson);
+    LOGGER.info("Info: request Json : " + bodyJson);
     JsonObject requestJson = bodyJson.copy();
     MultiMap params = context.request().params(true);
     MultiMap requestConvertedParam = Util.convertBodyToParams(bodyJson);
-    LOGGER.trace("Info: Converted Params :: " + requestConvertedParam);
+    LOGGER.trace("Info: Converted Params : " + requestConvertedParam);
 
     try {
       ngsildParamsValidator.validateQueryParamsEntities(requestConvertedParam);
@@ -130,6 +141,17 @@ public class NGSILDSearchController implements ApiController {
           .getEntitiesAttributeSearchCount(ngsildQueryParams)
           .onSuccess(
               postEntitiesCount -> {
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(context),
+                        RoutingContextHelper.getId(context),
+                        RoutingContextHelper.getRequestPath(context),
+                        "POST",
+                        context.user().subject(),
+                        NGSILD,
+                        "consumer",
+                        DOWNLOAD);
+                RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
                 result.put("value", postEntitiesCount);
@@ -151,15 +173,26 @@ public class NGSILDSearchController implements ApiController {
     } else {
       if (params.contains("format")) {
         String format = params.get("format");
-        LOGGER.warn("format param :: " + format);
+        LOGGER.info("format param :: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
-          LOGGER.warn("simplified format selected ");
+          LOGGER.info("simplified format selected ");
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(context),
+                            RoutingContextHelper.getId(context),
+                            RoutingContextHelper.getRequestPath(context),
+                            "POST",
+                            context.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -188,6 +221,17 @@ public class NGSILDSearchController implements ApiController {
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(context),
+                            RoutingContextHelper.getId(context),
+                            RoutingContextHelper.getRequestPath(context),
+                            "POST",
+                            context.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -216,6 +260,17 @@ public class NGSILDSearchController implements ApiController {
             .getEntitiesAttributeSearchData(ngsildQueryParams)
             .onSuccess(
                 getEntityData -> {
+                  AuditLog auditLog =
+                      DataplaneAuditHelper.createAuditingLogs(
+                          RoutingContextHelper.getItemMetaData(context),
+                          RoutingContextHelper.getId(context),
+                          RoutingContextHelper.getRequestPath(context),
+                          "POST",
+                          context.user().subject(),
+                          NGSILD,
+                          "consumer",
+                          DOWNLOAD);
+                  RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
                       .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -283,6 +338,17 @@ public class NGSILDSearchController implements ApiController {
           .getEntitiesAttributeSearchCount(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityCount -> {
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(routingContext),
+                        RoutingContextHelper.getId(routingContext),
+                        RoutingContextHelper.getRequestPath(routingContext),
+                        "GET",
+                        routingContext.user().subject(),
+                        NGSILD,
+                        "consumer",
+                        DOWNLOAD);
+                RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
@@ -304,15 +370,26 @@ public class NGSILDSearchController implements ApiController {
     } else {
       if (params.contains("format")) {
         String format = params.get("format");
-        LOGGER.warn("format param :: " + format);
+        LOGGER.info("format param :: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
-          LOGGER.warn("simplified format selected ");
+          LOGGER.info("simplified format selected ");
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -344,12 +421,23 @@ public class NGSILDSearchController implements ApiController {
             && format.equalsIgnoreCase("simplified")
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-          LOGGER.warn("concise format selected");
+          LOGGER.info("concise format selected");
           // TODO: Correct response once item id extended for context
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -375,11 +463,22 @@ public class NGSILDSearchController implements ApiController {
           LOGGER.error("invalid format param");
         }
       } else {
-        LOGGER.warn("simplified format selected ");
+        LOGGER.info("simplified format selected ");
         ngsildService
             .getEntitiesAttributeSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  AuditLog auditLog =
+                      DataplaneAuditHelper.createAuditingLogs(
+                          RoutingContextHelper.getItemMetaData(routingContext),
+                          RoutingContextHelper.getId(routingContext),
+                          RoutingContextHelper.getRequestPath(routingContext),
+                          "GET",
+                          routingContext.user().subject(),
+                          NGSILD,
+                          "consumer",
+                          DOWNLOAD);
+                  RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
                       .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -456,6 +555,17 @@ public class NGSILDSearchController implements ApiController {
           .getTemporalSearchCount(ngsildQueryParams)
           .onSuccess(
               postTemporalEntitiesCount -> {
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(context),
+                        RoutingContextHelper.getId(context),
+                        RoutingContextHelper.getRequestPath(context),
+                        "POST",
+                        context.user().subject(),
+                        NGSILD,
+                        "consumer",
+                        DOWNLOAD);
+                RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
                 result.put("value", postTemporalEntitiesCount);
@@ -477,7 +587,7 @@ public class NGSILDSearchController implements ApiController {
     } else {
       if (params.contains("format")) {
         String format = params.get("format");
-        LOGGER.warn("format param :: " + format);
+        LOGGER.info("format param :: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
@@ -485,6 +595,17 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(context),
+                            RoutingContextHelper.getId(context),
+                            RoutingContextHelper.getRequestPath(context),
+                            "POST",
+                            context.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -514,6 +635,17 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(context),
+                            RoutingContextHelper.getId(context),
+                            RoutingContextHelper.getRequestPath(context),
+                            "POST",
+                            context.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -543,6 +675,17 @@ public class NGSILDSearchController implements ApiController {
             .getTemporalSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  AuditLog auditLog =
+                      DataplaneAuditHelper.createAuditingLogs(
+                          RoutingContextHelper.getItemMetaData(context),
+                          RoutingContextHelper.getId(context),
+                          RoutingContextHelper.getRequestPath(context),
+                          "POST",
+                          context.user().subject(),
+                          NGSILD,
+                          "consumer",
+                          DOWNLOAD);
+                  RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
                       .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -616,6 +759,17 @@ public class NGSILDSearchController implements ApiController {
           .getTemporalSearchCount(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityCount -> {
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(routingContext),
+                        RoutingContextHelper.getId(routingContext),
+                        RoutingContextHelper.getRequestPath(routingContext),
+                        "GET",
+                        routingContext.user().subject(),
+                        NGSILD,
+                        "consumer",
+                        DOWNLOAD);
+                RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
                 result.put("value", getTemporalEntityCount);
@@ -637,15 +791,27 @@ public class NGSILDSearchController implements ApiController {
     } else {
       if (params.contains("format")) {
         String format = params.get("format");
-        LOGGER.warn("format param :: " + format);
+        LOGGER.info("format param ::: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
-          LOGGER.warn("simplified format selected ");
+          LOGGER.info("simplified format selected ");
           ngsildService
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -691,12 +857,24 @@ public class NGSILDSearchController implements ApiController {
             && format.equalsIgnoreCase("simplified")
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-          LOGGER.warn("concise format selected");
+          LOGGER.info("concise format selected");
           // TODO: Correct response once item id extended for context
           ngsildService
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            "consumer",
+                            DOWNLOAD);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -739,27 +917,28 @@ public class NGSILDSearchController implements ApiController {
                     routingContext.fail(err);
                   });
 
-        } /*else if (format != null
-              && format.equalsIgnoreCase("normalized")
-              && (headersAcceptType.equalsIgnoreCase("application/ld+json")
-                  || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-            LOGGER.debug("normalized format selected");
-          }*/ else {
+        } else {
           LOGGER.error("invalid format param");
         }
       } else {
-        /*if (headersAcceptType.equalsIgnoreCase("application/ld+json")
-            || headersAcceptType.equalsIgnoreCase("application/geo+json")) {
-          LOGGER.debug("normalized format selected");
-        } else {
-          LOGGER.error("invalid accept headers");
-        }*/
-        LOGGER.warn("simplified format selected");
+        LOGGER.info("simplified format selected");
 
         ngsildService
             .getTemporalSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  AuditLog auditLog =
+                      DataplaneAuditHelper.createAuditingLogs(
+                          RoutingContextHelper.getItemMetaData(routingContext),
+                          RoutingContextHelper.getId(routingContext),
+                          RoutingContextHelper.getRequestPath(routingContext),
+                          "GET",
+                          routingContext.user().subject(),
+                          NGSILD,
+                          "consumer",
+                          DOWNLOAD);
+                  RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+
                   response
                       .putHeader("Content-Type", headersAcceptType)
                       .putHeader(HEADER_ALLOW_ORIGIN, "*")

@@ -258,6 +258,7 @@ paths:
         - $ref: '#/components/parameters/QParam'
         - $ref: '#/components/parameters/PickParam'
         - $ref: '#/components/parameters/OmitParam'
+        - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/LimitParam'
         - $ref: '#/components/parameters/OffsetParam'
         - $ref: '#/components/parameters/FormatParam'
@@ -308,7 +309,7 @@ paths:
           '
         - lang: cURL
           label: search by circle
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -316,7 +317,7 @@ paths:
           '
         - lang: cURL
           label: search by polygon
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -324,7 +325,7 @@ paths:
           '
         - lang: cURL
           label: search by bbox
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -332,7 +333,7 @@ paths:
           '
         - lang: cURL
           label: search by linestring
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -340,7 +341,7 @@ paths:
           '
         - lang: cURL
           label: search by attribute and filter
-          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -348,7 +349,7 @@ paths:
           '
         - lang: cURL
           label: count by circle
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -599,13 +600,11 @@ paths:
         - $ref: '#/components/parameters/PickParam'
         - $ref: '#/components/parameters/OmitParam'
         - $ref: '#/components/parameters/LimitParam'
-        - $ref: '#/components/parameters/LastNParam'
-        - $ref: '#/components/parameters/AggrMethodParam'
+        - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/OffsetParam'
         - $ref: '#/components/parameters/FormatParam'
         - $ref: '#/components/parameters/CountParam'
         - $ref: '#/components/parameters/OrderByParam'
-        - $ref: '#/components/parameters/OptionsParam2'
       responses:
         200:
           description: Successful query
@@ -643,7 +642,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: search by between
-          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=during&timeAt=2020-10-18T14:20:00Z&endtimeAt=2020-10-19T14:20:00Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -652,7 +651,7 @@ paths:
 
         - lang: cURL
           label: search by before
-          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=before&timeAt=2020-10-19T12:00:00Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -660,7 +659,7 @@ paths:
           '
         - lang: cURL
           label: search by after
-          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
+          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=after&timeAt=2020-10-18T14:20:01Z''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -668,27 +667,12 @@ paths:
           '
         - lang: cURL
           label: search by between and filter
-          source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
+          source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=between&timeAt=2020-10-18T14:20:00Z&endtimeAt=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
           \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
-        - lang: cURL
-          label: count by after
-          source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
-          \
 
-          --header ''Authorization: Bearer <tokenValue>''
-
-          '
         - lang: cURL
           label: complex search
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
-          \
-
-          --header ''Authorization: Bearer <tokenValue>''
-
-          '
-        - lang: cURL
-          label: complex count
-          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
+          source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&timeAt=2020-10-19T14:00:00Z&attrs=id,location,speed''
           \
 
           --header ''Authorization: Bearer <tokenValue>''
@@ -884,7 +868,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: Spatial complex query
-          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/entityOperations/query''
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v2/entityOperations/query''
           \
 
           --header ''Authorization: Bearer <tokenValue>'' \
@@ -1118,7 +1102,7 @@ paths:
       x-codeSamples:
         - lang: cURL
           label: Spatial + temporal complex query
-          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entityOperations/query''
+          source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entityOperations/query''
           \
 
           --header ''Authorization: Bearer <tokenValue>'' \
@@ -1380,6 +1364,18 @@ components:
           type: string
           maxLength: 512
           description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        attrs:
+          type: string
+          description: "The attrs parameter is used as an **application filter**.\
+            \ \n This is an optional parameter. It can be used to provide the list\
+            \ of attributes which the consumer expects to be responded by the server.\
+            \ \n The consumer is expected to provide **only** the attributes available\
+            \ in the **data descriptor** of the item in the data exchange Catalogue.\
+            \ \n Minimum of 1 and a Maximum of 5 attributes can be provided in a comma\
+            \ separated fashion."
+          maxLength: 512
+          minLength: 1
+          pattern: ^.*$
       example:
         type: Query
         entities:
@@ -1564,6 +1560,18 @@ components:
           type: string
           maxLength: 512
           description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+        attrs:
+          type: string
+          description: "The attrs parameter is used as an **application filter**.\
+            \ \n This is an optional parameter. It can be used to provide the list\
+            \ of attributes which the consumer expects to be responded by the server.\
+            \ \n The consumer is expected to provide **only** the attributes available\
+            \ in the **data descriptor** of the item in the data exchange Catalogue.\
+            \ \n Minimum of 1 and a Maximum of 5 attributes can be provided in a comma\
+            \ separated fashion."
+          maxLength: 512
+          minLength: 1
+          pattern: ^.*$
       example:
         type: Query
         entities:
