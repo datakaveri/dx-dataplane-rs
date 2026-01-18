@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.ngsild.temporal.service;
+package org.cdpg.dx.rs.ngsild.service;
 
 import static org.cdpg.dx.database.elastic.util.Constants.*;
 

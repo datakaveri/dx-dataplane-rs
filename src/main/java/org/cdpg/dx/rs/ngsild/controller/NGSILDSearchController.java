@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.ngsild.temporal.controller;
+package org.cdpg.dx.rs.ngsild.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
 import static org.cdpg.dx.rs.audit.util.Constants.*;
@@ -22,8 +22,8 @@ import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
-import org.cdpg.dx.rs.ngsild.temporal.service.NGSILDService;
-import org.cdpg.dx.rs.ngsild.temporal.util.Util;
+import org.cdpg.dx.rs.ngsild.service.NGSILDService;
+import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;

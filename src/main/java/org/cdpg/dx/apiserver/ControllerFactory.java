@@ -21,7 +21,7 @@ import org.cdpg.dx.rs.admin.service.OnboardingServiceImpl;
 import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
-import org.cdpg.dx.rs.ngsild.temporal.factory.TemporalControllerFactory;
+import org.cdpg.dx.rs.ngsild.factory.TemporalControllerFactory;
 
 public class ControllerFactory {
   private static final Logger LOGGER = LogManager.getLogger(ControllerFactory.class);
