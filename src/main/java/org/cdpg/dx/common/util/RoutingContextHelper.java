@@ -32,6 +32,7 @@ public final class RoutingContextHelper {
   private static final String IID = "iid";
   private static final String ACCESS_POLICY = "accessPolicy";
   private static final String ALLOWED_ATTRIBUTES = "allowedattributes";
+  private static final String OWNER_USER_ID = "ownerUserId";
 
   private RoutingContextHelper() {
     // Prevent instantiation
@@ -181,6 +182,14 @@ public final class RoutingContextHelper {
 
   public static String getAccessPolicy(RoutingContext event) {
     return event.get(ACCESS_POLICY);
+  }
+
+  public static void setOwnerUserId(RoutingContext context, String ownerUserId) {
+    context.put(OWNER_USER_ID, ownerUserId);
+  }
+
+  public static String getOwnerUserId(RoutingContext event) {
+    return event.get(OWNER_USER_ID);
   }
 
   public static void setAllowedAttributes(RoutingContext context, JsonArray allowedAttributes) {

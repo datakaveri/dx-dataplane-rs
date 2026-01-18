@@ -7,7 +7,7 @@ import org.cdpg.dx.rs.ngsild.controller.NGSILDSearchController;
 import org.cdpg.dx.rs.ngsild.service.NGSILDService;
 import org.cdpg.dx.rs.ngsild.service.NGSILDServiceImpl;
 
-public class TemporalControllerFactory {
+public class NGSILDControllerFactory {
   public static NGSILDSearchController create(
       SearchService searchService,
       String controlPlaneDomain,

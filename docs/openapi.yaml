@@ -1372,14 +1372,8 @@ paths:
         - Data Ingestion Adaptor
       summary: Ingestion adapter
       operationId: postIngestionAdaptorEntities
-      parameters:
-        - name: token
-          in: header
-          description: 'data exchange auth token for accessing API and the resource.'
-          required: true
-          style: simple
-          schema:
-            type: string
+#      security:
+#        - authorization: [ ]
 
       x-codeSamples:
         - lang: 'cURL'
@@ -1623,18 +1617,12 @@ components:
       title: ingestion
       type: object
       properties:
-        type:
-          type: string
-        title:
-          type: string
         results:
           description: An array of objects
           type: array
           items:
             type: object
       example:
-        type: urn:dx:rs:success,
-        title: success,
         detail: "Item Published"
     ingestionEntityRequest:
       title: ingestion entity
