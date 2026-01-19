@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.ngsild.temporal.service;
+package org.cdpg.dx.rs.ngsild.service;
 
 import io.vertx.core.Future;
 import org.cdpg.dx.common.response.ResponseModel;

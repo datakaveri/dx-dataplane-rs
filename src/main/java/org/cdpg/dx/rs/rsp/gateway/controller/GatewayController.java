@@ -39,7 +39,7 @@ import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
-import org.cdpg.dx.rs.ngsild.temporal.util.Util;
+import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
 import org.cdpg.dx.rs.rsp.gateway.util.QueryMapper2;
 import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;

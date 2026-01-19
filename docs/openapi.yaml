@@ -76,6 +76,11 @@ tags:
     description: |
       A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) controlplane server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
 
+  - name: Data Ingestion Adaptor
+    x-displayName: "Data Ingestion Adaptor"
+    description: |
+      Data Ingestion Adaptor APIs are used by DX(Data exchange) Data *Providers* for publishing data to the resource server as per the data descriptor. The user could provide a valid access token while using the API.
+
 servers:
   - url: 'https://${HOSTNAME}'
     description: 'Server URL'
@@ -1360,6 +1365,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/standardBadRequestErrorResponse'
+
+  /ngsi-ld/v1/ingestion/entities:
+    post:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Ingestion adapter
+      operationId: postIngestionAdaptorEntities
+      security:
+        - authorization: [ ]
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: entities is must in all the request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingestionEntityRequest'
+        required: true
+      responses:
+        200:
+          description: 'Successful registration of ingestion adapter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+
+
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+
+
+      description: |
+        Ingestion Entities API allows a publish data into DX(Data exchange) Resource Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. Enitiy should be registered with DX through the adaptor /ingestion API.
+
+      deprecated: false
 components:
   securitySchemes:
     authorization:
@@ -1547,6 +1613,40 @@ components:
           - id: "a4e3b98f-d073-4a2f-8587-e8d1718f2a89"
           - id: "d7d34f8d-8cd4-4a68-8a4d-3b7fc5e8bb13"
           - id: "2b1a2e8d-45f4-43a1-9e8e-d1f8ad1002bb"
+    adapterIngestionEntities:
+      title: ingestion
+      type: object
+      properties:
+        results:
+          description: An array of objects
+          type: array
+          items:
+            type: object
+      example:
+        detail: "Item Published"
+    ingestionEntityRequest:
+      title: ingestion entity
+      required:
+        - entities
+      type: array
+      properties:
+        entities:
+          type: array
+          items:
+            type: string
+      example:
+        [ {
+          "currentLevel": 1.16,
+          "referenceLevel": 15.9,
+          "measuredDistance": 14.74,
+          "entities": [
+            "695e222b-3fae-4325-8db0-3e29d01c4fc0"
+          ],
+          "observationDateTime": "2020-09-22T18:30:00+05:30",
+          "deviceInfo": {
+            "deviceID": "FWR055"
+          }
+        } ]
     successResponseForAutocompleteFuzzyTextSearch:
       type: object
       title: search by text

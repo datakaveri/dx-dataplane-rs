@@ -32,4 +32,5 @@ public class Constants {
   public static final String DOWNLOAD = "Download";
   public static final String NGSILD = "NGSI-LD";
   public static final String GATEWAY = "GATEWAY";
+  public static final String CREATE = "Create";
 }

@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.ngsild.temporal.util;
+package org.cdpg.dx.rs.ngsild.util;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
