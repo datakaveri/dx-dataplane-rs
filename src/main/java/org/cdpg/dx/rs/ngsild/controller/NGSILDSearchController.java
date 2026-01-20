@@ -221,6 +221,12 @@ public class NGSILDSearchController implements ApiController {
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getEntityData -> {
+                    JsonArray sanitizedResults = new JsonArray();
+                    for (JsonObject entity : getEntityData.getElasticsearchResponses()) {
+                      JsonObject cleaned = entity.copy();
+                      cleaned.remove("@context");
+                      sanitizedResults.add(cleaned);
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -244,8 +250,7 @@ public class NGSILDSearchController implements ApiController {
                         .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                         .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
                         .setStatusCode(200)
-                        /*.end(JsonObject.mapFrom(response).encode());*/
-                        .end(getEntityData.getElasticsearchResponses().toString());
+                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -422,11 +427,16 @@ public class NGSILDSearchController implements ApiController {
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
           LOGGER.info("concise format selected");
-          // TODO: Correct response once item id extended for context
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray sanitizedResults = new JsonArray();
+                    for (JsonObject entity : getTemporalEntityData.getElasticsearchResponses()) {
+                      JsonObject cleaned = entity.copy();
+                      cleaned.remove("@context");
+                      sanitizedResults.add(cleaned);
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(routingContext),
@@ -450,9 +460,9 @@ public class NGSILDSearchController implements ApiController {
                             String.valueOf(getTemporalEntityData.getTotalHits()))
                         .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                         .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .putHeader(NGSILD_LINK, "Link of context")
+                        // .putHeader(NGSILD_LINK, "Link of context")
                         .setStatusCode(200)
-                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -490,7 +500,7 @@ public class NGSILDSearchController implements ApiController {
                           String.valueOf(getTemporalEntityData.getTotalHits()))
                       .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                       .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                      .putHeader(NGSILD_LINK, "Link of context")
+                      // .putHeader(NGSILD_LINK, "Link of context")
                       .setStatusCode(200)
                       .end(getTemporalEntityData.getElasticsearchResponses().toString());
                 })
@@ -635,6 +645,12 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray sanitizedResults = new JsonArray();
+                    for (JsonObject entity : getTemporalEntityData.getElasticsearchResponses()) {
+                      JsonObject cleaned = entity.copy();
+                      cleaned.remove("@context");
+                      sanitizedResults.add(cleaned);
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -659,8 +675,7 @@ public class NGSILDSearchController implements ApiController {
                         .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                         .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
                         .setStatusCode(200)
-                        /*.end(JsonObject.mapFrom(response).encode());*/
-                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
+                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -824,7 +839,7 @@ public class NGSILDSearchController implements ApiController {
                             String.valueOf(getTemporalEntityData.getTotalHits()))
                         .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                         .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .putHeader(NGSILD_LINK, "Link of context")
+                        // .putHeader(NGSILD_LINK, "Link of context")
                         .setStatusCode(200);
                     // Return raw aggregations if requested, otherwise original hits
                     {
@@ -887,7 +902,7 @@ public class NGSILDSearchController implements ApiController {
                             String.valueOf(getTemporalEntityData.getTotalHits()))
                         .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                         .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .putHeader(NGSILD_LINK, "Link of context")
+                        // .putHeader(NGSILD_LINK, "Link of context")
                         .setStatusCode(200);
                     // Return raw aggregations if requested, otherwise original hits
                     {
@@ -907,7 +922,14 @@ public class NGSILDSearchController implements ApiController {
                         }
                         response.end(aggs.encode());
                       } else {
-                        response.end(getTemporalEntityData.getElasticsearchResponses().toString());
+                        JsonArray sanitizedResults = new JsonArray();
+                        for (JsonObject entity :
+                            getTemporalEntityData.getElasticsearchResponses()) {
+                          JsonObject cleaned = entity.copy();
+                          cleaned.remove("@context");
+                          sanitizedResults.add(cleaned);
+                        }
+                        response.end(sanitizedResults.encodePrettily());
                       }
                     }
                   })
@@ -950,7 +972,7 @@ public class NGSILDSearchController implements ApiController {
                           String.valueOf(getTemporalEntityData.getTotalHits()))
                       .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
                       .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                      .putHeader(NGSILD_LINK, "Link of context")
+                      // .putHeader(NGSILD_LINK, "Link of context")
                       .setStatusCode(200);
                   // Return raw aggregations if requested, otherwise original hits
                   {
