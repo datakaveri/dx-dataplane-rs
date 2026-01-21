@@ -26,6 +26,10 @@ COPY google_checks.xml google_checks.xml
 # Copying dev fatjar from builder stage to final image
 COPY --from=builder /usr/share/app/target/${JAR} ./fatjar.jar
 
+# ---- Download Elastic APM Java Agent ----
+RUN curl -sSL -o /usr/share/app/elastic-apm-agent.jar \
+    https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.45.0/elastic-apm-agent-1.45.0.jar
+
 EXPOSE 8080 8443
 # Creating a non-root user
 RUN useradd -r -u 1001 -g root rs-user
