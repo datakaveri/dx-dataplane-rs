@@ -72,7 +72,16 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
       LOGGER.debug("processing with control plane call");
       String itemId;
       String bearerToken;
+      String did;
+      boolean isDelegator;
       try {
+        did = Optional.ofNullable(context.request().getHeader("did")).orElse("");
+        if (did != null && !did.isEmpty()) {
+          isDelegator = true;
+          RoutingContextHelper.setDid(context, did);
+        } else {
+          isDelegator = false;
+        }
         itemId = RoutingContextHelper.getId(context);
         bearerToken = RoutingContextHelper.getToken(context).orElse(null);
       } catch (Exception e) {
@@ -80,7 +89,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
         context.fail(e);
         return;
       }
-      getApplicableFilter(itemId, bearerToken)
+      getApplicableFilter(itemId, bearerToken, isDelegator, did)
           .onSuccess(
               result -> {
                 JsonArray resourceServers = result.getJsonArray("resourceServer");
@@ -123,14 +132,17 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
     }
   }
 
-  private Future<JsonObject> getApplicableFilter(String itemId, String bearerToken) {
+  private Future<JsonObject> getApplicableFilter(
+      String itemId, String bearerToken, boolean isDelegator, String did) {
     LOGGER.debug("Fetching item metadata for itemId: {}", itemId);
     Promise<JsonObject> promise = Promise.promise();
     HttpRequest<?> getRequest = webClient.getAbs(checkItemAndFilterUrl);
 
+    getRequest.addQueryParam("id", itemId).putHeader("Authorization", "Bearer " + bearerToken);
+    if (isDelegator) {
+      getRequest.addQueryParam("isDelegator", "true").addQueryParam("did", did);
+    }
     getRequest
-        .addQueryParam("id", itemId)
-        .putHeader("Authorization", "Bearer " + bearerToken)
         .send()
         .onSuccess(
             resp -> {
