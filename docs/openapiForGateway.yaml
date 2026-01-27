@@ -89,6 +89,7 @@ paths:
         - Spatial Entities
       operationId: get-Spatial-Search
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
         - $ref: '#/components/parameters/IdParam'
         - $ref: '#/components/parameters/GeoPropertyParam'
@@ -248,6 +249,7 @@ paths:
         - Spatial Entities
       operationId: get-Spatial-Search2
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
         - $ref: '#/components/parameters/IdParam'
         - $ref: '#/components/parameters/GeoPropertyParam'
@@ -417,6 +419,7 @@ paths:
       summary: Temporal Search
       operationId: get-temporal-entity-search
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
         - $ref: '#/components/parameters/IdParam'
         - $ref: '#/components/parameters/TimerelParam'
@@ -585,6 +588,7 @@ paths:
       summary: Temporal Search
       operationId: get-temporal-entity-search2
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
         - $ref: '#/components/parameters/IdParam'
         - $ref: '#/components/parameters/TimePropertyParam'
@@ -751,6 +755,7 @@ paths:
       operationId: post-spatial-complex-query
       parameters:
         - $ref: '#/components/parameters/AuthorizationHeader'
+        - $ref: '#/components/parameters/DidHeader'
       x-codeSamples:
         - lang: cURL
           label: Spatial complex query
@@ -860,6 +865,7 @@ paths:
       summary: post spatial search
       operationId: post-spatial-complex-query2
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
         - $ref: '#/components/parameters/LimitParam'
         - $ref: '#/components/parameters/OffsetParam'
@@ -978,6 +984,7 @@ paths:
       summary: Spatial + temporal search
       operationId: post-spatial-temporal-complex-query
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
       x-codeSamples:
         - lang: cURL
@@ -1098,6 +1105,7 @@ paths:
       summary: Spatial + temporal search
       operationId: post-spatial-temporal-complex-query2
       parameters:
+        - $ref: '#/components/parameters/DidHeader'
         - $ref: '#/components/parameters/AuthorizationHeader'
       x-codeSamples:
         - lang: cURL
@@ -2490,6 +2498,13 @@ components:
         \ \n This field is ** mandatory ** for accessing a ** resource ** .  \n If\
         \ not provided with a valid token, user will be responded with ** 401 Unauthorized\
         \ ** ."
+      required: false
+      schema:
+        type: string
+    DidHeader:
+      name: did
+      in: header
+      description: "A valid did id in case of delegation. This is a optional header."
       required: false
       schema:
         type: string
