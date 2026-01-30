@@ -110,14 +110,13 @@ public class QueryDecoder {
         defaultDateLimit = Integer.parseInt(temporalQueryRequest.getTimeLimit().split(",")[2]);
       }
       new TemporalQueryFiltersDecorator(queryMap, temporalQueryRequest, defaultDateLimit).add();
-        LOGGER.debug("checking temporal query in query decoder " + queryMap);
       QueryModel q = new QueryModel();
       q.setSortFields(Map.of(sortBy, sortOrder));
       q.setLimit(String.valueOf(temporalQueryRequest.getSize()));
       int offset = (temporalQueryRequest.getPage() - 1) * temporalQueryRequest.getSize();
       q.setOffset(String.valueOf(offset));
       q.setQueries(getBoolQuery(queryMap));
-        LOGGER.debug("checking temporal query in query models " + q);
+      LOGGER.debug("checking temporal query in query models " + q);
       for (QueryModel qm : queryMap.get(FilterType.FILTER)) {
         if (qm.getIncludeFields() != null) {
           q.setIncludeFields(qm.getIncludeFields());
