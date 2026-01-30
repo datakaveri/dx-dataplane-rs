@@ -60,6 +60,13 @@ public class SearchServiceImpl implements SearchService {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
               } else {
+                if ((Integer.parseInt(queryModel.getOffset()))
+                        + Integer.parseInt(queryModel.getLimit())
+                    > 50000) {
+                  return Future.failedFuture(
+                      new DxBadRequestException(
+                          "Combination of page and size exceeds the maximum limit of 50000"));
+                }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
                     .map(searchResult -> new SearchResultWithCount(searchResult, count));
@@ -96,6 +103,13 @@ public class SearchServiceImpl implements SearchService {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
               } else {
+                if ((Integer.parseInt(queryModel.getOffset()))
+                        + Integer.parseInt(queryModel.getLimit())
+                    > 50000) {
+                  return Future.failedFuture(
+                      new DxBadRequestException(
+                          "Combination of page and size exceeds the maximum limit of 50000"));
+                }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
                     .map(searchResult -> new SearchResultWithCount(searchResult, count));
@@ -150,6 +164,13 @@ public class SearchServiceImpl implements SearchService {
                   return Future.failedFuture(
                       new DxBadRequestException("No data found for this index"));
                 } else {
+                  if (Integer.parseInt(queryModel.getOffset())
+                          + Integer.parseInt(queryModel.getLimit())
+                      > 50000) {
+                    return Future.failedFuture(
+                        new DxBadRequestException(
+                            "Combination of page and size exceeds the maximum limit of 50000"));
+                  }
                   return elasticsearchService
                       .search(index, queryModel, SOURCE_ONLY)
                       .map(
@@ -188,6 +209,13 @@ public class SearchServiceImpl implements SearchService {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
               } else {
+                if ((Integer.parseInt(queryModel.getOffset()))
+                        + Integer.parseInt(queryModel.getLimit())
+                    > 50000) {
+                  return Future.failedFuture(
+                      new DxBadRequestException(
+                          "Combination of page and size exceeds the maximum limit of 50000"));
+                }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
                     .map(searchResult -> new SearchResultWithCount(searchResult, count));

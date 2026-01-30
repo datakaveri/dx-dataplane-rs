@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
@@ -171,6 +172,12 @@ public class NGSILDSearchController implements ApiController {
                 context.fail(err);
               });
     } else {
+      if (ngsildQueryParams.getPageFrom() + ngsildQueryParams.getPageSize() > 50000) {
+        context.fail(
+            new DxBadRequestException(
+                "The combination of 'limit' and 'offset' must not exceed 50000"));
+        return;
+      }
       if (params.contains("format")) {
         String format = params.get("format");
         LOGGER.info("format param :: " + format);
@@ -373,6 +380,12 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
+      if (ngsildQueryParams.getPageFrom() + ngsildQueryParams.getPageSize() > 50000) {
+        routingContext.fail(
+            new DxBadRequestException(
+                "The combination of 'limit' and 'offset' must not exceed 50000"));
+        return;
+      }
       if (params.contains("format")) {
         String format = params.get("format");
         LOGGER.info("format param :: " + format);
@@ -595,6 +608,12 @@ public class NGSILDSearchController implements ApiController {
                 context.fail(err);
               });
     } else {
+      if (ngsildQueryParams.getPageFrom() + ngsildQueryParams.getPageSize() > 50000) {
+        context.fail(
+            new DxBadRequestException(
+                "The combination of 'limit' and 'offset' must not exceed 50000"));
+        return;
+      }
       if (params.contains("format")) {
         String format = params.get("format");
         LOGGER.info("format param :: " + format);
@@ -804,6 +823,12 @@ public class NGSILDSearchController implements ApiController {
                 routingContext.fail(err);
               });
     } else {
+      if (ngsildQueryParams.getPageFrom() + ngsildQueryParams.getPageSize() > 50000) {
+        routingContext.fail(
+            new DxBadRequestException(
+                "The combination of 'limit' and 'offset' must not exceed 50000"));
+        return;
+      }
       if (params.contains("format")) {
         String format = params.get("format");
         LOGGER.info("format param ::: " + format);
@@ -873,7 +898,6 @@ public class NGSILDSearchController implements ApiController {
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
           LOGGER.info("concise format selected");
-          // TODO: Correct response once item id extended for context
           ngsildService
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
