@@ -15,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.authorization.model.DxRole;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
@@ -58,6 +60,7 @@ public class LatestController implements ApiController {
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
+        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
         .handler(this::handlePostEntityDataSearch);
@@ -65,6 +68,7 @@ public class LatestController implements ApiController {
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
+        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
         .handler(idValidation)
         .handler(this::handleGetSearchQuery);
