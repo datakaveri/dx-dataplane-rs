@@ -36,38 +36,44 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
 
     if (context.user().principal().containsKey("cons")) {
       LOGGER.debug("Processing access token");
+      try {
+        JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
+        JsonObject ngsiLdServer =
+            Optional.ofNullable(resourceServers)
+                .filter(rs -> !rs.isEmpty())
+                .orElseThrow(
+                    () -> new DxBadRequestException("No resource server information found"))
+                .stream()
+                .map(JsonObject.class::cast)
+                .filter(rs -> "NGSI-LD".equalsIgnoreCase(rs.getString("name")))
+                .findFirst()
+                .orElseThrow(() -> new DxBadRequestException("NGSI-LD resource server not found"));
 
-      JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
-      JsonObject ngsiLdServer =
-          Optional.ofNullable(resourceServers)
-              .filter(rs -> !rs.isEmpty())
-              .orElseThrow(() -> new DxBadRequestException("No resource server information found"))
-              .stream()
-              .map(JsonObject.class::cast)
-              .filter(rs -> "NGSI-LD".equalsIgnoreCase(rs.getString("name")))
-              .findFirst()
-              .orElseThrow(() -> new DxBadRequestException("NGSI-LD resource server not found"));
+        JsonArray queryTypes =
+            Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
+                .filter(at -> !at.isEmpty())
+                .orElseThrow(
+                    () ->
+                        new DxBadRequestException(
+                            "No queryTypes types(filters) found for NGSI-LD server"));
+        JsonArray allowedAttributes =
+            Optional.ofNullable(context.user().principal().getJsonObject("cons"))
+                .map(cons -> cons.getJsonArray("allowedAttributes"))
+                .orElse(new JsonArray());
 
-      JsonArray queryTypes =
-          Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
-              .filter(at -> !at.isEmpty())
-              .orElseThrow(
-                  () ->
-                      new DxBadRequestException(
-                          "No queryTypes types(filters) found for NGSI-LD server"));
-      JsonArray allowedAttributes =
-          Optional.ofNullable(context.user().principal().getJsonObject("cons"))
-              .map(cons -> cons.getJsonArray("allowedAttributes"))
-              .orElse(new JsonArray());
-
-      RoutingContextHelper.setItemMetaData(context, context.user().principal());
-      RoutingContextHelper.setApplicableFilter(context, queryTypes);
-      RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
-      RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
-      RoutingContextHelper.setAccessPolicy(
-          context, context.user().principal().getString("accessPolicy"));
-      context.next();
-      return;
+        RoutingContextHelper.setItemMetaData(context, context.user().principal());
+        RoutingContextHelper.setApplicableFilter(context, queryTypes);
+        RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
+        RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
+        RoutingContextHelper.setAccessPolicy(
+            context, context.user().principal().getString("accessPolicy"));
+        context.next();
+        return;
+      } catch (Exception e) {
+        LOGGER.error("Error processing access token {}", e.getMessage());
+        context.fail(e);
+        return;
+      }
     } else {
       LOGGER.debug("processing with control plane call");
       String itemId;
@@ -92,37 +98,43 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
       getApplicableFilter(itemId, bearerToken, isDelegator, did)
           .onSuccess(
               result -> {
-                JsonArray resourceServers = result.getJsonArray("resourceServer");
-                JsonObject ngsiLdServer =
-                    Optional.ofNullable(resourceServers)
-                        .filter(rs -> !rs.isEmpty())
-                        .orElseThrow(
-                            () -> new DxBadRequestException("No resource server information found"))
-                        .stream()
-                        .map(JsonObject.class::cast)
-                        .filter(rs -> "NGSI-LD".equalsIgnoreCase(rs.getString("name")))
-                        .findFirst()
-                        .orElseThrow(
-                            () -> new DxBadRequestException("NGSI-LD resource server not found"));
+                try {
+                  JsonArray resourceServers = result.getJsonArray("resourceServer");
+                  JsonObject ngsiLdServer =
+                      Optional.ofNullable(resourceServers)
+                          .filter(rs -> !rs.isEmpty())
+                          .orElseThrow(
+                              () ->
+                                  new DxBadRequestException("No resource server information found"))
+                          .stream()
+                          .map(JsonObject.class::cast)
+                          .filter(rs -> "NGSI-LD".equalsIgnoreCase(rs.getString("name")))
+                          .findFirst()
+                          .orElseThrow(
+                              () -> new DxBadRequestException("NGSI-LD resource server not found"));
 
-                JsonArray queryTypes =
-                    Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
-                        .filter(at -> !at.isEmpty())
-                        .orElseThrow(
-                            () ->
-                                new DxBadRequestException(
-                                    "No queryTypes types(filters) found for NGSI-LD server"));
-                JsonArray allowedAttributes =
-                    Optional.ofNullable(result.getJsonObject("cons"))
-                        .map(cons -> cons.getJsonArray("allowedAttributes"))
-                        .orElse(new JsonArray());
+                  JsonArray queryTypes =
+                      Optional.ofNullable(ngsiLdServer.getJsonArray("queryTypes"))
+                          .filter(at -> !at.isEmpty())
+                          .orElseThrow(
+                              () ->
+                                  new DxBadRequestException(
+                                      "No queryTypes types(filters) found for NGSI-LD server"));
+                  JsonArray allowedAttributes =
+                      Optional.ofNullable(result.getJsonObject("cons"))
+                          .map(cons -> cons.getJsonArray("allowedAttributes"))
+                          .orElse(new JsonArray());
 
-                RoutingContextHelper.setApplicableFilter(context, queryTypes);
-                RoutingContextHelper.setItemMetaData(context, result);
-                RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
-                RoutingContextHelper.setIid(context, result.getString("id"));
-                RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
-                context.next();
+                  RoutingContextHelper.setApplicableFilter(context, queryTypes);
+                  RoutingContextHelper.setItemMetaData(context, result);
+                  RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
+                  RoutingContextHelper.setIid(context, result.getString("id"));
+                  RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
+                  context.next();
+                } catch (Exception e) {
+                  LOGGER.error("Error processing control plane response {}", e.getMessage());
+                  context.fail(e);
+                }
               })
           .onFailure(
               err -> {
