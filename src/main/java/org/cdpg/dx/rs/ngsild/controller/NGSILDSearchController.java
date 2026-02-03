@@ -156,7 +156,8 @@ public class NGSILDSearchController implements ApiController {
                         context.user().subject(),
                         NGSILD,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        context.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -203,7 +204,8 @@ public class NGSILDSearchController implements ApiController {
                             context.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            context.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -248,7 +250,8 @@ public class NGSILDSearchController implements ApiController {
                             context.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            context.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -286,7 +289,8 @@ public class NGSILDSearchController implements ApiController {
                           context.user().subject(),
                           NGSILD,
                           "consumer",
-                          DOWNLOAD);
+                          DOWNLOAD,
+                          context.user().principal().getString("iss"));
                   RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -364,7 +368,8 @@ public class NGSILDSearchController implements ApiController {
                         routingContext.user().subject(),
                         NGSILD,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        routingContext.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -411,7 +416,8 @@ public class NGSILDSearchController implements ApiController {
                             routingContext.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -464,7 +470,8 @@ public class NGSILDSearchController implements ApiController {
                             routingContext.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -505,7 +512,8 @@ public class NGSILDSearchController implements ApiController {
                           routingContext.user().subject(),
                           NGSILD,
                           "consumer",
-                          DOWNLOAD);
+                          DOWNLOAD,
+                          routingContext.user().principal().getString("iss"));
                   RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -592,7 +600,8 @@ public class NGSILDSearchController implements ApiController {
                         context.user().subject(),
                         NGSILD,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        context.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -638,7 +647,8 @@ public class NGSILDSearchController implements ApiController {
                             context.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            context.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -684,7 +694,8 @@ public class NGSILDSearchController implements ApiController {
                             context.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            context.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -723,7 +734,8 @@ public class NGSILDSearchController implements ApiController {
                           context.user().subject(),
                           NGSILD,
                           "consumer",
-                          DOWNLOAD);
+                          DOWNLOAD,
+                          context.user().principal().getString("iss"));
                   RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -807,7 +819,8 @@ public class NGSILDSearchController implements ApiController {
                         routingContext.user().subject(),
                         NGSILD,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        routingContext.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -854,7 +867,8 @@ public class NGSILDSearchController implements ApiController {
                             routingContext.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
@@ -916,7 +930,8 @@ public class NGSILDSearchController implements ApiController {
                             routingContext.user().subject(),
                             NGSILD,
                             "consumer",
-                            DOWNLOAD);
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"));
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
@@ -987,7 +1002,8 @@ public class NGSILDSearchController implements ApiController {
                           routingContext.user().subject(),
                           NGSILD,
                           "consumer",
-                          DOWNLOAD);
+                          DOWNLOAD,
+                          routingContext.user().principal().getString("iss"));
                   RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                   response

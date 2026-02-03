@@ -163,7 +163,8 @@ public class EntitiesController implements ApiController {
                         ctx.user().subject(),
                         GATEWAY,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        ctx.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
@@ -251,7 +252,8 @@ public class EntitiesController implements ApiController {
                         ctx.user().subject(),
                         GATEWAY,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        ctx.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
