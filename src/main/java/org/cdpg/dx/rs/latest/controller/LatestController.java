@@ -98,7 +98,8 @@ public class LatestController implements ApiController {
                         routingContext.user().subject(),
                         NGSILD,
                         "consumer",
-                        DOWNLOAD);
+                        DOWNLOAD,
+                        routingContext.user().principal().getString("iss"));
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 ResponseBuilder.sendSuccess(
                     routingContext,
@@ -155,7 +156,8 @@ public class LatestController implements ApiController {
                       ctx.user().subject(),
                       NGSILD,
                       "consumer",
-                      DOWNLOAD);
+                      DOWNLOAD,
+                      ctx.user().principal().getString("iss"));
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
               sendResponse(ctx, result);
             })

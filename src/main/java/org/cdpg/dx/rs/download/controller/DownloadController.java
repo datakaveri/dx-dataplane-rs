@@ -116,7 +116,8 @@ public class DownloadController implements ApiController {
                                   routingContext.user().subject(),
                                   NGSILD,
                                   "consumer",
-                                  DOWNLOAD);
+                                  DOWNLOAD,
+                                  routingContext.user().principal().getString("iss"));
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                           response.end();
                         });
@@ -192,7 +193,8 @@ public class DownloadController implements ApiController {
                                 routingContext.user().subject(),
                                 NGSILD,
                                 "consumer",
-                                DOWNLOAD);
+                                DOWNLOAD,
+                                routingContext.user().principal().getString("iss"));
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                         response.end();
                       });

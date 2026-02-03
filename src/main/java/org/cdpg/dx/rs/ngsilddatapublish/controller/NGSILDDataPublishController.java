@@ -86,7 +86,8 @@ public class NGSILDDataPublishController implements ApiController {
                       context.user().subject(),
                       NGSILD,
                       role,
-                      CREATE);
+                      CREATE,
+                      context.user().principal().getString("iss"));
               RoutingContextHelper.setAuditingLog(context, auditLog);
               response
                   .putHeader("Content-Type", "application/json")

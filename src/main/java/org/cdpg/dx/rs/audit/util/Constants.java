@@ -30,7 +30,7 @@ public class Constants {
               ITEM_TYPE_APPS));
   public static final String VIEW = "View";
   public static final String DOWNLOAD = "Download";
-  public static final String NGSILD = "NGSI-LD";
+  public static final String NGSILD = "NGSI_LD";
   public static final String GATEWAY = "GATEWAY";
   public static final String CREATE = "Create";
 }

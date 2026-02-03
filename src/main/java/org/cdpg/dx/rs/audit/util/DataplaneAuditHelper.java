@@ -21,13 +21,13 @@ public class DataplaneAuditHelper {
       String userId,
       String serverName,
       String role,
-      String operation) {
+      String operation,
+      String iss) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
         id,
-        itemMetaData.getString("name"),
         UUID.fromString(assetId),
-        getItemType(itemMetaData.getJsonArray("type")),
+        "ASSET",
         operation,
         LocalDateTime.now().toString(),
         apiEndpoint,
@@ -38,8 +38,7 @@ public class DataplaneAuditHelper {
         serverName,
         getOrganizationId(itemMetaData),
         getOrganizationName(itemMetaData),
-        true,
-        getShortDescription(itemMetaData));
+        iss);
   }
 
   private static String getItemType(JsonArray itemType) {
