@@ -107,6 +107,19 @@ public class DownloadController implements ApiController {
                     .handler(buffer -> response.write(buffer))
                     .endHandler(
                         v -> {
+                          JsonArray userRoles =
+                              routingContext
+                                  .user()
+                                  .principal()
+                                  .getJsonObject("realm_access")
+                                  .getJsonArray("roles");
+                          String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                          String delegatorId;
+                          if (role.equalsIgnoreCase("delegate")) {
+                            delegatorId = routingContext.request().getHeader("did");
+                          } else {
+                            delegatorId = routingContext.user().subject();
+                          }
                           AuditLog auditLog =
                               DataplaneAuditHelper.createAuditingLogs(
                                   RoutingContextHelper.getItemMetaData(routingContext),
@@ -115,9 +128,10 @@ public class DownloadController implements ApiController {
                                   "POST",
                                   routingContext.user().subject(),
                                   NGSILD,
-                                  "consumer",
+                                  role,
                                   DOWNLOAD,
-                                  routingContext.user().principal().getString("iss"));
+                                  routingContext.user().principal().getString("iss"),
+                                  delegatorId);
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                           response.end();
                         });
@@ -184,6 +198,19 @@ public class DownloadController implements ApiController {
                   .handler(buffer -> response.write(buffer))
                   .endHandler(
                       v -> {
+                        JsonArray userRoles =
+                            routingContext
+                                .user()
+                                .principal()
+                                .getJsonObject("realm_access")
+                                .getJsonArray("roles");
+                        String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                        String delegatorId;
+                        if (role.equalsIgnoreCase("delegate")) {
+                          delegatorId = routingContext.request().getHeader("did");
+                        } else {
+                          delegatorId = routingContext.user().subject();
+                        }
                         AuditLog auditLog =
                             DataplaneAuditHelper.createAuditingLogs(
                                 RoutingContextHelper.getItemMetaData(routingContext),
@@ -192,9 +219,10 @@ public class DownloadController implements ApiController {
                                 "GET",
                                 routingContext.user().subject(),
                                 NGSILD,
-                                "consumer",
+                                role,
                                 DOWNLOAD,
-                                routingContext.user().principal().getString("iss"));
+                                routingContext.user().principal().getString("iss"),
+                                delegatorId);
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                         response.end();
                       });

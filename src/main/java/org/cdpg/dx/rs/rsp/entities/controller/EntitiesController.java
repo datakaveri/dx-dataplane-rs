@@ -153,6 +153,15 @@ public class EntitiesController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
+                JsonArray userRoles =
+                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = ctx.request().getHeader("did");
+                } else {
+                  delegatorId = ctx.user().subject();
+                }
                 // success
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
@@ -164,7 +173,8 @@ public class EntitiesController implements ApiController {
                         GATEWAY,
                         "consumer",
                         DOWNLOAD,
-                        ctx.user().principal().getString("iss"));
+                        ctx.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
@@ -242,6 +252,15 @@ public class EntitiesController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
+                JsonArray userRoles =
+                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = ctx.request().getHeader("did");
+                } else {
+                  delegatorId = ctx.user().subject();
+                }
                 // success
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
@@ -251,9 +270,10 @@ public class EntitiesController implements ApiController {
                         "POST",
                         ctx.user().subject(),
                         GATEWAY,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        ctx.user().principal().getString("iss"));
+                        ctx.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {

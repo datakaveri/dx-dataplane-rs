@@ -147,6 +147,15 @@ public class NGSILDSearchController implements ApiController {
           .getEntitiesAttributeSearchCount(ngsildQueryParams)
           .onSuccess(
               postEntitiesCount -> {
+                JsonArray userRoles =
+                    context.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = context.request().getHeader("did");
+                } else {
+                  delegatorId = context.user().subject();
+                }
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(context),
@@ -155,9 +164,10 @@ public class NGSILDSearchController implements ApiController {
                         "POST",
                         context.user().subject(),
                         NGSILD,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        context.user().principal().getString("iss"));
+                        context.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -195,6 +205,19 @@ public class NGSILDSearchController implements ApiController {
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getEntityData -> {
+                    JsonArray userRoles =
+                        context
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = context.request().getHeader("did");
+                    } else {
+                      delegatorId = context.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -203,9 +226,10 @@ public class NGSILDSearchController implements ApiController {
                             "POST",
                             context.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            context.user().principal().getString("iss"));
+                            context.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -241,6 +265,19 @@ public class NGSILDSearchController implements ApiController {
                       cleaned.remove("@context");
                       sanitizedResults.add(cleaned);
                     }
+                    JsonArray userRoles =
+                        context
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = context.request().getHeader("did");
+                    } else {
+                      delegatorId = context.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -249,9 +286,10 @@ public class NGSILDSearchController implements ApiController {
                             "POST",
                             context.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            context.user().principal().getString("iss"));
+                            context.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -280,6 +318,19 @@ public class NGSILDSearchController implements ApiController {
             .getEntitiesAttributeSearchData(ngsildQueryParams)
             .onSuccess(
                 getEntityData -> {
+                  JsonArray userRoles =
+                      context
+                          .user()
+                          .principal()
+                          .getJsonObject("realm_access")
+                          .getJsonArray("roles");
+                  String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                  String delegatorId;
+                  if (role.equalsIgnoreCase("delegate")) {
+                    delegatorId = context.request().getHeader("did");
+                  } else {
+                    delegatorId = context.user().subject();
+                  }
                   AuditLog auditLog =
                       DataplaneAuditHelper.createAuditingLogs(
                           RoutingContextHelper.getItemMetaData(context),
@@ -288,9 +339,10 @@ public class NGSILDSearchController implements ApiController {
                           "POST",
                           context.user().subject(),
                           NGSILD,
-                          "consumer",
+                          role,
                           DOWNLOAD,
-                          context.user().principal().getString("iss"));
+                          context.user().principal().getString("iss"),
+                          delegatorId);
                   RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -359,6 +411,19 @@ public class NGSILDSearchController implements ApiController {
           .getEntitiesAttributeSearchCount(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityCount -> {
+                JsonArray userRoles =
+                    routingContext
+                        .user()
+                        .principal()
+                        .getJsonObject("realm_access")
+                        .getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = routingContext.request().getHeader("did");
+                } else {
+                  delegatorId = routingContext.user().subject();
+                }
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(routingContext),
@@ -367,9 +432,10 @@ public class NGSILDSearchController implements ApiController {
                         "GET",
                         routingContext.user().subject(),
                         NGSILD,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        routingContext.user().principal().getString("iss"));
+                        routingContext.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -407,6 +473,19 @@ public class NGSILDSearchController implements ApiController {
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray userRoles =
+                        routingContext
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = routingContext.request().getHeader("did");
+                    } else {
+                      delegatorId = routingContext.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(routingContext),
@@ -415,9 +494,10 @@ public class NGSILDSearchController implements ApiController {
                             "GET",
                             routingContext.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            routingContext.user().principal().getString("iss"));
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -461,6 +541,19 @@ public class NGSILDSearchController implements ApiController {
                       cleaned.remove("@context");
                       sanitizedResults.add(cleaned);
                     }
+                    JsonArray userRoles =
+                        routingContext
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = routingContext.request().getHeader("did");
+                    } else {
+                      delegatorId = routingContext.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(routingContext),
@@ -469,9 +562,10 @@ public class NGSILDSearchController implements ApiController {
                             "GET",
                             routingContext.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            routingContext.user().principal().getString("iss"));
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -503,6 +597,19 @@ public class NGSILDSearchController implements ApiController {
             .getEntitiesAttributeSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  JsonArray userRoles =
+                      routingContext
+                          .user()
+                          .principal()
+                          .getJsonObject("realm_access")
+                          .getJsonArray("roles");
+                  String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                  String delegatorId;
+                  if (role.equalsIgnoreCase("delegate")) {
+                    delegatorId = routingContext.request().getHeader("did");
+                  } else {
+                    delegatorId = routingContext.user().subject();
+                  }
                   AuditLog auditLog =
                       DataplaneAuditHelper.createAuditingLogs(
                           RoutingContextHelper.getItemMetaData(routingContext),
@@ -511,9 +618,10 @@ public class NGSILDSearchController implements ApiController {
                           "GET",
                           routingContext.user().subject(),
                           NGSILD,
-                          "consumer",
+                          role,
                           DOWNLOAD,
-                          routingContext.user().principal().getString("iss"));
+                          routingContext.user().principal().getString("iss"),
+                          delegatorId);
                   RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -591,6 +699,15 @@ public class NGSILDSearchController implements ApiController {
           .getTemporalSearchCount(ngsildQueryParams)
           .onSuccess(
               postTemporalEntitiesCount -> {
+                JsonArray userRoles =
+                    context.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = context.request().getHeader("did");
+                } else {
+                  delegatorId = context.user().subject();
+                }
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(context),
@@ -599,9 +716,10 @@ public class NGSILDSearchController implements ApiController {
                         "POST",
                         context.user().subject(),
                         NGSILD,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        context.user().principal().getString("iss"));
+                        context.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(context, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -638,6 +756,19 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray userRoles =
+                        context
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = context.request().getHeader("did");
+                    } else {
+                      delegatorId = context.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -646,9 +777,10 @@ public class NGSILDSearchController implements ApiController {
                             "POST",
                             context.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            context.user().principal().getString("iss"));
+                            context.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -685,6 +817,19 @@ public class NGSILDSearchController implements ApiController {
                       cleaned.remove("@context");
                       sanitizedResults.add(cleaned);
                     }
+                    JsonArray userRoles =
+                        context
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = context.request().getHeader("did");
+                    } else {
+                      delegatorId = context.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(context),
@@ -693,9 +838,10 @@ public class NGSILDSearchController implements ApiController {
                             "POST",
                             context.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            context.user().principal().getString("iss"));
+                            context.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -725,6 +871,19 @@ public class NGSILDSearchController implements ApiController {
             .getTemporalSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  JsonArray userRoles =
+                      context
+                          .user()
+                          .principal()
+                          .getJsonObject("realm_access")
+                          .getJsonArray("roles");
+                  String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                  String delegatorId;
+                  if (role.equalsIgnoreCase("delegate")) {
+                    delegatorId = context.request().getHeader("did");
+                  } else {
+                    delegatorId = context.user().subject();
+                  }
                   AuditLog auditLog =
                       DataplaneAuditHelper.createAuditingLogs(
                           RoutingContextHelper.getItemMetaData(context),
@@ -733,9 +892,10 @@ public class NGSILDSearchController implements ApiController {
                           "POST",
                           context.user().subject(),
                           NGSILD,
-                          "consumer",
+                          role,
                           DOWNLOAD,
-                          context.user().principal().getString("iss"));
+                          context.user().principal().getString("iss"),
+                          delegatorId);
                   RoutingContextHelper.setAuditingLog(context, auditLog);
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -810,6 +970,19 @@ public class NGSILDSearchController implements ApiController {
           .getTemporalSearchCount(ngsildQueryParams)
           .onSuccess(
               getTemporalEntityCount -> {
+                JsonArray userRoles =
+                    routingContext
+                        .user()
+                        .principal()
+                        .getJsonObject("realm_access")
+                        .getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = routingContext.request().getHeader("did");
+                } else {
+                  delegatorId = routingContext.user().subject();
+                }
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(routingContext),
@@ -818,9 +991,10 @@ public class NGSILDSearchController implements ApiController {
                         "GET",
                         routingContext.user().subject(),
                         NGSILD,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        routingContext.user().principal().getString("iss"));
+                        routingContext.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 JsonObject result = new JsonObject();
                 result.put("type", "CountResult");
@@ -858,6 +1032,19 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray userRoles =
+                        routingContext
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = routingContext.request().getHeader("did");
+                    } else {
+                      delegatorId = routingContext.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(routingContext),
@@ -866,9 +1053,10 @@ public class NGSILDSearchController implements ApiController {
                             "GET",
                             routingContext.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            routingContext.user().principal().getString("iss"));
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
@@ -921,6 +1109,19 @@ public class NGSILDSearchController implements ApiController {
               .getTemporalSearchData(ngsildQueryParams)
               .onSuccess(
                   getTemporalEntityData -> {
+                    JsonArray userRoles =
+                        routingContext
+                            .user()
+                            .principal()
+                            .getJsonObject("realm_access")
+                            .getJsonArray("roles");
+                    String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                    String delegatorId;
+                    if (role.equalsIgnoreCase("delegate")) {
+                      delegatorId = routingContext.request().getHeader("did");
+                    } else {
+                      delegatorId = routingContext.user().subject();
+                    }
                     AuditLog auditLog =
                         DataplaneAuditHelper.createAuditingLogs(
                             RoutingContextHelper.getItemMetaData(routingContext),
@@ -929,9 +1130,10 @@ public class NGSILDSearchController implements ApiController {
                             "GET",
                             routingContext.user().subject(),
                             NGSILD,
-                            "consumer",
+                            role,
                             DOWNLOAD,
-                            routingContext.user().principal().getString("iss"));
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId);
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
@@ -993,6 +1195,19 @@ public class NGSILDSearchController implements ApiController {
             .getTemporalSearchData(ngsildQueryParams)
             .onSuccess(
                 getTemporalEntityData -> {
+                  JsonArray userRoles =
+                      routingContext
+                          .user()
+                          .principal()
+                          .getJsonObject("realm_access")
+                          .getJsonArray("roles");
+                  String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                  String delegatorId;
+                  if (role.equalsIgnoreCase("delegate")) {
+                    delegatorId = routingContext.request().getHeader("did");
+                  } else {
+                    delegatorId = routingContext.user().subject();
+                  }
                   AuditLog auditLog =
                       DataplaneAuditHelper.createAuditingLogs(
                           RoutingContextHelper.getItemMetaData(routingContext),
@@ -1001,9 +1216,10 @@ public class NGSILDSearchController implements ApiController {
                           "GET",
                           routingContext.user().subject(),
                           NGSILD,
-                          "consumer",
+                          role,
                           DOWNLOAD,
-                          routingContext.user().principal().getString("iss"));
+                          routingContext.user().principal().getString("iss"),
+                          delegatorId);
                   RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                   response
