@@ -22,7 +22,8 @@ public class DataplaneAuditHelper {
       String serverName,
       String role,
       String operation,
-      String iss) {
+      String iss,
+      String delegateId) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
         id,
@@ -38,7 +39,8 @@ public class DataplaneAuditHelper {
         serverName,
         getOrganizationId(itemMetaData),
         getOrganizationName(itemMetaData),
-        iss);
+        iss,
+        delegateId);
   }
 
   private static String getItemType(JsonArray itemType) {

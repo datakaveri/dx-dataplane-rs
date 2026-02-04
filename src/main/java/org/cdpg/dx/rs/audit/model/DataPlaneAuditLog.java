@@ -17,6 +17,7 @@ public class DataPlaneAuditLog implements AuditLog {
   private final UUID userId;
   private final String originServer;
   private final String iss;
+  private final String delegateId;
   private final String
       organizationId; // Optional field  in auditing server [organization id of consumer, provider].
   // Can be null sometimes
@@ -40,7 +41,8 @@ public class DataPlaneAuditLog implements AuditLog {
       String originServer,
       String organizationId,
       String organizationName,
-      String iss) {
+      String iss,
+      String delegateId) {
     this.id = id;
     this.assetId = assetId;
     this.logType = logType;
@@ -55,6 +57,7 @@ public class DataPlaneAuditLog implements AuditLog {
     this.organizationId = organizationId;
     this.organizationName = organizationName;
     this.iss = iss;
+    this.delegateId = delegateId;
   }
 
   @Override
@@ -74,6 +77,7 @@ public class DataPlaneAuditLog implements AuditLog {
     json.put("org_name", organizationName);
     json.put("log_type", logType);
     json.put("issuer", iss);
+    json.put("delegator_id", delegateId);
     return json;
   }
 }

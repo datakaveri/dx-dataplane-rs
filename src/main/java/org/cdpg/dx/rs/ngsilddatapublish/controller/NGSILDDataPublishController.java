@@ -77,6 +77,12 @@ public class NGSILDDataPublishController implements ApiController {
               JsonArray userRoles =
                   context.user().principal().getJsonObject("realm_access").getJsonArray("roles");
               String role = userRoles.contains("provider") ? "provider" : "delegate";
+              String delegatorId;
+              if (role.equalsIgnoreCase("delegate")) {
+                delegatorId = context.request().getHeader("did");
+              } else {
+                delegatorId = context.user().subject();
+              }
               AuditLog auditLog =
                   DataplaneAuditHelper.createAuditingLogs(
                       RoutingContextHelper.getItemMetaData(context),
@@ -87,7 +93,8 @@ public class NGSILDDataPublishController implements ApiController {
                       NGSILD,
                       role,
                       CREATE,
-                      context.user().principal().getString("iss"));
+                      context.user().principal().getString("iss"),
+                      delegatorId);
               RoutingContextHelper.setAuditingLog(context, auditLog);
               response
                   .putHeader("Content-Type", "application/json")

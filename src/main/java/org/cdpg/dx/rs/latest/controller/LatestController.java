@@ -89,6 +89,19 @@ public class LatestController implements ApiController {
           .postSearch(searchQuery, id)
           .onSuccess(
               searchService -> {
+                JsonArray userRoles =
+                    routingContext
+                        .user()
+                        .principal()
+                        .getJsonObject("realm_access")
+                        .getJsonArray("roles");
+                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+                String delegatorId;
+                if (role.equalsIgnoreCase("delegate")) {
+                  delegatorId = routingContext.request().getHeader("did");
+                } else {
+                  delegatorId = routingContext.user().subject();
+                }
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(routingContext),
@@ -97,9 +110,10 @@ public class LatestController implements ApiController {
                         "POST",
                         routingContext.user().subject(),
                         NGSILD,
-                        "consumer",
+                        role,
                         DOWNLOAD,
-                        routingContext.user().principal().getString("iss"));
+                        routingContext.user().principal().getString("iss"),
+                        delegatorId);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 ResponseBuilder.sendSuccess(
                     routingContext,
@@ -147,6 +161,15 @@ public class LatestController implements ApiController {
         .getSearch(getRequestModel)
         .onSuccess(
             result -> {
+              JsonArray userRoles =
+                  ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+              String role = userRoles.contains("delegate") ? "delegate" : "consumer";
+              String delegatorId;
+              if (role.equalsIgnoreCase("delegate")) {
+                delegatorId = ctx.request().getHeader("did");
+              } else {
+                delegatorId = ctx.user().subject();
+              }
               AuditLog auditLog =
                   DataplaneAuditHelper.createAuditingLogs(
                       RoutingContextHelper.getItemMetaData(ctx),
@@ -155,9 +178,10 @@ public class LatestController implements ApiController {
                       "GET",
                       ctx.user().subject(),
                       NGSILD,
-                      "consumer",
+                      role,
                       DOWNLOAD,
-                      ctx.user().principal().getString("iss"));
+                      ctx.user().principal().getString("iss"),
+                      delegatorId);
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
               sendResponse(ctx, result);
             })
