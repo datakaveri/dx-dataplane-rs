@@ -76,6 +76,21 @@
       "databasePassword": ""
     },
     {
+      "id": "org.cdpg.dx.database.redis.verticle.RedisVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "tenantPrefix": "iudx-v2",
+      "redisMode": "",
+      "redisUsername": "",
+      "redisPassword": "",
+      "redisMaxPoolSize": 30,
+      "redisMaxPoolWaiting": 200,
+      "redisMaxWaitingHandlers": 1024,
+      "redisPoolRecycleTimeout": 1500,
+      "redisHost": "",
+      "redisPort": 1234
+    },
+    {
       "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
