@@ -1471,7 +1471,66 @@ paths:
 
 
       description: |
-        Ingestion Entities API allows a publish data into DX(Data exchange) Resource Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API. Enitiy should be registered with DX through the adaptor /ingestion API.
+        Post Ingestion Entities API allows a publish data into DX(Data exchange) Dataplane Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.
+
+      deprecated: false
+  /ngsi-ld/v1/ingestion/entities/on-seek:
+    post:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Publish Data
+      operationId: postIngestionAdaptorEntitiesAlias
+      security:
+        - authorization: [ ]
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/on-seek' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: entities is must in all the request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingestionEntityRequest'
+        required: true
+      responses:
+        200:
+          description: 'Successful registration of ingestion adapter'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+
+
+      description: |
+        Post Ingestion Entities API allows a publish data into DX(Data exchange) Dataplane Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.
 
       deprecated: false
 components:

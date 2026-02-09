@@ -4,6 +4,7 @@ import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
 import static org.cdpg.dx.databroker.util.Constants.*;
 import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.POST_NGSILD_ENTITY_PUBLISH;
+import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.POST_NGSILD_ENTITY_PUBLISH_ALIAS;
 
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -61,10 +62,63 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)
         .handler(context -> handleDataPublish(context));
+    builder
+        .operation(POST_NGSILD_ENTITY_PUBLISH_ALIAS)
+        .handler(auditingHandler::handleApiAudit)
+        .handler(getIdForIngestionEntityHandler)
+        .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(itemAccessDataPublishHandler)
+        .handler(providerDelegateValidationHandler)
+        .handler(idValidation)
+        .handler(context -> handleDataPublishAlias(context));
   }
 
   private void handleDataPublish(RoutingContext context) {
     LOGGER.info("Handling NGSILD Data Publish Request");
+    JsonArray requestJson = context.body().asJsonArray();
+    HttpServerResponse response = context.response();
+    String id = RoutingContextHelper.getId(context);
+    ngsildDataPublishService
+        .publishData(requestJson, id)
+        .onSuccess(
+            v -> {
+              JsonObject finalResponse = new JsonObject();
+              finalResponse.put(DETAIL, "Item Published");
+              JsonArray userRoles =
+                  context.user().principal().getJsonObject("realm_access").getJsonArray("roles");
+              String role = userRoles.contains("provider") ? "provider" : "delegate";
+              String delegatorId;
+              if (role.equalsIgnoreCase("delegate")) {
+                delegatorId = context.request().getHeader("did");
+              } else {
+                delegatorId = context.user().subject();
+              }
+              AuditLog auditLog =
+                  DataplaneAuditHelper.createAuditingLogs(
+                      RoutingContextHelper.getItemMetaData(context),
+                      id,
+                      RoutingContextHelper.getRequestPath(context),
+                      "POST",
+                      context.user().subject(),
+                      NGSILD,
+                      role,
+                      CREATE,
+                      context.user().principal().getString("iss"),
+                      delegatorId);
+              RoutingContextHelper.setAuditingLog(context, auditLog);
+              response
+                  .putHeader("Content-Type", "application/json")
+                  .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                  .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                  .putHeader("Access-Control-Allow-Methods", "POST")
+                  .setStatusCode(200)
+                  .end(finalResponse.encodePrettily());
+            })
+        .onFailure(context::fail);
+  }
+
+  private void handleDataPublishAlias(RoutingContext context) {
+    LOGGER.info("Handling NGSILD Data Publish Request Alias");
     JsonArray requestJson = context.body().asJsonArray();
     HttpServerResponse response = context.response();
     String id = RoutingContextHelper.getId(context);
