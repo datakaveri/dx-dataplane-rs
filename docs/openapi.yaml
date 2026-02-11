@@ -1441,7 +1441,7 @@ paths:
         required: true
       responses:
         200:
-          description: 'Successful registration of ingestion adapter'
+          description: 'Successful pushed the data'
           content:
             application/json:
               schema:
@@ -1474,34 +1474,110 @@ paths:
         Post Ingestion Entities API allows a publish data into DX(Data exchange) Dataplane Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.
 
       deprecated: false
-  /ngsi-ld/v1/ingestion/entities/on-seek:
+  /ngsi-ld/v1/ingestion/entities/{id}/on-seek:
     post:
       tags:
         - Data Ingestion Adaptor
-      summary: Publish Data
+      summary: Publish Data Using On-Seek
+      operationId: postIngestionAdaptorEntitiesOnSeek
+      security:
+        - authorization: [ ]
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'data publish'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/{id}/on-seek' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+
+      requestBody:
+        description: Payload of the data to be pushed for a particular id.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ingestionEntityRequest2'
+        required: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: 'Successful pushed the data'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+
+
+      description: |
+        Post Ingestion Entities API allows a publish data into DX(Data exchange) Dataplane Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.
+
+      deprecated: false
+
+  /ngsi-ld/v1/ingestion/entities/{id}:
+    post:
+      tags:
+        - Data Ingestion Adaptor
+      summary: Publish Data without On-Seek
       operationId: postIngestionAdaptorEntitiesAlias
       security:
         - authorization: [ ]
 
       x-codeSamples:
         - lang: 'cURL'
-          label: 'ingestion'
+          label: 'data publish'
           source: |
-            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/on-seek' \
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/{id}' \
             --header 'token: <tokenValue>'
             --header 'Content-Type: application/json' \
             --data-raw '<payload>'
 
       requestBody:
-        description: entities is must in all the request
+        description: Payload of the data to be pushed for a particular id.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ingestionEntityRequest'
+              $ref: '#/components/schemas/ingestionEntityRequest2'
         required: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+          schema:
+            type: string
+            format: uuid
       responses:
         200:
-          description: 'Successful registration of ingestion adapter'
+          description: 'Successful pushed the data'
           content:
             application/json:
               schema:
@@ -1747,6 +1823,19 @@ components:
           "referenceLevel": 15.9,
           "measuredDistance": 14.74,
           "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+          "observationDateTime": "2020-09-22T18:30:00+05:30",
+          "deviceInfo": {
+            "deviceID": "FWR055"
+          }
+        } ]
+    ingestionEntityRequest2:
+      title: ingestion entity
+      type: array
+      example:
+        [ {
+          "currentLevel": 1.16,
+          "referenceLevel": 15.9,
+          "measuredDistance": 14.74,
           "observationDateTime": "2020-09-22T18:30:00+05:30",
           "deviceInfo": {
             "deviceID": "FWR055"

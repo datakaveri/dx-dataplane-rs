@@ -3,8 +3,7 @@ package org.cdpg.dx.rs.ngsilddatapublish.controller;
 import static org.cdpg.dx.apiserver.config.ApiConstants.HEADER_ALLOW_ORIGIN;
 import static org.cdpg.dx.databroker.util.Constants.*;
 import static org.cdpg.dx.rs.audit.util.Constants.*;
-import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.POST_NGSILD_ENTITY_PUBLISH;
-import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.POST_NGSILD_ENTITY_PUBLISH_ALIAS;
+import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.*;
 
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -23,6 +22,7 @@ import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
 import org.cdpg.dx.validations.idhandler.GetIdForIngestionEntityHandler;
+import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessDataPublishHandler;
 import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
@@ -31,6 +31,7 @@ public class NGSILDDataPublishController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishController.class);
   private final IdValidation idValidation;
   private final GetIdForIngestionEntityHandler getIdForIngestionEntityHandler;
+  private final GetIdFromPathHandler getIdFromPathHandler;
   private final ItemAccessDataPublishHandler itemAccessDataPublishHandler;
   private final ProviderDelegateValidationHandler providerDelegateValidationHandler;
   private NGSILDDataPublishService ngsildDataPublishService;
@@ -48,6 +49,7 @@ public class NGSILDDataPublishController implements ApiController {
     this.ngsildDataPublishService = ngsildDataPublishService;
     this.idValidation = new IdValidation();
     this.getIdForIngestionEntityHandler = new GetIdForIngestionEntityHandler();
+    this.getIdFromPathHandler = new GetIdFromPathHandler();
     this.providerDelegateValidationHandler = new ProviderDelegateValidationHandler();
   }
 
@@ -63,9 +65,19 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(idValidation)
         .handler(context -> handleDataPublish(context));
     builder
+        .operation(POST_NGSILD_ENTITY_PUBLISH_ONSEEK)
+        .handler(auditingHandler::handleApiAudit)
+        .handler(getIdFromPathHandler)
+        .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(itemAccessDataPublishHandler)
+        .handler(providerDelegateValidationHandler)
+        .handler(idValidation)
+        .handler(context -> handleDataPublishAlias(context));
+
+    builder
         .operation(POST_NGSILD_ENTITY_PUBLISH_ALIAS)
         .handler(auditingHandler::handleApiAudit)
-        .handler(getIdForIngestionEntityHandler)
+        .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -118,12 +130,12 @@ public class NGSILDDataPublishController implements ApiController {
   }
 
   private void handleDataPublishAlias(RoutingContext context) {
-    LOGGER.info("Handling NGSILD Data Publish Request Alias");
+    LOGGER.info("Handling NGSI-LD Data Publish Request Alias");
     JsonArray requestJson = context.body().asJsonArray();
     HttpServerResponse response = context.response();
     String id = RoutingContextHelper.getId(context);
     ngsildDataPublishService
-        .publishData(requestJson, id)
+        .publishDataOnSeek(requestJson, id)
         .onSuccess(
             v -> {
               JsonObject finalResponse = new JsonObject();

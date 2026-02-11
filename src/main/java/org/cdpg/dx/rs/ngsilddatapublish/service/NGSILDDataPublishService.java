@@ -5,4 +5,6 @@ import io.vertx.core.json.JsonArray;
 
 public interface NGSILDDataPublishService {
   Future<String> publishData(JsonArray ngsildData, String id);
+
+  Future<String> publishDataOnSeek(JsonArray pushedData, String id);
 }
