@@ -39,4 +39,25 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
               LOGGER.error("Failed to publish data for id: {}. Error: {}", id, err.getMessage());
             });
   }
+
+  @Override
+  public Future<String> publishDataOnSeek(JsonArray pushedData, String id) {
+    for (int i = 0; i < pushedData.size(); i++) {
+      JsonObject jsonObject = pushedData.getJsonObject(i);
+      jsonObject.remove("entities");
+      jsonObject.put(ID, id);
+    }
+    LOGGER.trace("Final payload: {}", pushedData.encodePrettily());
+
+    return dataBrokerService
+        .publishMessageExternal(id, id, pushedData)
+        .onSuccess(
+            v -> {
+              LOGGER.info("Data published successfully using on seek for id: {}", id);
+            })
+        .onFailure(
+            err -> {
+              LOGGER.error("Failed to published data for id: {}. Error: {}", id, err.getMessage());
+            });
+  }
 }
