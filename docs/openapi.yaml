@@ -1800,11 +1800,8 @@ components:
       title: ingestion
       type: object
       properties:
-        results:
-          description: An array of objects
-          type: array
-          items:
-            type: object
+        details:
+          description: Item Published
       example:
         detail: "Item Published"
     ingestionEntityRequest:
