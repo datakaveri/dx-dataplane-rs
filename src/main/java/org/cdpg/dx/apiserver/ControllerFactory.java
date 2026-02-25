@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
@@ -34,6 +35,7 @@ public class ControllerFactory {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+    RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
     String timeLimit = config.getString("timeLimit");
@@ -55,10 +57,15 @@ public class ControllerFactory {
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
         LatestControllerFactory.create(
-            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler);
+            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler, redisService);
     ApiController downloadController =
         DownloadControllerFactory.create(
-            timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
+            timeLimit,
+            controlPlaneDomain,
+            urnGenerator,
+            elasticsearchService,
+            auditingHandler,
+            redisService);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -67,7 +74,8 @@ public class ControllerFactory {
             urnGenerator,
             maxDaysSync,
             maxDaysAsync,
-            auditingHandler);
+            auditingHandler,
+            redisService);
 
     ApiController ngsildDataPublishController =
         NGSILDDataPublishFactory.create(

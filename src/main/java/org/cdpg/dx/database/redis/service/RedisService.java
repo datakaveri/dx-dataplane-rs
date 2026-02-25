@@ -17,6 +17,15 @@ public interface  RedisService {
 
     Future<JsonObject> insertJson(String key, JsonObject jsonObject);
 
+    Future<Long> getLong(String key);
+
+    Future<Long> incrementBy(String key, long delta);
+
+    Future<Void> expireAt(String key, long epochSeconds);
+
+    Future<Boolean> incrementByIfWithinLimit(
+            String key, long delta, long maxAllowed, long expiryEpochSeconds);
+
     @GenIgnore
     static RedisService createProxy(Vertx vertx, String address) {
         return new RedisServiceVertxEBProxy(vertx, address);

@@ -2,6 +2,7 @@ package org.cdpg.dx.rs.ngsild.factory;
 
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
+import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.ngsild.controller.NGSILDSearchController;
 import org.cdpg.dx.rs.ngsild.service.NGSILDService;
@@ -14,7 +15,8 @@ public class NGSILDControllerFactory {
       URNGenerator urnGenerator,
       int maxDaysSync,
       int maxDaysAsync,
-      AuditingHandler auditingHandler) {
+      AuditingHandler auditingHandler,
+      RedisService redisService) {
     NGSILDService NGSILDService = new NGSILDServiceImpl(searchService);
     return new NGSILDSearchController(
         NGSILDService,
@@ -22,6 +24,7 @@ public class NGSILDControllerFactory {
         urnGenerator,
         maxDaysSync,
         maxDaysAsync,
-        auditingHandler);
+        auditingHandler,
+        redisService);
   }
 }
