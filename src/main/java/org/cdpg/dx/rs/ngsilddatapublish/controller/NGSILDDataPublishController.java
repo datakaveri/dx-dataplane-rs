@@ -130,7 +130,7 @@ public class NGSILDDataPublishController implements ApiController {
   }
 
   private void handleDataPublishAlias(RoutingContext context) {
-    LOGGER.info("Handling NGSI-LD Data Publish Request Alias");
+    LOGGER.info("Handling NGSI-LD Data Publish Request Alias/On-seek");
     JsonArray requestJson = context.body().asJsonArray();
     HttpServerResponse response = context.response();
     String id = RoutingContextHelper.getId(context);

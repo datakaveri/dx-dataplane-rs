@@ -44,6 +44,7 @@ import org.elasticsearch.client.RestClient;
 
 public class ElasticsearchServiceImpl implements ElasticsearchService {
   private static final Logger LOGGER = LogManager.getLogger(ElasticsearchServiceImpl.class);
+  private static final String ES_DOC_ID_FIELD = "_docId";
 
   static ElasticClient client;
   private static ElasticsearchAsyncClient asyncClient;
@@ -497,13 +498,15 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
     models.forEach(
         queryModel -> {
           JsonObject doc = queryModel.extractDocumentFromQueryModel();
-          String rawJson = doc.encode();
+          String esDocId = doc.getString(ES_DOC_ID_FIELD, doc.getString("id"));
+          JsonObject sourceDoc = doc.copy();
+          sourceDoc.remove(ES_DOC_ID_FIELD);
+          String rawJson = sourceDoc.encode();
           JsonData jsonData = JsonData.fromJson(rawJson);
 
           bulkBuilder.operations(
               operation ->
-                  operation.index(
-                      docs -> docs.index(index).id(doc.getString("id")).document(jsonData)));
+                  operation.index(docs -> docs.index(index).id(esDocId).document(jsonData)));
         });
     BulkRequest request = bulkBuilder.build();
     asyncClient

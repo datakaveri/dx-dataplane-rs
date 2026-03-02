@@ -71,7 +71,11 @@ public class ControllerFactory {
 
     ApiController ngsildDataPublishController =
         NGSILDDataPublishFactory.create(
-            controlPlaneDomain, urnGenerator, auditingHandler, dataBrokerService);
+            controlPlaneDomain,
+            urnGenerator,
+            auditingHandler,
+            dataBrokerService,
+            elasticsearchService);
     // TODO create other controllers
 
     return List.of(
