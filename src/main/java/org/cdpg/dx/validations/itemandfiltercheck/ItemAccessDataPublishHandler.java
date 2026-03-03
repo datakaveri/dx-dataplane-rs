@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
@@ -46,6 +47,7 @@ public class ItemAccessDataPublishHandler implements Handler<RoutingContext> {
               RoutingContextHelper.setItemMetaData(context, result);
               RoutingContextHelper.setIid(context, result.getString("id"));
               RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
+              RoutingContextHelper.setPolicyId(context, getPolicyIdFromPolicies(result));
               RoutingContextHelper.setOwnerUserId(context, result.getString("ownerUserId", null));
               context.next();
             })
@@ -93,5 +95,24 @@ public class ItemAccessDataPublishHandler implements Handler<RoutingContext> {
                     new DxInternalServerErrorException(
                         "Item metadata fetch failed: " + err.getMessage())));
     return promise.future();
+  }
+
+  private String getPolicyIdFromPolicies(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        String policyId = policy.getString("policyId");
+        if (policyId != null && !policyId.isBlank()) {
+          return policyId;
+        }
+      }
+    }
+    return null;
   }
 }

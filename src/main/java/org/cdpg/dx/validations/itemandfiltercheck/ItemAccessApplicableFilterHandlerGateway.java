@@ -34,7 +34,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
   public void handle(RoutingContext context) {
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerGateway");
 
-    if (context.user().principal().containsKey("cons")) {
+    if (hasAccessPayload(context.user().principal())) {
       LOGGER.debug("Processing access token");
       try {
         JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
@@ -57,7 +57,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                         new DxBadRequestException(
                             "No queryTypes types(filters) found for GATEWAY server"));
         JsonArray allowedAttributes =
-            Optional.ofNullable(context.user().principal().getJsonObject("cons"))
+            Optional.ofNullable(getCons(context.user().principal()))
                 .map(cons -> cons.getJsonArray("allowedAttributes"))
                 .orElse(new JsonArray());
         String accessPolicy = context.user().principal().getString("accessPolicy");
@@ -68,6 +68,8 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
         RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
         RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
         RoutingContextHelper.setAccessPolicy(context, accessPolicy);
+        RoutingContextHelper.setPolicyId(
+            context, getPolicyIdFromPolicies(context.user().principal()));
 
         context.next();
         return;
@@ -123,7 +125,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                                   new DxBadRequestException(
                                       "No queryTypes types(filters) found for GATEWAY server"));
                   JsonArray allowedAttributes =
-                      Optional.ofNullable(result.getJsonObject("cons"))
+                      Optional.ofNullable(getCons(result))
                           .map(cons -> cons.getJsonArray("allowedAttributes"))
                           .orElse(new JsonArray());
                   String accessPolicy = result.getString("accessPolicy");
@@ -134,6 +136,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                   RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
                   RoutingContextHelper.setIid(context, result.getString("id"));
                   RoutingContextHelper.setAccessPolicy(context, accessPolicy);
+                  RoutingContextHelper.setPolicyId(context, getPolicyIdFromPolicies(result));
                   context.next();
                 } catch (Exception e) {
                   LOGGER.error("Error processing control plane response", e);
@@ -212,7 +215,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
 
     JsonArray accessArray = source.getJsonArray("access");
     if (accessArray == null) {
-      JsonObject cons = source.getJsonObject("cons");
+      JsonObject cons = getCons(source);
       if (cons != null) {
         accessArray = cons.getJsonArray("access");
       }
@@ -239,5 +242,47 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
         .filter(String.class::isInstance)
         .map(String.class::cast)
         .anyMatch(type -> "api".equalsIgnoreCase(type));
+  }
+
+  private boolean hasAccessPayload(JsonObject source) {
+    return source != null && source.containsKey("policies");
+  }
+
+  private JsonObject getCons(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        JsonObject cons = policy.getJsonObject("cons");
+        if (cons != null) {
+          return cons;
+        }
+      }
+    }
+    return null;
+  }
+
+  private String getPolicyIdFromPolicies(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        String policyId = policy.getString("policyId");
+        if (policyId != null && !policyId.isBlank()) {
+          return policyId;
+        }
+      }
+    }
+    return null;
   }
 }

@@ -42,13 +42,14 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
       return;
     }
 
-    JsonObject principal = user.principal();
     String userId = user.subject();
     JsonObject itemMetaData = RoutingContextHelper.getItemMetaData(context);
-    JsonObject accessSource =
-        principal.containsKey("cons")
-            ? principal
-            : (itemMetaData != null && !itemMetaData.isEmpty() ? itemMetaData : principal);
+    JsonObject accessSource = itemMetaData;
+    if (accessSource == null || accessSource.isEmpty()) {
+      LOGGER.warn("RedisAccessLimitHandler skipped: itemMetaData missing in context");
+      context.next();
+      return;
+    }
 
     JsonObject accessEntry = findAccessEntry(accessSource);
     long expiryEpochSeconds = accessEntry != null ? accessEntry.getLong("expiry", -1L) : -1L;
@@ -61,15 +62,29 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
         accessEntry != null
             ? accessEntry.getJsonObject("limits", new JsonObject())
             : new JsonObject();
-    String accessPolicy =
-        accessSource.getString("accessPolicy", principal.getString("accessPolicy", ""));
+    String accessPolicy = accessSource.getString("accessPolicy", "");
+    if (isOpenPolicy(accessPolicy)) {
+      LOGGER.debug(
+          "RedisAccessLimitHandler skipped for open/public policy. userId={}, assetId={}",
+          userId,
+          assetId);
+      context.next();
+      return;
+    }
+
+    String policyId = RoutingContextHelper.getPolicyId(context);
+    if (policyId == null || policyId.isBlank()) {
+      context.fail(new DxForbiddenNoAccessException("policyId is mandatory for restricted resource"));
+      return;
+    }
+
     boolean isOpenPolicy = isOpenPolicy(accessPolicy);
     long apiHitsLimit = limits.getLong(API_HITS_FIELD, -1L);
     long dataUsageLimitBytes = parseDataUsageToBytes(limits.getString(DATA_USAGE_FIELD));
     boolean enforceApiHits = !isOpenPolicy && apiHitsLimit >= 0;
     boolean enforceDataUsage = !isOpenPolicy && dataUsageLimitBytes >= 0;
-    String hitsKey = buildHitsKey(userId, assetId);
-    String usageKey = buildUsageKey(userId, assetId);
+    String hitsKey = buildHitsKey(policyId, userId, assetId);
+    String usageKey = buildUsageKey(policyId, userId, assetId);
 
     LOGGER.info(
         "RateLimit init: userId={}, assetId={}, policy={},  hitsKey={}, usageKey={}",
@@ -322,18 +337,18 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
         && ("open".equalsIgnoreCase(accessPolicy) || "public".equalsIgnoreCase(accessPolicy));
   }
 
-  private String buildHitsKey(String userId, String assetId) {
-    return hitsKeyPrefix + ":" + userId + ":" + assetId + ":hits";
+  private String buildHitsKey(String policyId, String userId, String assetId) {
+    return hitsKeyPrefix + ":" + policyId + ":" + userId + ":" + assetId + ":hits";
   }
 
-  private String buildUsageKey(String userId, String assetId) {
-    return hitsKeyPrefix + ":" + userId + ":" + assetId + ":usageBytes";
+  private String buildUsageKey(String policyId, String userId, String assetId) {
+    return hitsKeyPrefix + ":" + policyId + ":" + userId + ":" + assetId + ":usageBytes";
   }
 
   private JsonObject findAccessEntry(JsonObject principal) {
     JsonArray accessArray = principal.getJsonArray("access");
     if (accessArray == null) {
-      JsonObject cons = principal.getJsonObject("cons");
+      JsonObject cons = getCons(principal);
       if (cons != null) {
         accessArray = cons.getJsonArray("access");
       }
@@ -392,4 +407,24 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
       return -1L;
     }
   }
+
+  private JsonObject getCons(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        JsonObject cons = policy.getJsonObject("cons");
+        if (cons != null) {
+          return cons;
+        }
+      }
+    }
+    return null;
+  }
+
 }
