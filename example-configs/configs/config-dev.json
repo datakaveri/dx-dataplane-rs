@@ -10,6 +10,7 @@
     "timeLimit": "test,2020-10-22T00:00:00Z,20",
     "timeLimitForAsync": 365,
     "tenantPrefix": "iudx-v2",
+    "redisKeyPrefix": "dx",
     "corsAllowedOrigin": [
       "*",
       "http://localhost:4001"
@@ -79,7 +80,6 @@
       "id": "org.cdpg.dx.database.redis.verticle.RedisVerticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
-      "tenantPrefix": "iudx-v2",
       "redisMode": "",
       "redisUsername": "",
       "redisPassword": "",

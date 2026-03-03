@@ -47,14 +47,15 @@ public class DownloadController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService);
+    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
   }
 
   @Override
@@ -127,6 +128,7 @@ public class DownloadController implements ApiController {
                           } else {
                             delegatorId = routingContext.user().subject();
                           }
+                          response.end();
                           long bytesWritten = response.bytesWritten();
                           RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                           AuditLog auditLog =
@@ -143,7 +145,6 @@ public class DownloadController implements ApiController {
                                   delegatorId,
                                   bytesWritten);
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                          response.end();
                         });
               })
           .onFailure(
@@ -221,6 +222,7 @@ public class DownloadController implements ApiController {
                         } else {
                           delegatorId = routingContext.user().subject();
                         }
+                        response.end();
                         long bytesWritten = response.bytesWritten();
                         RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                         AuditLog auditLog =
@@ -237,7 +239,6 @@ public class DownloadController implements ApiController {
                                 delegatorId,
                                 bytesWritten);
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                        response.end();
                       });
             })
         .onFailure(

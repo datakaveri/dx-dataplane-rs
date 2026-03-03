@@ -43,6 +43,7 @@ public class ControllerFactory {
 
     String tenantPrefix = config.getString("tenantPrefix");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
+    String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");
     OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
     ApiController onboardingController =
         new ElasticOnboardingController(onboardingService, tenantPrefix, urnGenerator);
@@ -57,7 +58,13 @@ public class ControllerFactory {
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
         LatestControllerFactory.create(
-            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler, redisService);
+            searchService,
+            timeLimit,
+            controlPlaneDomain,
+            urnGenerator,
+            auditingHandler,
+            redisService,
+            redisKeyPrefix);
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit,
@@ -65,7 +72,8 @@ public class ControllerFactory {
             urnGenerator,
             elasticsearchService,
             auditingHandler,
-            redisService);
+            redisService,
+            redisKeyPrefix);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -75,7 +83,8 @@ public class ControllerFactory {
             maxDaysSync,
             maxDaysAsync,
             auditingHandler,
-            redisService);
+            redisService,
+            redisKeyPrefix);
 
     ApiController ngsildDataPublishController =
         NGSILDDataPublishFactory.create(

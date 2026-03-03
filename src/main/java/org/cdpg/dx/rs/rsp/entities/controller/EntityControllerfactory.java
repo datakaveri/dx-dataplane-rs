@@ -14,7 +14,8 @@ public class EntityControllerfactory {
       URNGenerator urnGenerator,
       JsonObject config,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 10);
 
@@ -27,6 +28,7 @@ public class EntityControllerfactory {
         urnGenerator,
         config.getString("controlPlaneDomain"),
         auditingHandler,
-        redisService);
+        redisService,
+        redisKeyPrefix);
   }
 }

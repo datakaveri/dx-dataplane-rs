@@ -16,11 +16,17 @@ public class LatestControllerFactory {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
 
     LatestService latestService = new LatestServiceImpl(searchService, timeLimit);
 
     return new LatestController(
-        latestService, controlPlaneDomain, urnGenerator, auditingHandler, redisService);
+        latestService,
+        controlPlaneDomain,
+        urnGenerator,
+        auditingHandler,
+        redisService,
+        redisKeyPrefix);
   }
 }

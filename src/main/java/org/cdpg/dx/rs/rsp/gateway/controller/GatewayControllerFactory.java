@@ -14,7 +14,8 @@ public class GatewayControllerFactory {
       URNGenerator urnGenerator,
       JsonObject config,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 365);
 
@@ -27,6 +28,7 @@ public class GatewayControllerFactory {
         urnGenerator,
         config.getString("controlPlaneDomain"),
         auditingHandler,
-        redisService);
+        redisService,
+        redisKeyPrefix);
   }
 }

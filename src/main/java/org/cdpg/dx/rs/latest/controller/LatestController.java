@@ -49,14 +49,15 @@ public class LatestController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     this.latestService = latestService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService);
+    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
   }
 
   @Override
@@ -109,6 +110,11 @@ public class LatestController implements ApiController {
                 } else {
                   delegatorId = routingContext.user().subject();
                 }
+                ResponseBuilder.sendSuccess(
+                    routingContext,
+                    searchService.getElasticsearchResponses(),
+                    searchService.getPaginationInfo(),
+                    urnGenerator);
                 long bytesWritten = routingContext.response().bytesWritten();
                 RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                 AuditLog auditLog =
@@ -125,11 +131,6 @@ public class LatestController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                ResponseBuilder.sendSuccess(
-                    routingContext,
-                    searchService.getElasticsearchResponses(),
-                    searchService.getPaginationInfo(),
-                    urnGenerator);
               })
           .onFailure(
               err -> {
@@ -180,6 +181,7 @@ public class LatestController implements ApiController {
               } else {
                 delegatorId = ctx.user().subject();
               }
+              sendResponse(ctx, result);
               long bytesWritten = ctx.response().bytesWritten();
               RoutingContextHelper.setResponseSize(ctx, bytesWritten);
               AuditLog auditLog =
@@ -196,7 +198,6 @@ public class LatestController implements ApiController {
                       delegatorId,
                       bytesWritten);
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
-              sendResponse(ctx, result);
             })
         .onFailure(
             err -> {

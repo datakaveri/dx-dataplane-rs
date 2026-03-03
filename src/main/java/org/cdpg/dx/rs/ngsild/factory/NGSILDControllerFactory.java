@@ -16,7 +16,8 @@ public class NGSILDControllerFactory {
       int maxDaysSync,
       int maxDaysAsync,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     NGSILDService NGSILDService = new NGSILDServiceImpl(searchService);
     return new NGSILDSearchController(
         NGSILDService,
@@ -25,6 +26,7 @@ public class NGSILDControllerFactory {
         maxDaysSync,
         maxDaysAsync,
         auditingHandler,
-        redisService);
+        redisService,
+        redisKeyPrefix);
   }
 }

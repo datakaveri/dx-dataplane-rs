@@ -55,7 +55,8 @@ public class EntitiesController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
@@ -63,7 +64,7 @@ public class EntitiesController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.idValidation = new IdValidation();
     this.auditingHandler = auditingHandler;
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService);
+    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
   }
 
   @Override
@@ -172,6 +173,7 @@ public class EntitiesController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
+                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
                 long bytesWritten = ctx.response().bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
@@ -188,7 +190,6 @@ public class EntitiesController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
-                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 // remote service failure
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());
@@ -274,6 +275,7 @@ public class EntitiesController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
+                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
                 long bytesWritten = ctx.response().bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
@@ -290,7 +292,6 @@ public class EntitiesController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
-                ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
               } else {
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());
                 // remote service failure

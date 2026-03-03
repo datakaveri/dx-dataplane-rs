@@ -60,13 +60,14 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
             Optional.ofNullable(context.user().principal().getJsonObject("cons"))
                 .map(cons -> cons.getJsonArray("allowedAttributes"))
                 .orElse(new JsonArray());
+        String accessPolicy = context.user().principal().getString("accessPolicy");
+        validateApiAccessType(context.user().principal(), ngsiLdServer, accessPolicy);
 
         RoutingContextHelper.setItemMetaData(context, context.user().principal());
         RoutingContextHelper.setApplicableFilter(context, queryTypes);
         RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
         RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
-        RoutingContextHelper.setAccessPolicy(
-            context, context.user().principal().getString("accessPolicy"));
+        RoutingContextHelper.setAccessPolicy(context, accessPolicy);
 
         context.next();
         return;
@@ -125,12 +126,14 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                       Optional.ofNullable(result.getJsonObject("cons"))
                           .map(cons -> cons.getJsonArray("allowedAttributes"))
                           .orElse(new JsonArray());
+                  String accessPolicy = result.getString("accessPolicy");
+                  validateApiAccessType(result, ngsiLdServer, accessPolicy);
 
                   RoutingContextHelper.setApplicableFilter(context, queryTypes);
                   RoutingContextHelper.setItemMetaData(context, result);
                   RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
                   RoutingContextHelper.setIid(context, result.getString("id"));
-                  RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
+                  RoutingContextHelper.setAccessPolicy(context, accessPolicy);
                   context.next();
                 } catch (Exception e) {
                   LOGGER.error("Error processing control plane response", e);
@@ -189,5 +192,52 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
                     new DxInternalServerErrorException(
                         "Item metadata fetch failed: " + err.getMessage())));
     return promise.future();
+  }
+
+  private void validateApiAccessType(
+      JsonObject source, JsonObject selectedResourceServer, String accessPolicy) {
+    if (accessPolicy != null
+        && ("open".equalsIgnoreCase(accessPolicy) || "public".equalsIgnoreCase(accessPolicy))) {
+      return;
+    }
+
+    JsonArray rsAccessTypes =
+        selectedResourceServer != null
+            ? selectedResourceServer.getJsonArray("accessTypes", new JsonArray())
+            : new JsonArray();
+    boolean hasApiInResourceServer = containsApi(rsAccessTypes);
+    if (hasApiInResourceServer) {
+      return;
+    }
+
+    JsonArray accessArray = source.getJsonArray("access");
+    if (accessArray == null) {
+      JsonObject cons = source.getJsonObject("cons");
+      if (cons != null) {
+        accessArray = cons.getJsonArray("access");
+      }
+    }
+
+    if (accessArray == null || accessArray.isEmpty()) {
+      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
+    }
+
+    boolean hasApiAccessType =
+        accessArray.stream()
+            .filter(JsonObject.class::isInstance)
+            .map(JsonObject.class::cast)
+            .anyMatch(access -> "api".equalsIgnoreCase(access.getString("accessType", "")));
+
+    if (!hasApiAccessType) {
+      throw new DxForbiddenNoAccessException(
+          "Required accessType 'api' missing for restricted resource");
+    }
+  }
+
+  private boolean containsApi(JsonArray accessTypes) {
+    return accessTypes.stream()
+        .filter(String.class::isInstance)
+        .map(String.class::cast)
+        .anyMatch(type -> "api".equalsIgnoreCase(type));
   }
 }

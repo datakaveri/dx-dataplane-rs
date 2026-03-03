@@ -69,7 +69,8 @@ public class GatewayController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     this.dataBrokerService = dataBrokerService;
     this.gatewayParamValidator = gatewayParamValidator;
     this.urnGenerator = urnGenerator;
@@ -77,7 +78,7 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService);
+    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
   }
 
   @Override
@@ -225,6 +226,19 @@ public class GatewayController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    /*.putHeader(
+                        NGSILD_RESULTS_COUNT,
+                        String.valueOf(rpcResponse.getJsonArray("results").size()))
+                    .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
+                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
+                    .setStatusCode(200)
+                    .end(rpcResponse.getJsonArray("results").encodePrettily());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
@@ -241,19 +255,6 @@ public class GatewayController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    /*.putHeader(
-                        NGSILD_RESULTS_COUNT,
-                        String.valueOf(rpcResponse.getJsonArray("results").size()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
-                    .setStatusCode(200)
-                    .end(rpcResponse.getJsonArray("results").encodePrettily());
               } else {
                 // remote service failure
                 LOGGER.error("Failed RPC response: {}", rpcResponse.encodePrettily());
@@ -344,6 +345,19 @@ public class GatewayController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    /*.putHeader(
+                        NGSILD_RESULTS_COUNT,
+                        String.valueOf(rpcResponse.getJsonArray("results").size()))
+                    .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
+                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
+                    .setStatusCode(200)
+                    .end(rpcResponse.getJsonArray("results").encodePrettily());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
@@ -360,19 +374,6 @@ public class GatewayController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    /*.putHeader(
-                        NGSILD_RESULTS_COUNT,
-                        String.valueOf(rpcResponse.getJsonArray("results").size()))
-                    .putHeader(NGSILD_LIMIT, String.valueOf(gatewayQueryParams.getPageSize()))
-                    .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
-                    .setStatusCode(200)
-                    .end(rpcResponse.getJsonArray("results").encodePrettily());
               } else {
                 // remote service failure
                 LOGGER.error("Fail RPC response: {}", rpcResponse.encodePrettily());

@@ -53,7 +53,8 @@ public class NGSILDSearchController implements ApiController {
       int maxDaysSync,
       int maxDaysAsync,
       AuditingHandler auditingHandler,
-      RedisService redisService) {
+      RedisService redisService,
+      String redisKeyPrefix) {
     this.ngsildService = ngsildService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
@@ -61,7 +62,7 @@ public class NGSILDSearchController implements ApiController {
     this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService);
+    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
   }
 
   @Override
@@ -165,6 +166,18 @@ public class NGSILDSearchController implements ApiController {
                 } else {
                   delegatorId = context.user().subject();
                 }
+                JsonObject result = new JsonObject();
+                result.put("type", "CountResult");
+                result.put("value", postEntitiesCount);
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(postEntitiesCount))
+                    .setStatusCode(200)
+                    .end(result.encode());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(context, bytesWritten);
                 AuditLog auditLog =
@@ -181,18 +194,6 @@ public class NGSILDSearchController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(context, auditLog);
-                JsonObject result = new JsonObject();
-                result.put("type", "CountResult");
-                result.put("value", postEntitiesCount);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(postEntitiesCount))
-                    .setStatusCode(200)
-                    .end(result.encode());
               })
           .onFailure(
               err -> {
@@ -230,6 +231,20 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = context.user().subject();
                     }
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getEntityData.getElasticsearchResponses().toString());
                     long bytesWritten = response.bytesWritten();
                     RoutingContextHelper.setResponseSize(context, bytesWritten);
                     AuditLog auditLog =
@@ -246,20 +261,6 @@ public class NGSILDSearchController implements ApiController {
                             delegatorId,
                             bytesWritten);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
-                    response
-                        .putHeader("Content-Type", headersAcceptType)
-                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                        .putHeader(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                        .putHeader(
-                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
-                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .setStatusCode(200)
-                        /*.end(JsonObject.mapFrom(response).encode());*/
-                        .end(getEntityData.getElasticsearchResponses().toString());
                   })
               .onFailure(
                   err -> {
@@ -293,6 +294,19 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = context.user().subject();
                     }
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        .end(sanitizedResults.encodePrettily());
                     long bytesWritten = response.bytesWritten();
                     RoutingContextHelper.setResponseSize(context, bytesWritten);
                     AuditLog auditLog =
@@ -309,19 +323,6 @@ public class NGSILDSearchController implements ApiController {
                             delegatorId,
                             bytesWritten);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
-                    response
-                        .putHeader("Content-Type", headersAcceptType)
-                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                        .putHeader(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                        .putHeader(
-                            NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
-                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .setStatusCode(200)
-                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -349,6 +350,18 @@ public class NGSILDSearchController implements ApiController {
                   } else {
                     delegatorId = context.user().subject();
                   }
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .setStatusCode(200)
+                      /*.end(JsonObject.mapFrom(response).encode());*/
+                      .end(getEntityData.getElasticsearchResponses().toString());
                   long bytesWritten = response.bytesWritten();
                   RoutingContextHelper.setResponseSize(context, bytesWritten);
                   AuditLog auditLog =
@@ -365,18 +378,6 @@ public class NGSILDSearchController implements ApiController {
                           delegatorId,
                           bytesWritten);
                   RoutingContextHelper.setAuditingLog(context, auditLog);
-                  response
-                      .putHeader("Content-Type", headersAcceptType)
-                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                      .putHeader(
-                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                      .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getEntityData.getTotalHits()))
-                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                      .setStatusCode(200)
-                      /*.end(JsonObject.mapFrom(response).encode());*/
-                      .end(getEntityData.getElasticsearchResponses().toString());
                 })
             .onFailure(
                 err -> {
@@ -392,7 +393,7 @@ public class NGSILDSearchController implements ApiController {
     String headersAcceptType =
         ngsildParamsValidator.validateAndSelectBestMediaType(
             routingContext.request().getHeader("Accept"));
-    LOGGER.warn("headersAcceptType :: " + headersAcceptType);
+    LOGGER.warn("headersAcceptType :::: " + headersAcceptType);
     MultiMap params = routingContext.request().params(true);
     JsonArray applicableFilter = RoutingContextHelper.getApplicableFilter(routingContext);
     /*new JsonArray().add("TEMPORAL").add("ATTR");*/
@@ -445,6 +446,18 @@ public class NGSILDSearchController implements ApiController {
                 } else {
                   delegatorId = routingContext.user().subject();
                 }
+                JsonObject result = new JsonObject();
+                result.put("type", "CountResult");
+                result.put("value", getTemporalEntityCount);
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityCount))
+                    .setStatusCode(200)
+                    .end(result.encode());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                 AuditLog auditLog =
@@ -461,18 +474,6 @@ public class NGSILDSearchController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                JsonObject result = new JsonObject();
-                result.put("type", "CountResult");
-                result.put("value", getTemporalEntityCount);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityCount))
-                    .setStatusCode(200)
-                    .end(result.encode());
               })
           .onFailure(
               err -> {
@@ -488,11 +489,11 @@ public class NGSILDSearchController implements ApiController {
       }
       if (params.contains("format")) {
         String format = params.get("format");
-        LOGGER.info("format param :: " + format);
+        LOGGER.info("format param :::: " + format);
         if (format != null
             && format.equalsIgnoreCase("simplified")
             && headersAcceptType.equalsIgnoreCase("application/json")) {
-          LOGGER.info("simplified format selected ");
+          LOGGER.info("simplified format selected in GET request");
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
@@ -510,22 +511,6 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = routingContext.user().subject();
                     }
-                    long bytesWritten = response.bytesWritten();
-                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
-                    AuditLog auditLog =
-                        DataplaneAuditHelper.createAuditingLogs(
-                            RoutingContextHelper.getItemMetaData(routingContext),
-                            RoutingContextHelper.getId(routingContext),
-                            RoutingContextHelper.getRequestPath(routingContext),
-                            "GET",
-                            routingContext.user().subject(),
-                            NGSILD,
-                            role,
-                            DOWNLOAD,
-                            routingContext.user().principal().getString("iss"),
-                            delegatorId,
-                            bytesWritten);
-                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                     response
                         .putHeader("Content-Type", headersAcceptType)
                         .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -542,11 +527,22 @@ public class NGSILDSearchController implements ApiController {
                         .setStatusCode(200)
                         /*.end(JsonObject.mapFrom(response).encode());*/
                         .end(getTemporalEntityData.getElasticsearchResponses().toString());
-                    /*ResponseBuilder.sendSuccess(
-                    routingContext,
-                    getTemporalEntityData.getElasticsearchResponses(),
-                    getTemporalEntityData.getPaginationInfo(),
-                    urnGenerator);*/
+                    long bytesWritten = response.bytesWritten();
+                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            role,
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId,
+                            bytesWritten);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   })
               .onFailure(
                   err -> {
@@ -557,7 +553,7 @@ public class NGSILDSearchController implements ApiController {
             && format.equalsIgnoreCase("simplified")
             && (headersAcceptType.equalsIgnoreCase("application/ld+json")
                 || headersAcceptType.equalsIgnoreCase("application/geo+json"))) {
-          LOGGER.info("concise format selected");
+          LOGGER.info("concise format selected in GET request");
           ngsildService
               .getEntitiesAttributeSearchData(ngsildQueryParams)
               .onSuccess(
@@ -581,6 +577,21 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = routingContext.user().subject();
                     }
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        // .putHeader(NGSILD_LINK, "Link of context")
+                        .setStatusCode(200)
+                        .end(sanitizedResults.encodePrettily());
                     long bytesWritten = response.bytesWritten();
                     RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                     AuditLog auditLog =
@@ -597,21 +608,6 @@ public class NGSILDSearchController implements ApiController {
                             delegatorId,
                             bytesWritten);
                     RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                    response
-                        .putHeader("Content-Type", headersAcceptType)
-                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                        .putHeader(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                        .putHeader(
-                            NGSILD_RESULTS_COUNT,
-                            String.valueOf(getTemporalEntityData.getTotalHits()))
-                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        // .putHeader(NGSILD_LINK, "Link of context")
-                        .setStatusCode(200)
-                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -622,7 +618,7 @@ public class NGSILDSearchController implements ApiController {
           LOGGER.error("invalid format param");
         }
       } else {
-        LOGGER.info("simplified format selected ");
+        LOGGER.info("simplified format selected: ");
         ngsildService
             .getEntitiesAttributeSearchData(ngsildQueryParams)
             .onSuccess(
@@ -640,6 +636,20 @@ public class NGSILDSearchController implements ApiController {
                   } else {
                     delegatorId = routingContext.user().subject();
                   }
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(
+                          NGSILD_RESULTS_COUNT,
+                          String.valueOf(getTemporalEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      // .putHeader(NGSILD_LINK, "Link of context")
+                      .setStatusCode(200)
+                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
                   long bytesWritten = response.bytesWritten();
                   RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                   AuditLog auditLog =
@@ -656,20 +666,6 @@ public class NGSILDSearchController implements ApiController {
                           delegatorId,
                           bytesWritten);
                   RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                  response
-                      .putHeader("Content-Type", headersAcceptType)
-                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                      .putHeader(
-                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                      .putHeader(
-                          NGSILD_RESULTS_COUNT,
-                          String.valueOf(getTemporalEntityData.getTotalHits()))
-                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                      // .putHeader(NGSILD_LINK, "Link of context")
-                      .setStatusCode(200)
-                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
                 })
             .onFailure(
                 err -> {
@@ -741,6 +737,18 @@ public class NGSILDSearchController implements ApiController {
                 } else {
                   delegatorId = context.user().subject();
                 }
+                JsonObject result = new JsonObject();
+                result.put("type", "CountResult");
+                result.put("value", postTemporalEntitiesCount);
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(postTemporalEntitiesCount))
+                    .setStatusCode(200)
+                    .end(result.encode());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(context, bytesWritten);
                 AuditLog auditLog =
@@ -757,18 +765,6 @@ public class NGSILDSearchController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(context, auditLog);
-                JsonObject result = new JsonObject();
-                result.put("type", "CountResult");
-                result.put("value", postTemporalEntitiesCount);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(postTemporalEntitiesCount))
-                    .setStatusCode(200)
-                    .end(result.encode());
               })
           .onFailure(
               err -> {
@@ -805,6 +801,21 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = context.user().subject();
                     }
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        /*.end(JsonObject.mapFrom(response).encode());*/
+                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
                     long bytesWritten = response.bytesWritten();
                     RoutingContextHelper.setResponseSize(context, bytesWritten);
                     AuditLog auditLog =
@@ -821,21 +832,6 @@ public class NGSILDSearchController implements ApiController {
                             delegatorId,
                             bytesWritten);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
-                    response
-                        .putHeader("Content-Type", headersAcceptType)
-                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                        .putHeader(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                        .putHeader(
-                            NGSILD_RESULTS_COUNT,
-                            String.valueOf(getTemporalEntityData.getTotalHits()))
-                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .setStatusCode(200)
-                        /*.end(JsonObject.mapFrom(response).encode());*/
-                        .end(getTemporalEntityData.getElasticsearchResponses().toString());
                   })
               .onFailure(
                   err -> {
@@ -869,6 +865,20 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = context.user().subject();
                     }
+                    response
+                        .putHeader("Content-Type", headersAcceptType)
+                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                        .putHeader(
+                            "Access-Control-Allow-Methods",
+                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                        .putHeader(
+                            NGSILD_RESULTS_COUNT,
+                            String.valueOf(getTemporalEntityData.getTotalHits()))
+                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                        .setStatusCode(200)
+                        .end(sanitizedResults.encodePrettily());
                     long bytesWritten = response.bytesWritten();
                     RoutingContextHelper.setResponseSize(context, bytesWritten);
                     AuditLog auditLog =
@@ -885,20 +895,6 @@ public class NGSILDSearchController implements ApiController {
                             delegatorId,
                             bytesWritten);
                     RoutingContextHelper.setAuditingLog(context, auditLog);
-                    response
-                        .putHeader("Content-Type", headersAcceptType)
-                        .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                        .putHeader(
-                            "Access-Control-Allow-Methods",
-                            "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                        .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                        .putHeader(
-                            NGSILD_RESULTS_COUNT,
-                            String.valueOf(getTemporalEntityData.getTotalHits()))
-                        .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                        .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                        .setStatusCode(200)
-                        .end(sanitizedResults.encodePrettily());
                   })
               .onFailure(
                   err -> {
@@ -926,6 +922,20 @@ public class NGSILDSearchController implements ApiController {
                   } else {
                     delegatorId = context.user().subject();
                   }
+                  response
+                      .putHeader("Content-Type", headersAcceptType)
+                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                      .putHeader(
+                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                      .putHeader(
+                          NGSILD_RESULTS_COUNT,
+                          String.valueOf(getTemporalEntityData.getTotalHits()))
+                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
+                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
+                      .setStatusCode(200)
+                      /*.end(JsonObject.mapFrom(response).encode());*/
+                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
                   long bytesWritten = response.bytesWritten();
                   RoutingContextHelper.setResponseSize(context, bytesWritten);
                   AuditLog auditLog =
@@ -942,20 +952,6 @@ public class NGSILDSearchController implements ApiController {
                           delegatorId,
                           bytesWritten);
                   RoutingContextHelper.setAuditingLog(context, auditLog);
-                  response
-                      .putHeader("Content-Type", headersAcceptType)
-                      .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                      .putHeader(
-                          "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                      .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                      .putHeader(
-                          NGSILD_RESULTS_COUNT,
-                          String.valueOf(getTemporalEntityData.getTotalHits()))
-                      .putHeader(NGSILD_LIMIT, String.valueOf(ngsildQueryParams.getPageSize()))
-                      .putHeader(NGSILD_OFFSET, String.valueOf(ngsildQueryParams.getPageFrom()))
-                      .setStatusCode(200)
-                      /*.end(JsonObject.mapFrom(response).encode());*/
-                      .end(getTemporalEntityData.getElasticsearchResponses().toString());
                 })
             .onFailure(
                 err -> {
@@ -1028,6 +1024,18 @@ public class NGSILDSearchController implements ApiController {
                 } else {
                   delegatorId = routingContext.user().subject();
                 }
+                JsonObject result = new JsonObject();
+                result.put("type", "CountResult");
+                result.put("value", getTemporalEntityCount);
+                response
+                    .putHeader("Content-Type", headersAcceptType)
+                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
+                    .putHeader(
+                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
+                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityCount))
+                    .setStatusCode(200)
+                    .end(result.encode());
                 long bytesWritten = response.bytesWritten();
                 RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                 AuditLog auditLog =
@@ -1044,18 +1052,6 @@ public class NGSILDSearchController implements ApiController {
                         delegatorId,
                         bytesWritten);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                JsonObject result = new JsonObject();
-                result.put("type", "CountResult");
-                result.put("value", getTemporalEntityCount);
-                response
-                    .putHeader("Content-Type", headersAcceptType)
-                    .putHeader(HEADER_ALLOW_ORIGIN, "*")
-                    .putHeader(
-                        "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-                    .putHeader("Access-Control-Allow-Headers", "Authorization, Content-Type")
-                    .putHeader(NGSILD_RESULTS_COUNT, String.valueOf(getTemporalEntityCount))
-                    .setStatusCode(200)
-                    .end(result.encode());
               })
           .onFailure(
               err -> {
@@ -1093,22 +1089,6 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = routingContext.user().subject();
                     }
-                    long bytesWritten = response.bytesWritten();
-                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
-                    AuditLog auditLog =
-                        DataplaneAuditHelper.createAuditingLogs(
-                            RoutingContextHelper.getItemMetaData(routingContext),
-                            RoutingContextHelper.getId(routingContext),
-                            RoutingContextHelper.getRequestPath(routingContext),
-                            "GET",
-                            routingContext.user().subject(),
-                            NGSILD,
-                            role,
-                            DOWNLOAD,
-                            routingContext.user().principal().getString("iss"),
-                            delegatorId,
-                            bytesWritten);
-                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -1145,6 +1125,22 @@ public class NGSILDSearchController implements ApiController {
                         response.end(getTemporalEntityData.getElasticsearchResponses().toString());
                       }
                     }
+                    long bytesWritten = response.bytesWritten();
+                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            role,
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId,
+                            bytesWritten);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   })
               .onFailure(
                   err -> {
@@ -1173,22 +1169,6 @@ public class NGSILDSearchController implements ApiController {
                     } else {
                       delegatorId = routingContext.user().subject();
                     }
-                    long bytesWritten = response.bytesWritten();
-                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
-                    AuditLog auditLog =
-                        DataplaneAuditHelper.createAuditingLogs(
-                            RoutingContextHelper.getItemMetaData(routingContext),
-                            RoutingContextHelper.getId(routingContext),
-                            RoutingContextHelper.getRequestPath(routingContext),
-                            "GET",
-                            routingContext.user().subject(),
-                            NGSILD,
-                            role,
-                            DOWNLOAD,
-                            routingContext.user().principal().getString("iss"),
-                            delegatorId,
-                            bytesWritten);
-                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                     response
                         .putHeader("Content-Type", headersAcceptType)
@@ -1232,6 +1212,22 @@ public class NGSILDSearchController implements ApiController {
                         response.end(sanitizedResults.encodePrettily());
                       }
                     }
+                    long bytesWritten = response.bytesWritten();
+                    RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                    AuditLog auditLog =
+                        DataplaneAuditHelper.createAuditingLogs(
+                            RoutingContextHelper.getItemMetaData(routingContext),
+                            RoutingContextHelper.getId(routingContext),
+                            RoutingContextHelper.getRequestPath(routingContext),
+                            "GET",
+                            routingContext.user().subject(),
+                            NGSILD,
+                            role,
+                            DOWNLOAD,
+                            routingContext.user().principal().getString("iss"),
+                            delegatorId,
+                            bytesWritten);
+                    RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                   })
               .onFailure(
                   err -> {
@@ -1262,22 +1258,6 @@ public class NGSILDSearchController implements ApiController {
                   } else {
                     delegatorId = routingContext.user().subject();
                   }
-                  long bytesWritten = response.bytesWritten();
-                  RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
-                  AuditLog auditLog =
-                      DataplaneAuditHelper.createAuditingLogs(
-                          RoutingContextHelper.getItemMetaData(routingContext),
-                          RoutingContextHelper.getId(routingContext),
-                          RoutingContextHelper.getRequestPath(routingContext),
-                          "GET",
-                          routingContext.user().subject(),
-                          NGSILD,
-                          role,
-                          DOWNLOAD,
-                          routingContext.user().principal().getString("iss"),
-                          delegatorId,
-                          bytesWritten);
-                  RoutingContextHelper.setAuditingLog(routingContext, auditLog);
 
                   response
                       .putHeader("Content-Type", headersAcceptType)
@@ -1313,6 +1293,22 @@ public class NGSILDSearchController implements ApiController {
                       response.end(getTemporalEntityData.getElasticsearchResponses().toString());
                     }
                   }
+                  long bytesWritten = response.bytesWritten();
+                  RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                  AuditLog auditLog =
+                      DataplaneAuditHelper.createAuditingLogs(
+                          RoutingContextHelper.getItemMetaData(routingContext),
+                          RoutingContextHelper.getId(routingContext),
+                          RoutingContextHelper.getRequestPath(routingContext),
+                          "GET",
+                          routingContext.user().subject(),
+                          NGSILD,
+                          role,
+                          DOWNLOAD,
+                          routingContext.user().principal().getString("iss"),
+                          delegatorId,
+                          bytesWritten);
+                  RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                 })
             .onFailure(
                 err -> {

@@ -16,26 +16,28 @@ import org.cdpg.dx.database.redis.service.RedisService;
 
 public class RedisAccessLimitHandler implements Handler<RoutingContext> {
   private static final Logger LOGGER = LogManager.getLogger(RedisAccessLimitHandler.class);
-  private static final String HITS_KEY_PREFIX = "dx";
   private static final String API_HITS_FIELD = "apiHits";
   private static final String DATA_USAGE_FIELD = "dataUsage";
-
+  private final String hitsKeyPrefix;
   private final RedisService redisService;
 
-  public RedisAccessLimitHandler(RedisService redisService) {
+  public RedisAccessLimitHandler(RedisService redisService, String redisKeyPrefix) {
     this.redisService = redisService;
+    this.hitsKeyPrefix = redisKeyPrefix;
   }
 
   @Override
   public void handle(RoutingContext context) {
     User user = context.user();
     if (user == null) {
+      LOGGER.debug("RedisAccessLimitHandler skipped: user not present in context");
       context.next();
       return;
     }
 
     String assetId = RoutingContextHelper.getId(context);
     if (assetId == null || assetId.isBlank()) {
+      LOGGER.debug("RedisAccessLimitHandler skipped: assetId missing in context");
       context.next();
       return;
     }
@@ -49,39 +51,49 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
             : (itemMetaData != null && !itemMetaData.isEmpty() ? itemMetaData : principal);
 
     JsonObject accessEntry = findAccessEntry(accessSource);
-    if (accessEntry == null) {
-      context.next();
-      return;
-    }
-
-    long expiryEpochSeconds = accessEntry.getLong("expiry", -1L);
+    long expiryEpochSeconds = accessEntry != null ? accessEntry.getLong("expiry", -1L) : -1L;
     if (isExpired(expiryEpochSeconds)) {
-      context.fail(new DxForbiddenNoAccessException("Access token has expired"));
+      context.fail(new DxForbiddenNoAccessException("Access token policy has expired"));
       return;
     }
 
-    JsonObject subjects =
-        accessSource.getJsonObject(
-            "subjects", principal.getJsonObject("subjects", accessEntry.getJsonObject("subjects")));
-    if (!isSubjectAllowed(principal, userId, subjects)) {
-      context.fail(new DxForbiddenNoAccessException("User is not allowed for this resource"));
-      return;
-    }
-
-    JsonObject limits = accessEntry.getJsonObject("limits", new JsonObject());
+    JsonObject limits =
+        accessEntry != null
+            ? accessEntry.getJsonObject("limits", new JsonObject())
+            : new JsonObject();
+    String accessPolicy =
+        accessSource.getString("accessPolicy", principal.getString("accessPolicy", ""));
+    boolean isOpenPolicy = isOpenPolicy(accessPolicy);
     long apiHitsLimit = limits.getLong(API_HITS_FIELD, -1L);
     long dataUsageLimitBytes = parseDataUsageToBytes(limits.getString(DATA_USAGE_FIELD));
+    boolean enforceApiHits = !isOpenPolicy && apiHitsLimit >= 0;
+    boolean enforceDataUsage = !isOpenPolicy && dataUsageLimitBytes >= 0;
     String hitsKey = buildHitsKey(userId, assetId);
     String usageKey = buildUsageKey(userId, assetId);
 
-    Future<Void> checks = Future.succeededFuture();
+    LOGGER.info(
+        "RateLimit init: userId={}, assetId={}, policy={},  hitsKey={}, usageKey={}",
+        userId,
+        assetId,
+        accessPolicy,
+        hitsKey,
+        usageKey);
 
-    if (apiHitsLimit >= 0) {
+    Future<Void> checks = ensureRedisKeys(hitsKey, usageKey, expiryEpochSeconds);
+
+    if (enforceApiHits) {
       checks =
           checks
               .compose(v -> redisService.getLong(hitsKey))
               .compose(
                   consumedHits -> {
+                    LOGGER.info(
+                        "RateLimit pre-check apiHits: userId={}, assetId={}, key={}, consumed={}, limit={}",
+                        userId,
+                        assetId,
+                        hitsKey,
+                        consumedHits,
+                        apiHitsLimit);
                     if (consumedHits >= apiHitsLimit) {
                       return Future.failedFuture(
                           new DxTooManyRequestsException(
@@ -91,12 +103,19 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
                   });
     }
 
-    if (dataUsageLimitBytes >= 0) {
+    if (enforceDataUsage) {
       checks =
           checks
               .compose(v -> redisService.getLong(usageKey))
               .compose(
                   consumed -> {
+                    LOGGER.info(
+                        "RateLimit pre-check dataUsage: userId={}, assetId={}, key={}, consumedBytes={}, limitBytes={}",
+                        userId,
+                        assetId,
+                        usageKey,
+                        consumed,
+                        dataUsageLimitBytes);
                     if (consumed >= dataUsageLimitBytes) {
                       return Future.failedFuture(
                           new DxTooManyRequestsException(
@@ -109,12 +128,20 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
     checks
         .onSuccess(
             v -> {
+              LOGGER.info(
+                  "RateLimit checks passed: userId={}, assetId={}, enforceApiHits={}, enforceDataUsage={}",
+                  userId,
+                  assetId,
+                  enforceApiHits,
+                  enforceDataUsage);
               registerSuccessUpdateHandler(
                   context,
                   hitsKey,
                   usageKey,
                   apiHitsLimit,
                   dataUsageLimitBytes,
+                  enforceApiHits,
+                  enforceDataUsage,
                   expiryEpochSeconds,
                   userId,
                   assetId);
@@ -123,7 +150,7 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
         .onFailure(
             err -> {
               LOGGER.warn(
-                  "Quota enforcement failed for user {} and asset {}: {}",
+                  "RateLimit checks failed: userId={}, assetId={}, error={}",
                   userId,
                   assetId,
                   err.getMessage());
@@ -137,20 +164,34 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
       String usageKey,
       long apiHitsLimit,
       long dataUsageLimitBytes,
+      boolean enforceApiHits,
+      boolean enforceDataUsage,
       long expiryEpochSeconds,
       String userId,
       String assetId) {
     context.addBodyEndHandler(
         v -> {
-          if (context.response().getStatusCode() >= 400) {
+          int statusCode = context.response().getStatusCode();
+          if (statusCode != 200 && statusCode != 201 && statusCode != 204) {
+            LOGGER.debug(
+                "RateLimit post-update skipped due to status: userId={}, assetId={}, status={}",
+                userId,
+                assetId,
+                statusCode);
             return;
           }
 
-          if (apiHitsLimit >= 0) {
+          if (enforceApiHits) {
             redisService
                 .incrementByIfWithinLimit(hitsKey, 1L, apiHitsLimit, expiryEpochSeconds)
                 .onSuccess(
                     incremented -> {
+                      LOGGER.info(
+                          "RateLimit apiHits update: userId={}, assetId={}, key={}, delta=1, enforced=true, applied={}",
+                          userId,
+                          assetId,
+                          hitsKey,
+                          incremented);
                       if (!incremented) {
                         LOGGER.warn(
                             "API hit quota update skipped at limit boundary. userId={}, assetId={}, limitHits={}",
@@ -166,21 +207,54 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
                             userId,
                             assetId,
                             err.getMessage()));
+          } else {
+            redisService
+                .incrementBy(hitsKey, 1L)
+                .compose(total -> applyExpiry(hitsKey, expiryEpochSeconds))
+                .onSuccess(
+                    ignored ->
+                        LOGGER.debug(
+                            "RateLimit apiHits update: userId={}, assetId={}, key={}, delta=1, enforced=false, applied=true",
+                            userId,
+                            assetId,
+                            hitsKey))
+                .onFailure(
+                    err ->
+                        LOGGER.error(
+                            "Failed to update non-limited apiHits in Redis for user {} and asset {}: {}",
+                            userId,
+                            assetId,
+                            err.getMessage()));
           }
 
-          if (dataUsageLimitBytes >= 0) {
-            Long auditedResponseSize = RoutingContextHelper.getResponseSize(context);
-            long bytesWritten =
-                auditedResponseSize != null ? auditedResponseSize : context.response().bytesWritten();
-            if (bytesWritten <= 0) {
-              return;
-            }
+          Long auditedResponseSize = RoutingContextHelper.getResponseSize(context);
+          long bytesWritten =
+              (auditedResponseSize != null && auditedResponseSize > 0)
+                  ? auditedResponseSize
+                  : context.response().bytesWritten();
+          LOGGER.info("RateLimit dataUsage source: responseBytesWritten={}", bytesWritten);
+          if (bytesWritten <= 0) {
+            LOGGER.debug(
+                "RateLimit dataUsage update skipped: userId={}, assetId={}, chosenBytes={}",
+                userId,
+                assetId,
+                bytesWritten);
+            return;
+          }
 
+          if (enforceDataUsage) {
             redisService
                 .incrementByIfWithinLimit(
                     usageKey, bytesWritten, dataUsageLimitBytes, expiryEpochSeconds)
                 .onSuccess(
                     incremented -> {
+                      LOGGER.info(
+                          "RateLimit dataUsage update: userId={}, assetId={}, key={}, deltaBytes={}, enforced=true, applied={}",
+                          userId,
+                          assetId,
+                          usageKey,
+                          bytesWritten,
+                          incremented);
                       if (!incremented) {
                         LOGGER.warn(
                             "Data usage quota update skipped at limit boundary. userId={}, assetId={}, attemptedBytes={}, limitBytes={}",
@@ -197,8 +271,38 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
                             userId,
                             assetId,
                             err.getMessage()));
+          } else {
+            redisService
+                .incrementBy(usageKey, bytesWritten)
+                .compose(total -> applyExpiry(usageKey, expiryEpochSeconds))
+                .onSuccess(
+                    ignored ->
+                        LOGGER.info(
+                            "RateLimit dataUsage update: userId={}, assetId={}, key={}, bytes={}, enforced=false, applied=true",
+                            userId,
+                            assetId,
+                            usageKey,
+                            bytesWritten))
+                .onFailure(
+                    err ->
+                        LOGGER.error(
+                            "Failed to update non-limited data usage in Redis for user {} and asset {}: {}",
+                            userId,
+                            assetId,
+                            err.getMessage()));
           }
         });
+  }
+
+  private Future<Void> ensureRedisKeys(String hitsKey, String usageKey, long expiryEpochSeconds) {
+    return redisService
+        .incrementBy(hitsKey, 0L)
+        .compose(v -> applyExpiry(hitsKey, expiryEpochSeconds))
+        .compose(v -> redisService.incrementBy(usageKey, 0L))
+        .compose(v -> applyExpiry(usageKey, expiryEpochSeconds))
+        .onSuccess(v -> LOGGER.info("RateLimit keys insertion success"))
+        .onFailure(err -> LOGGER.error("RateLimit ensure keys failed: {}", err.getMessage()))
+        .mapEmpty();
   }
 
   private Future<Void> applyExpiry(String key, long expiryEpochSeconds) {
@@ -209,15 +313,21 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
   }
 
   private boolean isExpired(long expiryEpochSeconds) {
+    LOGGER.debug("RateLimit current epoch seconds={}", System.currentTimeMillis() / 1000L);
     return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 
+  private boolean isOpenPolicy(String accessPolicy) {
+    return accessPolicy != null
+        && ("open".equalsIgnoreCase(accessPolicy) || "public".equalsIgnoreCase(accessPolicy));
+  }
+
   private String buildHitsKey(String userId, String assetId) {
-    return HITS_KEY_PREFIX + ":" + userId + ":" + assetId + ":hits";
+    return hitsKeyPrefix + ":" + userId + ":" + assetId + ":hits";
   }
 
   private String buildUsageKey(String userId, String assetId) {
-    return HITS_KEY_PREFIX + ":" + userId + ":" + assetId + ":usageBytes";
+    return hitsKeyPrefix + ":" + userId + ":" + assetId + ":usageBytes";
   }
 
   private JsonObject findAccessEntry(JsonObject principal) {
@@ -248,55 +358,6 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
       }
     }
     return fallbackEntry;
-  }
-
-  private boolean isSubjectAllowed(JsonObject principal, String userId, JsonObject subjects) {
-    if (subjects == null || subjects.isEmpty()) {
-      return true;
-    }
-
-    JsonArray allowedUserIds = subjects.getJsonArray("allowedUserIds", new JsonArray());
-    if (!allowedUserIds.isEmpty() && !allowedUserIds.contains(userId)) {
-      return false;
-    }
-
-    String orgId = principal.getString("organisation_id", "");
-    JsonArray allowedOrgIds = subjects.getJsonArray("allowedOrgIds", new JsonArray());
-    if (!allowedOrgIds.isEmpty() && (orgId == null || orgId.isBlank() || !allowedOrgIds.contains(orgId))) {
-      return false;
-    }
-
-    JsonArray allowedRoles = subjects.getJsonArray("allowedRoles", new JsonArray());
-    if (!allowedRoles.isEmpty() && !hasAnyAllowedRole(principal, allowedRoles)) {
-      return false;
-    }
-    return true;
-  }
-
-  private boolean hasAnyAllowedRole(JsonObject principal, JsonArray allowedRoles) {
-    JsonObject realmAccess = principal.getJsonObject("realm_access", new JsonObject());
-    JsonArray tokenRoles = realmAccess.getJsonArray("roles", new JsonArray());
-    if (tokenRoles.isEmpty()) {
-      return false;
-    }
-    for (Object roleObj : tokenRoles) {
-      if (!(roleObj instanceof String role)) {
-        continue;
-      }
-      if (containsIgnoreCase(allowedRoles, role)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private boolean containsIgnoreCase(JsonArray array, String value) {
-    for (Object obj : array) {
-      if (obj instanceof String str && str.equalsIgnoreCase(value)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private long parseDataUsageToBytes(String dataUsage) {

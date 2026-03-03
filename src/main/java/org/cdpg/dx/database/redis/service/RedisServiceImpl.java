@@ -142,7 +142,11 @@ public class RedisServiceImpl implements RedisService {
             + "local expiry = tonumber(ARGV[3]) "
             + "local current = tonumber(redis.call('GET', key) or '0') "
             + "local nextVal = current + delta "
-            + "if nextVal > maxAllowed then return 0 end "
+            + "if nextVal > maxAllowed then "
+            + "  redis.call('SET', key, maxAllowed) "
+            + "  if expiry > 0 then redis.call('EXPIREAT', key, expiry) end "
+            + "  return 0 "
+            + "end "
             + "redis.call('INCRBY', key, delta) "
             + "if expiry > 0 then redis.call('EXPIREAT', key, expiry) end "
             + "return 1";
