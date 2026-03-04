@@ -74,7 +74,8 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
 
     String policyId = RoutingContextHelper.getPolicyId(context);
     if (policyId == null || policyId.isBlank()) {
-      context.fail(new DxForbiddenNoAccessException("policyId is mandatory for restricted resource"));
+      context.fail(
+          new DxForbiddenNoAccessException("policyId is mandatory for restricted resource"));
       return;
     }
 
@@ -247,7 +248,7 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
               (auditedResponseSize != null && auditedResponseSize > 0)
                   ? auditedResponseSize
                   : context.response().bytesWritten();
-          LOGGER.info("RateLimit dataUsage source: responseBytesWritten={}", bytesWritten);
+          LOGGER.debug("RateLimit dataUsage source: responseBytesWritten={}", bytesWritten);
           if (bytesWritten <= 0) {
             LOGGER.debug(
                 "RateLimit dataUsage update skipped: userId={}, assetId={}, chosenBytes={}",
@@ -328,7 +329,7 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
   }
 
   private boolean isExpired(long expiryEpochSeconds) {
-    LOGGER.debug("RateLimit current epoch seconds={}", System.currentTimeMillis() / 1000L);
+    LOGGER.trace("RateLimit current epoch seconds={}", System.currentTimeMillis() / 1000L);
     return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 
@@ -426,5 +427,4 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
     }
     return null;
   }
-
 }
