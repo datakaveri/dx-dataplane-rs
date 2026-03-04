@@ -782,7 +782,7 @@ public class NGSILDParamsValidator {
   }
 
   public void isValidQueryWithFilters(MultiMap paramsMap, JsonArray applicableFilters) {
-    LOGGER.info("validation filters " + applicableFilters);
+    LOGGER.debug("validation filters " + applicableFilters);
     if (applicableFilters == null || applicableFilters.isEmpty()) {
       throw new DxBadRequestException("No filters given that are applicable for RS Item.");
     }

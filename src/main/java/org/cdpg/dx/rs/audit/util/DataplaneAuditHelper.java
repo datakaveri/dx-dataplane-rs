@@ -23,7 +23,8 @@ public class DataplaneAuditHelper {
       String role,
       String operation,
       String iss,
-      String delegateId) {
+      String delegateId,
+      long byteWritten) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
         id,
@@ -33,7 +34,7 @@ public class DataplaneAuditHelper {
         LocalDateTime.now().toString(),
         apiEndpoint,
         method,
-        0L,
+        byteWritten,
         role,
         UUID.fromString(userId),
         serverName,

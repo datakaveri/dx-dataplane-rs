@@ -22,6 +22,7 @@ import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
@@ -29,6 +30,7 @@ import org.cdpg.dx.rs.latest.service.LatestService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
+import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
@@ -39,19 +41,23 @@ public class LatestController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
       LatestService latestService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler) {
+      AuditingHandler auditingHandler/*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     this.latestService = latestService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -62,6 +68,7 @@ public class LatestController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handlePostEntityDataSearch);
     builder
@@ -70,6 +77,7 @@ public class LatestController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleGetSearchQuery);
 
@@ -102,6 +110,13 @@ public class LatestController implements ApiController {
                 } else {
                   delegatorId = routingContext.user().subject();
                 }
+                ResponseBuilder.sendSuccess(
+                    routingContext,
+                    searchService.getElasticsearchResponses(),
+                    searchService.getPaginationInfo(),
+                    urnGenerator);
+                long bytesWritten = routingContext.response().bytesWritten();
+                RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
                         RoutingContextHelper.getItemMetaData(routingContext),
@@ -113,13 +128,9 @@ public class LatestController implements ApiController {
                         role,
                         DOWNLOAD,
                         routingContext.user().principal().getString("iss"),
-                        delegatorId);
+                        delegatorId,
+                        bytesWritten);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                ResponseBuilder.sendSuccess(
-                    routingContext,
-                    searchService.getElasticsearchResponses(),
-                    searchService.getPaginationInfo(),
-                    urnGenerator);
               })
           .onFailure(
               err -> {
@@ -170,6 +181,9 @@ public class LatestController implements ApiController {
               } else {
                 delegatorId = ctx.user().subject();
               }
+              sendResponse(ctx, result);
+              long bytesWritten = ctx.response().bytesWritten();
+              RoutingContextHelper.setResponseSize(ctx, bytesWritten);
               AuditLog auditLog =
                   DataplaneAuditHelper.createAuditingLogs(
                       RoutingContextHelper.getItemMetaData(ctx),
@@ -181,9 +195,9 @@ public class LatestController implements ApiController {
                       role,
                       DOWNLOAD,
                       ctx.user().principal().getString("iss"),
-                      delegatorId);
+                      delegatorId,
+                      bytesWritten);
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
-              sendResponse(ctx, result);
             })
         .onFailure(
             err -> {

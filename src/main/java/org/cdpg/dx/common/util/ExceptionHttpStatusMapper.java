@@ -23,6 +23,7 @@ public class ExceptionHttpStatusMapper {
       case DxForbiddenNoAccessException e -> HttpStatusCode.FORBIDDEN_NO_ACCESS;
       case DxForbiddenAccessRejectedException e -> HttpStatusCode.FORBIDDEN_ACCESS_REJECTED;
       case DxForbiddenPendingAccessException e -> HttpStatusCode.FORBIDDEN_ACCESS_PENDING;
+      case DxTooManyRequestsException e -> HttpStatusCode.TOO_MANY_REQUESTS;
       case DxBadRequestException e -> HttpStatusCode.BAD_REQUEST;
       case DxValidationException e -> HttpStatusCode.BAD_REQUEST;
       case DxCreateAccessRequestForbiddenException e -> HttpStatusCode.FORBIDDEN;

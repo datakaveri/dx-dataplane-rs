@@ -39,17 +39,22 @@ public class DownloadController implements ApiController {
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
 
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
+
   public DownloadController(
       DownloadService downloadService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler) {
+      AuditingHandler auditingHandler /*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -60,6 +65,7 @@ public class DownloadController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleDownloadIdGetData);
     builder
@@ -68,6 +74,7 @@ public class DownloadController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
@@ -120,6 +127,9 @@ public class DownloadController implements ApiController {
                           } else {
                             delegatorId = routingContext.user().subject();
                           }
+                          response.end();
+                          long bytesWritten = response.bytesWritten();
+                          RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                           AuditLog auditLog =
                               DataplaneAuditHelper.createAuditingLogs(
                                   RoutingContextHelper.getItemMetaData(routingContext),
@@ -131,9 +141,9 @@ public class DownloadController implements ApiController {
                                   role,
                                   DOWNLOAD,
                                   routingContext.user().principal().getString("iss"),
-                                  delegatorId);
+                                  delegatorId,
+                                  bytesWritten);
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                          response.end();
                         });
               })
           .onFailure(
@@ -211,6 +221,9 @@ public class DownloadController implements ApiController {
                         } else {
                           delegatorId = routingContext.user().subject();
                         }
+                        response.end();
+                        long bytesWritten = response.bytesWritten();
+                        RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                         AuditLog auditLog =
                             DataplaneAuditHelper.createAuditingLogs(
                                 RoutingContextHelper.getItemMetaData(routingContext),
@@ -222,9 +235,9 @@ public class DownloadController implements ApiController {
                                 role,
                                 DOWNLOAD,
                                 routingContext.user().principal().getString("iss"),
-                                delegatorId);
+                                delegatorId,
+                                bytesWritten);
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
-                        response.end();
                       });
             })
         .onFailure(

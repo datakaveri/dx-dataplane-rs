@@ -34,6 +34,7 @@ public class ControllerFactory {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
+    /* RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);*/
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
     String timeLimit = config.getString("timeLimit");
@@ -41,6 +42,7 @@ public class ControllerFactory {
 
     String tenantPrefix = config.getString("tenantPrefix");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
+    /*String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");*/
     OnboardingService onboardingService = new OnboardingServiceImpl(elasticsearchService);
     ApiController onboardingController =
         new ElasticOnboardingController(onboardingService, tenantPrefix, urnGenerator);
@@ -55,10 +57,18 @@ public class ControllerFactory {
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
         LatestControllerFactory.create(
-            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler);
+            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler /*,
+            redisService,
+            redisKeyPrefix*/);
     ApiController downloadController =
         DownloadControllerFactory.create(
-            timeLimit, controlPlaneDomain, urnGenerator, elasticsearchService, auditingHandler);
+            timeLimit,
+            controlPlaneDomain,
+            urnGenerator,
+            elasticsearchService,
+            auditingHandler /*,
+                            redisService,
+                            redisKeyPrefix*/);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -67,7 +77,9 @@ public class ControllerFactory {
             urnGenerator,
             maxDaysSync,
             maxDaysAsync,
-            auditingHandler);
+            auditingHandler /*,
+                            redisService,
+                            redisKeyPrefix*/);
 
     ApiController ngsildDataPublishController =
         NGSILDDataPublishFactory.create(

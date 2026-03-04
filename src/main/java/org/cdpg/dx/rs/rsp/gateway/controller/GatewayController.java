@@ -60,12 +60,16 @@ public class GatewayController implements ApiController {
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
 
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
+
   public GatewayController(
       DataBrokerService dataBrokerService,
       GatewayParamValidator gatewayParamValidator,
       URNGenerator urnGenerator,
       String controlPlaneDomain,
-      AuditingHandler auditingHandler) {
+      AuditingHandler auditingHandler /*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
     this.gatewayParamValidator = gatewayParamValidator;
     this.urnGenerator = urnGenerator;
@@ -73,6 +77,7 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -83,6 +88,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
@@ -91,6 +97,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, true));
 
@@ -101,6 +108,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
@@ -109,6 +117,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, true));
   }
@@ -216,19 +225,6 @@ public class GatewayController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
-                AuditLog auditLog =
-                    DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        RoutingContextHelper.getId(ctx),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "POST",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        role,
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId);
-                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 response
                     .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -242,6 +238,22 @@ public class GatewayController implements ApiController {
                     .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
                     .setStatusCode(200)
                     .end(rpcResponse.getJsonArray("results").encodePrettily());
+                long bytesWritten = response.bytesWritten();
+                RoutingContextHelper.setResponseSize(ctx, bytesWritten);
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(ctx),
+                        RoutingContextHelper.getId(ctx),
+                        RoutingContextHelper.getRequestPath(ctx),
+                        "POST",
+                        ctx.user().subject(),
+                        GATEWAY,
+                        role,
+                        DOWNLOAD,
+                        ctx.user().principal().getString("iss"),
+                        delegatorId,
+                        bytesWritten);
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure
                 LOGGER.error("Failed RPC response: {}", rpcResponse.encodePrettily());
@@ -332,19 +344,6 @@ public class GatewayController implements ApiController {
                   delegatorId = ctx.user().subject();
                 }
                 // success
-                AuditLog auditLog =
-                    DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        params.get(ID),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "GET",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        role,
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId);
-                RoutingContextHelper.setAuditingLog(ctx, auditLog);
                 response
                     .putHeader("Content-Type", headersAcceptType)
                     .putHeader(HEADER_ALLOW_ORIGIN, "*")
@@ -358,6 +357,22 @@ public class GatewayController implements ApiController {
                     .putHeader(NGSILD_OFFSET, String.valueOf(gatewayQueryParams.getPageFrom()))*/
                     .setStatusCode(200)
                     .end(rpcResponse.getJsonArray("results").encodePrettily());
+                long bytesWritten = response.bytesWritten();
+                RoutingContextHelper.setResponseSize(ctx, bytesWritten);
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        RoutingContextHelper.getItemMetaData(ctx),
+                        params.get(ID),
+                        RoutingContextHelper.getRequestPath(ctx),
+                        "GET",
+                        ctx.user().subject(),
+                        GATEWAY,
+                        role,
+                        DOWNLOAD,
+                        ctx.user().principal().getString("iss"),
+                        delegatorId,
+                        bytesWritten);
+                RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure
                 LOGGER.error("Fail RPC response: {}", rpcResponse.encodePrettily());

@@ -34,6 +34,7 @@ public final class RoutingContextHelper {
   private static final String ALLOWED_ATTRIBUTES = "allowedattributes";
   private static final String OWNER_USER_ID = "ownerUserId";
   private static final String DID = "did";
+  private static final String POLICY_ID = "policyId";
 
   private RoutingContextHelper() {
     // Prevent instantiation
@@ -199,6 +200,14 @@ public final class RoutingContextHelper {
 
   public static String getDid(RoutingContext event) {
     return event.get(DID);
+  }
+
+  public static void setPolicyId(RoutingContext context, String policyId) {
+    context.put(POLICY_ID, policyId);
+  }
+
+  public static String getPolicyId(RoutingContext event) {
+    return event.get(POLICY_ID);
   }
 
   public static void setAllowedAttributes(RoutingContext context, JsonArray allowedAttributes) {

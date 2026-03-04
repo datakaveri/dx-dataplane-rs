@@ -116,7 +116,8 @@ public class NGSILDDataPublishController implements ApiController {
                       role,
                       CREATE,
                       context.user().principal().getString("iss"),
-                      delegatorId);
+                      delegatorId,
+                      0L);
               RoutingContextHelper.setAuditingLog(context, auditLog);
               response
                   .putHeader("Content-Type", "application/json")
@@ -160,7 +161,8 @@ public class NGSILDDataPublishController implements ApiController {
                       role,
                       CREATE,
                       context.user().principal().getString("iss"),
-                      delegatorId);
+                      delegatorId,
+                      0L);
               RoutingContextHelper.setAuditingLog(context, auditLog);
               response
                   .putHeader("Content-Type", "application/json")

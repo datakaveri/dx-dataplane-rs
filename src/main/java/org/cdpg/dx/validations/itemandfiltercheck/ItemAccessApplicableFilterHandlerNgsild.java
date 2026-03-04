@@ -10,6 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import java.util.List;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +35,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
   public void handle(RoutingContext context) {
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerNgsild");
 
-    if (context.user().principal().containsKey("cons")) {
+    if (hasAccessPayload(context.user().principal())) {
       LOGGER.debug("Processing access token");
       try {
         JsonArray resourceServers = context.user().principal().getJsonArray("resourceServer");
@@ -57,16 +58,19 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                         new DxBadRequestException(
                             "No queryTypes types(filters) found for NGSI-LD server"));
         JsonArray allowedAttributes =
-            Optional.ofNullable(context.user().principal().getJsonObject("cons"))
+            Optional.ofNullable(getCons(context.user().principal()))
                 .map(cons -> cons.getJsonArray("allowedAttributes"))
                 .orElse(new JsonArray());
+        String accessPolicy = context.user().principal().getString("accessPolicy");
+        validateApiAccessType(context.user().principal(), ngsiLdServer, accessPolicy);
 
         RoutingContextHelper.setItemMetaData(context, context.user().principal());
         RoutingContextHelper.setApplicableFilter(context, queryTypes);
         RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
         RoutingContextHelper.setIid(context, context.user().principal().getString("iid"));
-        RoutingContextHelper.setAccessPolicy(
-            context, context.user().principal().getString("accessPolicy"));
+        RoutingContextHelper.setAccessPolicy(context, accessPolicy);
+        RoutingContextHelper.setPolicyId(
+            context, getPolicyIdFromPolicies(context.user().principal()));
         context.next();
         return;
       } catch (Exception e) {
@@ -121,15 +125,18 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                                   new DxBadRequestException(
                                       "No queryTypes types(filters) found for NGSI-LD server"));
                   JsonArray allowedAttributes =
-                      Optional.ofNullable(result.getJsonObject("cons"))
+                      Optional.ofNullable(getCons(result))
                           .map(cons -> cons.getJsonArray("allowedAttributes"))
                           .orElse(new JsonArray());
+                  String accessPolicy = result.getString("accessPolicy");
+                  validateApiAccessType(result, ngsiLdServer, accessPolicy);
 
                   RoutingContextHelper.setApplicableFilter(context, queryTypes);
                   RoutingContextHelper.setItemMetaData(context, result);
                   RoutingContextHelper.setAllowedAttributes(context, allowedAttributes);
                   RoutingContextHelper.setIid(context, result.getString("id"));
-                  RoutingContextHelper.setAccessPolicy(context, result.getString("accessPolicy"));
+                  RoutingContextHelper.setAccessPolicy(context, accessPolicy);
+                  RoutingContextHelper.setPolicyId(context, getPolicyIdFromPolicies(result));
                   context.next();
                 } catch (Exception e) {
                   LOGGER.error("Error processing control plane response {}", e.getMessage());
@@ -188,5 +195,110 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                     new DxInternalServerErrorException(
                         "Item metadata fetch failed: " + err.getMessage())));
     return promise.future();
+  }
+
+  private void validateApiAccessType(
+      JsonObject source, JsonObject selectedResourceServer, String accessPolicy) {
+    if (accessPolicy != null
+        && ("open".equalsIgnoreCase(accessPolicy) || "public".equalsIgnoreCase(accessPolicy))) {
+      return;
+    }
+
+    JsonArray rsAccessTypes =
+        selectedResourceServer != null
+            ? selectedResourceServer.getJsonArray("accessTypes", new JsonArray())
+            : new JsonArray();
+    boolean hasApiInResourceServer = containsApi(rsAccessTypes);
+
+    JsonArray accessArray = source.getJsonArray("access");
+    if (accessArray == null) {
+      JsonObject cons = getCons(source);
+      if (cons != null) {
+        accessArray = cons.getJsonArray("access");
+      }
+    }
+
+    if ((accessArray == null || accessArray.isEmpty()) && !hasApiInResourceServer) {
+      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
+    }
+
+    if (accessArray == null || accessArray.isEmpty()) {
+      return;
+    }
+
+    List<JsonObject> apiAccessEntries =
+        accessArray.stream()
+            .filter(JsonObject.class::isInstance)
+            .map(JsonObject.class::cast)
+            .filter(access -> "api".equalsIgnoreCase(access.getString("accessType", "")))
+            .toList();
+
+    if (apiAccessEntries.isEmpty() && !hasApiInResourceServer) {
+      throw new DxForbiddenNoAccessException(
+          "Required accessType 'api' missing for restricted resource");
+    }
+
+    if (!apiAccessEntries.isEmpty()) {
+      boolean hasValidExpiry =
+          apiAccessEntries.stream().anyMatch(access -> !isExpired(access.getLong("expiry", -1L)));
+      if (!hasValidExpiry) {
+        throw new DxForbiddenNoAccessException("Access token policy has expired");
+      }
+    }
+
+    LOGGER.info("Restricted access validation passed: api accessType and expiry are valid");
+  }
+
+  private boolean containsApi(JsonArray accessTypes) {
+    return accessTypes.stream()
+        .filter(String.class::isInstance)
+        .map(String.class::cast)
+        .anyMatch(type -> "api".equalsIgnoreCase(type));
+  }
+
+  private boolean isExpired(long expiryEpochSeconds) {
+    return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
+  }
+
+  private boolean hasAccessPayload(JsonObject source) {
+    return source != null && source.containsKey("policies");
+  }
+
+  private JsonObject getCons(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        JsonObject cons = policy.getJsonObject("cons");
+        if (cons != null) {
+          return cons;
+        }
+      }
+    }
+    return null;
+  }
+
+  private String getPolicyIdFromPolicies(JsonObject source) {
+    if (source == null) {
+      return null;
+    }
+    JsonArray policies = source.getJsonArray("policies");
+    if (policies == null || policies.isEmpty()) {
+      return null;
+    }
+    for (Object object : policies) {
+      if (object instanceof JsonObject policy) {
+        String policyId = policy.getString("policyId");
+        if (policyId != null && !policyId.isBlank()) {
+          return policyId;
+        }
+      }
+    }
+    return null;
   }
 }

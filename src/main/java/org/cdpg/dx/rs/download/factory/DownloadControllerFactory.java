@@ -3,6 +3,7 @@ package org.cdpg.dx.rs.download.factory;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.rs.download.controller.DownloadController;
 import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.rs.download.service.DownloadServiceImpl;
@@ -13,10 +14,17 @@ public class DownloadControllerFactory {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       ElasticsearchService elasticsearchService,
-      AuditingHandler auditingHandler) {
+      AuditingHandler auditingHandler/*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     DownloadService downloadService = new DownloadServiceImpl(timeLimit, elasticsearchService);
 
     return new DownloadController(
-        downloadService, controlPlaneDomain, urnGenerator, auditingHandler);
+        downloadService,
+        controlPlaneDomain,
+        urnGenerator,
+        auditingHandler/*,
+        redisService,
+        redisKeyPrefix*/);
   }
 }
