@@ -47,16 +47,16 @@ public class EntitiesController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
-  private final RedisAccessLimitHandler redisAccessLimitHandler;
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   public EntitiesController(
       DataBrokerService dataBrokerService,
       ParamsValidator paramsValidator,
       URNGenerator urnGenerator,
       String controlPlaneDomain,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler/*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
@@ -64,7 +64,7 @@ public class EntitiesController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.idValidation = new IdValidation();
     this.auditingHandler = auditingHandler;
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -76,7 +76,7 @@ public class EntitiesController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
@@ -85,7 +85,7 @@ public class EntitiesController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, true));
 
@@ -96,7 +96,7 @@ public class EntitiesController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
@@ -105,7 +105,7 @@ public class EntitiesController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, true));
   }

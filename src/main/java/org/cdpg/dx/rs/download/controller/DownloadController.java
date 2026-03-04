@@ -22,7 +22,6 @@ import org.cdpg.dx.auth.authorization.model.DxRole;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
@@ -30,7 +29,6 @@ import org.cdpg.dx.rs.download.service.DownloadService;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
-import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
@@ -40,22 +38,23 @@ public class DownloadController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
-  private final RedisAccessLimitHandler redisAccessLimitHandler;
+
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   public DownloadController(
       DownloadService downloadService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler /*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     this.downloadService = downloadService;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -66,7 +65,7 @@ public class DownloadController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleDownloadIdGetData);
     builder
@@ -75,7 +74,7 @@ public class DownloadController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");

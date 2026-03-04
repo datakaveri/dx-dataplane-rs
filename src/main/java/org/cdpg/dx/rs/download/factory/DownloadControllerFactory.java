@@ -14,17 +14,17 @@ public class DownloadControllerFactory {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       ElasticsearchService elasticsearchService,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler/*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     DownloadService downloadService = new DownloadServiceImpl(timeLimit, elasticsearchService);
 
     return new DownloadController(
         downloadService,
         controlPlaneDomain,
         urnGenerator,
-        auditingHandler,
+        auditingHandler/*,
         redisService,
-        redisKeyPrefix);
+        redisKeyPrefix*/);
   }
 }

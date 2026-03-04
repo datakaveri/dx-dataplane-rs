@@ -38,7 +38,6 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
@@ -49,7 +48,6 @@ import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
-import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 public class GatewayController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(GatewayController.class);
@@ -61,16 +59,17 @@ public class GatewayController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
-  private final RedisAccessLimitHandler redisAccessLimitHandler;
+
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   public GatewayController(
       DataBrokerService dataBrokerService,
       GatewayParamValidator gatewayParamValidator,
       URNGenerator urnGenerator,
       String controlPlaneDomain,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler /*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
     this.gatewayParamValidator = gatewayParamValidator;
     this.urnGenerator = urnGenerator;
@@ -78,7 +77,7 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -89,7 +88,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, false));
     builder
@@ -98,7 +97,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handleGet(ctx, true));
 
@@ -109,7 +108,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, false));
     builder
@@ -118,7 +117,7 @@ public class GatewayController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerGateway)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(ctx -> handlePost(ctx, true));
   }

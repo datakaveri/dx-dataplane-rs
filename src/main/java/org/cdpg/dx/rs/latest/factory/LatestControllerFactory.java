@@ -15,9 +15,9 @@ public class LatestControllerFactory {
       String timeLimit,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler/*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
 
     LatestService latestService = new LatestServiceImpl(searchService, timeLimit);
 
@@ -25,8 +25,8 @@ public class LatestControllerFactory {
         latestService,
         controlPlaneDomain,
         urnGenerator,
-        auditingHandler,
+        auditingHandler/*,
         redisService,
-        redisKeyPrefix);
+        redisKeyPrefix*/);
   }
 }

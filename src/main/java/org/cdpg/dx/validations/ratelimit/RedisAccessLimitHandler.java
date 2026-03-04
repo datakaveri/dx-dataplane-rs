@@ -53,10 +53,6 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
 
     JsonObject accessEntry = findAccessEntry(accessSource);
     long expiryEpochSeconds = accessEntry != null ? accessEntry.getLong("expiry", -1L) : -1L;
-    if (isExpired(expiryEpochSeconds)) {
-      context.fail(new DxForbiddenNoAccessException("Access token policy has expired"));
-      return;
-    }
 
     JsonObject limits =
         accessEntry != null
@@ -326,11 +322,6 @@ public class RedisAccessLimitHandler implements Handler<RoutingContext> {
       return Future.succeededFuture();
     }
     return redisService.expireAt(key, expiryEpochSeconds);
-  }
-
-  private boolean isExpired(long expiryEpochSeconds) {
-    LOGGER.trace("RateLimit current epoch seconds={}", System.currentTimeMillis() / 1000L);
-    return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 
   private boolean isOpenPolicy(String accessPolicy) {

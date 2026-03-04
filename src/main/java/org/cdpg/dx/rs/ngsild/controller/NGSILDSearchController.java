@@ -22,7 +22,6 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.database.elastic.model.ElasticsearchResponse;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.service.NGSILDService;
@@ -32,7 +31,6 @@ import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
-import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 public class NGSILDSearchController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDSearchController.class);
@@ -40,7 +38,7 @@ public class NGSILDSearchController implements ApiController {
   private final URNGenerator urnGenerator;
   private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
-  private final RedisAccessLimitHandler redisAccessLimitHandler;
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
   GetIdFromParams getIdFromParams = new GetIdFromParams();
   GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
   NGSILDParamsValidator ngsildParamsValidator;
@@ -52,9 +50,9 @@ public class NGSILDSearchController implements ApiController {
       URNGenerator urnGenerator,
       int maxDaysSync,
       int maxDaysAsync,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler /*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     this.ngsildService = ngsildService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
@@ -62,7 +60,7 @@ public class NGSILDSearchController implements ApiController {
     this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -73,7 +71,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(context -> handleTemporalEntityDataSearch(context, true));
     builder
@@ -82,7 +80,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(context -> handlePostTemporalEntityDataSearch(context, true));
     builder
@@ -91,7 +89,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(context -> handleEntityAttributeDataSearch(context, false));
     builder
@@ -100,7 +98,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(context -> handlePostEntityAttributeDataSearch(context, false));
   }

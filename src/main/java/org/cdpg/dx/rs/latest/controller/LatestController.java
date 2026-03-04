@@ -41,23 +41,23 @@ public class LatestController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
-  private final RedisAccessLimitHandler redisAccessLimitHandler;
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   /** Initializes the latest controller with required services and config. */
   public LatestController(
       LatestService latestService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler/*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     this.latestService = latestService;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
@@ -68,7 +68,7 @@ public class LatestController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handlePostEntityDataSearch);
     builder
@@ -77,7 +77,7 @@ public class LatestController implements ApiController {
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
         .handler(itemAccessApplicableFilterHandlerNgsild)
-        .handler(redisAccessLimitHandler)
+        /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
         .handler(this::handleGetSearchQuery);
 

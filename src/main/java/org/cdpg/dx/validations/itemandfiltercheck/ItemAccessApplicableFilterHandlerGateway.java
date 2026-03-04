@@ -10,6 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import java.util.List;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -209,9 +210,6 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
             ? selectedResourceServer.getJsonArray("accessTypes", new JsonArray())
             : new JsonArray();
     boolean hasApiInResourceServer = containsApi(rsAccessTypes);
-    if (hasApiInResourceServer) {
-      return;
-    }
 
     JsonArray accessArray = source.getJsonArray("access");
     if (accessArray == null) {
@@ -221,20 +219,35 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
       }
     }
 
-    if (accessArray == null || accessArray.isEmpty()) {
+    if ((accessArray == null || accessArray.isEmpty()) && !hasApiInResourceServer) {
       throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
     }
 
-    boolean hasApiAccessType =
+    if (accessArray == null || accessArray.isEmpty()) {
+      return;
+    }
+
+    List<JsonObject> apiAccessEntries =
         accessArray.stream()
             .filter(JsonObject.class::isInstance)
             .map(JsonObject.class::cast)
-            .anyMatch(access -> "api".equalsIgnoreCase(access.getString("accessType", "")));
+            .filter(access -> "api".equalsIgnoreCase(access.getString("accessType", "")))
+            .toList();
 
-    if (!hasApiAccessType) {
+    if (apiAccessEntries.isEmpty() && !hasApiInResourceServer) {
       throw new DxForbiddenNoAccessException(
           "Required accessType 'api' missing for restricted resource");
     }
+
+    if (!apiAccessEntries.isEmpty()) {
+      boolean hasValidExpiry =
+          apiAccessEntries.stream().anyMatch(access -> !isExpired(access.getLong("expiry", -1L)));
+      if (!hasValidExpiry) {
+        throw new DxForbiddenNoAccessException("Access token policy has expired");
+      }
+    }
+
+    LOGGER.info("Restricted access validation passed: api accessType and expiry are valid");
   }
 
   private boolean containsApi(JsonArray accessTypes) {
@@ -242,6 +255,10 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
         .filter(String.class::isInstance)
         .map(String.class::cast)
         .anyMatch(type -> "api".equalsIgnoreCase(type));
+  }
+
+  private boolean isExpired(long expiryEpochSeconds) {
+    return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 
   private boolean hasAccessPayload(JsonObject source) {

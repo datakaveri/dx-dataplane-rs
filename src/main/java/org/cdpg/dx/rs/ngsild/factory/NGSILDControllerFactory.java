@@ -15,9 +15,9 @@ public class NGSILDControllerFactory {
       URNGenerator urnGenerator,
       int maxDaysSync,
       int maxDaysAsync,
-      AuditingHandler auditingHandler,
+      AuditingHandler auditingHandler/*,
       RedisService redisService,
-      String redisKeyPrefix) {
+      String redisKeyPrefix*/) {
     NGSILDService NGSILDService = new NGSILDServiceImpl(searchService);
     return new NGSILDSearchController(
         NGSILDService,
@@ -25,8 +25,8 @@ public class NGSILDControllerFactory {
         urnGenerator,
         maxDaysSync,
         maxDaysAsync,
-        auditingHandler,
+        auditingHandler/*,
         redisService,
-        redisKeyPrefix);
+        redisKeyPrefix*/);
   }
 }

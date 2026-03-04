@@ -1,7 +1,6 @@
 package org.cdpg.dx.rs.rsp.entities.controller;
 
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.DATA_BROKER_SERVICE_ADDRESS;
-import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.REDIS_SERVICE_ADDRESS;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.*;
 
 import io.vertx.core.Vertx;
@@ -10,7 +9,6 @@ import java.util.List;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.rsp.gateway.controller.GatewayControllerFactory;
 
@@ -21,8 +19,8 @@ public class ControllerFactoryProxy {
 
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-    RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
-    String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");
+    /*RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
+    String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");*/
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -31,10 +29,16 @@ public class ControllerFactoryProxy {
 
     ApiController entitiesController =
         EntityControllerfactory.createEntitiesController(
-            dataBrokerService, urnGenerator, config, auditingHandler, redisService, redisKeyPrefix);
+            dataBrokerService,
+            urnGenerator,
+            config,
+            auditingHandler /*, redisService, redisKeyPrefix*/);
     ApiController gatewayController =
         GatewayControllerFactory.createGatewayController(
-            dataBrokerService, urnGenerator, config, auditingHandler, redisService, redisKeyPrefix);
+            dataBrokerService,
+            urnGenerator,
+            config,
+            auditingHandler /*, redisService, redisKeyPrefix*/);
 
     return List.of(entitiesController, gatewayController);
   }
