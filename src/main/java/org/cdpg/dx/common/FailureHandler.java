@@ -11,6 +11,8 @@ import io.vertx.json.schema.ValidationException;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.common.exception.DxInternalServerErrorException;
+import org.cdpg.dx.common.exception.DxTimeOutException;
 import org.cdpg.dx.common.response.DxErrorResponse;
 import org.cdpg.dx.common.response.DxErrorResponseNGSILD;
 import org.cdpg.dx.common.util.ExceptionHttpStatusMapper;
@@ -43,7 +45,12 @@ public class FailureHandler implements Handler<RoutingContext> {
     if (failure == null) {
       LOGGER.warn(
           "FailureHandler triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
-      failure = new RuntimeException("Unknown server error");
+      int status = context.statusCode();
+      if (status == HttpStatus.SC_REQUEST_TIMEOUT) {
+        failure = new DxTimeOutException("Request timed out");
+      } else {
+        failure = new DxInternalServerErrorException("Unknown server error");
+      }
     }
     LOGGER.info("FailureHandler: {}", failure.getClass());
     /* exceptions from OpenAPI specification*/
@@ -107,7 +114,12 @@ public class FailureHandler implements Handler<RoutingContext> {
     if (failure == null) {
       LOGGER.warn(
           "FailureHandlerNGSILD triggered without an actual Throwable. Possibly context.fail(statusCode) was used.");
-      failure = new RuntimeException("Unknown server error");
+      int status = context.statusCode();
+      if (status == HttpStatus.SC_REQUEST_TIMEOUT) {
+        failure = new DxTimeOutException("Request timed out");
+      } else {
+        failure = new DxInternalServerErrorException("Unknown server error");
+      }
     }
     LOGGER.info("FailureHandlerNGSILD: {}", failure.getClass());
     /* exceptions from OpenAPI specification*/

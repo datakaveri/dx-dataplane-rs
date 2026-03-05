@@ -124,7 +124,7 @@ public class ApiServerVerticle extends AbstractVerticle {
                 LOGGER.debug("Adding platform handlers...");
                 int timeout = config().getInteger("timeout", 100000);
                 routerBuilder.rootHandler(TimeoutHandler.create(timeout, 408));
-                routerBuilder.rootHandler(BodyHandler.create().setHandleFileUploads(false));
+                routerBuilder.rootHandler(BodyHandler.create().setHandleFileUploads(false).setBodyLimit(-1));
 
                 LOGGER.debug("Registering controllers...");
                 RouterBuilderOptions factoryOptions =
