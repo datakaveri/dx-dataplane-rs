@@ -305,6 +305,13 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
   }
 
   @Override
+  public Future<List<String>> createDocumentsAutoId(String index, List<QueryModel> documentModels) {
+    return validateIndex(index)
+        .compose(v -> validateDocumentModels(documentModels))
+        .compose(v -> executeBulkIndexAutoId(index, documentModels));
+  }
+
+  @Override
   public Future<Void> deleteDocument(String index, String id) {
     return validateIndex(index)
         .compose(v -> validateId(id))
@@ -514,12 +521,46 @@ public class ElasticsearchServiceImpl implements ElasticsearchService {
                 LOGGER.error("bulk index failed");
                 promise.fail(new RuntimeException("Bulk index error"));
               } else {
-                LOGGER.debug("bulk Response " + bulkResponse);
+                //LOGGER.debug("bulk Response " + bulkResponse);
                 List<String> ids =
                     bulkResponse.items().stream()
                         .map(BulkResponseItem::id)
                         .collect(Collectors.toList());
-                LOGGER.debug("ids: " + ids);
+                //LOGGER.debug("ids: " + ids);
+                promise.complete(ids);
+              }
+            });
+    return promise.future();
+  }
+
+  private Future<List<String>> executeBulkIndexAutoId(String index, List<QueryModel> models) {
+    Promise<List<String>> promise = Promise.promise();
+    LOGGER.debug("Index " + index);
+    BulkRequest.Builder bulkBuilder = new BulkRequest.Builder();
+    models.forEach(
+        queryModel -> {
+          JsonObject doc = queryModel.extractDocumentFromQueryModel();
+          String rawJson = doc.encode();
+          JsonData jsonData = JsonData.fromJson(rawJson);
+
+          bulkBuilder.operations(
+              operation -> operation.index(docs -> docs.index(index).document(jsonData)));
+        });
+    BulkRequest request = bulkBuilder.build();
+    asyncClient
+        .bulk(request)
+        .whenComplete(
+            (bulkResponse, error) -> {
+              if (bulkResponse.errors()) {
+                LOGGER.error("bulk index failed");
+                promise.fail(new RuntimeException("Bulk index error"));
+              } else {
+                //LOGGER.debug("bulk Response " + bulkResponse);
+                List<String> ids =
+                    bulkResponse.items().stream()
+                        .map(BulkResponseItem::id)
+                        .collect(Collectors.toList());
+                //LOGGER.debug("ids: " + ids);
                 promise.complete(ids);
               }
             });

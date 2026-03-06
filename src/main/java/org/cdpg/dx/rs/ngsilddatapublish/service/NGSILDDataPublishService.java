@@ -7,4 +7,5 @@ public interface NGSILDDataPublishService {
   Future<String> publishData(JsonArray ngsildData, String id);
 
   Future<String> publishDataOnSeek(JsonArray pushedData, String id);
+  Future<String> publishDataOnSeekIntoElastic(JsonArray pushedData, String id);
 }

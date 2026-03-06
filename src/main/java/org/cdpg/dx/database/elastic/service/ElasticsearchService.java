@@ -22,6 +22,7 @@ public interface ElasticsearchService {
   Future<Integer> count(String index, QueryModel queryModel);
 
   Future<List<String>> createDocuments(String index, List<QueryModel> documentModels);
+  Future<List<String>> createDocumentsAutoId(String index, List<QueryModel> documentModels);
 
   Future<ElasticsearchResponse> getSingleDocument(String docIndex, QueryModel queryModel);
 
