@@ -162,9 +162,7 @@ public class PublishedApiServerVerticle extends AbstractVerticle {
                         http -> {
                           if (http.succeeded()) {
                             printDeployedEndpoints(router);
-                            LOGGER.info(
-                                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX________________________---------- deployed on port: {}",
-                                port);
+                            LOGGER.info("published api server deployed on port: {}", port);
                           } else {
                             LOGGER.error(
                                 "HTTP server failed to start: {}",

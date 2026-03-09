@@ -171,13 +171,13 @@ public class NGSILDDataPublishController implements ApiController {
           if (batch.isEmpty()) {
             LOGGER.info("Total records received for id {}: {}", idRef[0], totalCount[0]);
             LOGGER.info(
-                "Publish complete for id {}. Total records received: {}", idRef[0], totalCount[0]);
+                "Publish completes for id {} Total records received: {}", idRef[0], totalCount[0]);
             respondSuccess(context, context.response(), idRef[0]);
           } else {
             flushBatch(context, batch.copy(), idRef[0], batchBytes, batch, failed, onSeek)
                 .onSuccess(
                     ignored -> {
-                      LOGGER.info("Total records received for id {}: {}", idRef[0], totalCount[0]);
+                      LOGGER.info("Total record's received for id {}: {}", idRef[0], totalCount[0]);
                       LOGGER.info(
                           "Publish complete for id {}. Total records received: {}",
                           idRef[0],
