@@ -240,6 +240,7 @@ public class DataBrokerServiceImpl implements DataBrokerService {
     return promise.future();
   }
 
+
   @Override
   public Future<String> publishMessageExternal(
       String exchangeName, String routingKey, JsonArray request) {

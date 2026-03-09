@@ -11,7 +11,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.databroker.model.ExchangeSubscribersResponse;
 import org.cdpg.dx.databroker.service.DataBrokerService;
+import org.cdpg.dx.databroker.util.Vhosts;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 
 public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
@@ -83,16 +85,58 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     }
     return elasticsearchService
         .createDocumentsAutoId(index, docs)
-        .map(
+        .compose(
             ids -> {
               LOGGER.info(
                   "Data indexed successfully using on seek for id: {}. Count: {}", id, ids.size());
-              return "indexed";
+              return dataBrokerService
+                  .listExchange(id, Vhosts.IUDX_PROD)
+                  .compose(
+                      exchangeSubs ->
+                          publishToAllQueuesExceptDatabase(exchangeSubs, id, pushedData));
             })
         .onFailure(
             err -> {
               LOGGER.error(
-                  "Failed to index data using on seek for id: {}. Error: {}", id, err.getMessage());
+                  "Failed to index/publish data using on seek for id: {}. Error: {}",
+                  id,
+                  err.getMessage());
+            });
+  }
+
+  private Future<String> publishToAllQueuesExceptDatabase(
+      ExchangeSubscribersResponse exchangeSubs, String id, JsonArray pushedData) {
+    if (exchangeSubs == null || exchangeSubs.getSubscribers() == null) {
+      LOGGER.info("RMQ publish skipped for id {}: no subscribers", id);
+      return Future.succeededFuture("no-subscribers");
+    }
+    List<Future<?>> publishes = new ArrayList<>();
+    int[] publishTargets = {0};
+    exchangeSubs
+        .getSubscribers()
+        .forEach(
+            (queue, routingKeys) -> {
+              if ("database".equalsIgnoreCase(queue)) {
+                return;
+              }
+              if (routingKeys == null || routingKeys.isEmpty()) {
+                return;
+              }
+              for (String rk : routingKeys) {
+                publishes.add(dataBrokerService.publishMessageExternal(id, rk, pushedData));
+                publishTargets[0]++;
+              }
+            });
+    if (publishes.isEmpty()) {
+      LOGGER.info("RMQ publish skipped for id {}: no target queues", id);
+      return Future.succeededFuture("no-target-queues");
+    }
+    return Future.join(publishes)
+        .map(
+            ignored -> {
+              LOGGER.info(
+                  "RMQ published for id {}. Total publish targets: {}", id, publishTargets[0]);
+              return "published";
             });
   }
 }
