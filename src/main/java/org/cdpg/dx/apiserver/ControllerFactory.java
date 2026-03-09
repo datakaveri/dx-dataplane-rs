@@ -13,6 +13,7 @@ import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.admin.controller.ElasticOnboardingController;
@@ -81,16 +82,16 @@ public class ControllerFactory {
                             redisService,
                             redisKeyPrefix*/);
 
-    ApiController ngsildDataPublishController =
+    /*ApiController ngsildDataPublishController =
         NGSILDDataPublishFactory.create(
-            controlPlaneDomain, urnGenerator, auditingHandler, dataBrokerService);
+            controlPlaneDomain, urnGenerator, auditingHandler, dataBrokerService, elasticsearchService);*/
     // TODO create other controllers
 
     return List.of(
         latestController,
         downloadController,
         onboardingController,
-        ngsildController,
-        ngsildDataPublishController);
+        ngsildController/*,
+        ngsildDataPublishController*/);
   }
 }
