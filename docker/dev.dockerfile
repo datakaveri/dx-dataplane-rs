@@ -30,7 +30,7 @@ COPY --from=builder /usr/share/app/target/${JAR} ./fatjar.jar
 RUN curl -sSL -o /usr/share/app/elastic-apm-agent.jar \
     https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.45.0/elastic-apm-agent-1.45.0.jar
 
-EXPOSE 8080 8443
+EXPOSE 8080 8443 8081
 # Creating a non-root user
 RUN useradd -r -u 1001 -g root rs-user
 # Create storage directory and make rs-user as owner
