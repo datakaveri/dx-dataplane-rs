@@ -111,7 +111,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
       return Future.succeededFuture("no-subscribers");
     }
     List<Future<?>> publishes = new ArrayList<>();
-    int[] publishTargets = {0};
+
     exchangeSubs
         .getSubscribers()
         .forEach(
@@ -124,7 +124,6 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
               }
               for (String rk : routingKeys) {
                 publishes.add(dataBrokerService.publishMessageExternal(id, rk, pushedData));
-                publishTargets[0]++;
               }
             });
     if (publishes.isEmpty()) {
@@ -134,8 +133,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     return Future.join(publishes)
         .map(
             ignored -> {
-              LOGGER.info(
-                  "RMQ published for id {}. Total publish targets: {}", id, publishTargets[0]);
+              LOGGER.info("RMQ published for id {}", id);
               return "published";
             });
   }
