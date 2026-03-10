@@ -247,6 +247,10 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
   }
 
   private boolean isExpired(long expiryEpochSeconds) {
+    LOGGER.debug(
+        "Checking token expiry: expiryEpochSeconds={}, currentEpochSeconds={}",
+        expiryEpochSeconds,
+        System.currentTimeMillis() / 1000L);
     return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 
