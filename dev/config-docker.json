@@ -1,0 +1,115 @@
+{
+  "version": "1.0",
+  "zookeepers": [
+    "zookeeper"
+  ],
+  "clusterId": "iudx-rs-cluster",
+  "host": "rs.iudx.io",
+  "commonConfig": {
+    "dxApiBasePath": "/ngsi-ld/v2",
+    "timeLimit": "test,2020-10-22T00:00:00Z,20",
+    "timeLimitForAsync": 365,
+    "tenantPrefix": "iudx-v2",
+    "redisKeyPrefix": "dx",
+    "corsAllowedOrigin": [
+      "*",
+      "http://localhost:4001"
+    ],
+    "controlPlaneDomain": "https://v2.dev.controlplane.iudx.io",
+    "issuers": {
+      "jwtIgnoreExpiry": true,
+      "leeway": 60,
+      "jwksRefreshIntervalMs": 21600000,
+      "v2.dev.controlplane.iudx.io": {
+        "type": "remote",
+        "jwksUrl": "https://v2.dev.controlplane.iudx.io/iudx/v2/auth/jwks",
+        "audience": []
+      }
+    }
+  },
+  "modules": [
+    {
+      "id": "org.cdpg.dx.database.postgres.verticle.PostgresVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "databaseIP": "postgres",
+      "databasePort": 5432,
+      "databaseName": "iudx_rs",
+      "databaseUserName": "postgres",
+      "databasePassword": "postgres",
+      "poolSize": 25,
+      "databaseSchema": "public"
+    },
+    {
+      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "dataBrokerIP": "rabbitmq",
+      "dataBrokerPort": 5672,
+      "prodVhost": "/",
+      "internalVhost": "/",
+      "externalVhost": "/",
+      "dataBrokerUserName": "guest",
+      "dataBrokerPassword": "guest",
+      "dataBrokerManagementPort": 15672,
+      "connectionTimeout": 6000,
+      "requestedHeartbeat": 60,
+      "handshakeTimeout": 6000,
+      "requestedChannelMax": 5,
+      "networkRecoveryInterval": 500,
+      "automaticRecoveryEnabled": "true",
+      "brokerAmqpIp": "rabbitmq",
+      "brokerAmqpPort": 5672,
+      "adapterQueryPublishExchange": "rpc-adapter-requests"
+    },
+    {
+      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 2,
+      "databaseIP": "elasticsearch",
+      "databasePort": 9200,
+      "databaseUser": "",
+      "databasePassword": ""
+    },
+    {
+      "id": "org.cdpg.dx.database.redis.verticle.RedisVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "redisMode": "STANDALONE",
+      "redisUsername": "",
+      "redisPassword": "",
+      "redisMaxPoolSize": 30,
+      "redisMaxPoolWaiting": 200,
+      "redisMaxWaitingHandlers": 1024,
+      "redisPoolRecycleTimeout": 1500,
+      "redisHost": "redis",
+      "redisPort": 6379
+    },
+    {
+      "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "ssl": false,
+      "production": false,
+      "httpPort": 8443,
+      "isAdexInstance": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "urnPrefix": "dx:dataplane:"
+    },
+    {
+      "id": "org.cdpg.dx.apiserver.ProxyApiServerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "ssl": false,
+      "production": false,
+      "httpPort": 8444,
+      "isAdexInstance": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "urnPrefix": "dx:dataplaneProxy:",
+      "maxDaysSync": 10,
+      "maxDaysAsync": 365
+    }
+  ]
+}

@@ -1,0 +1,641 @@
+temporalEntityresponse:
+  title: temporalentityresponse
+  type: object
+  properties:
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    [
+      {
+        "trip_direction": "NT",
+        "trip_id": "24374871",
+        "route_id": "17AD",
+        "trip_delay": 948,
+        "last_stop_arrival_time": "15:09:58",
+        "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+        "vehicle_label": "A09",
+        "observationDateTime": "2020-11-03T15:12:08+05:30",
+        "speed": 25.0,
+        "license_plate": "GJ05BX1916",
+        "last_stop_id": "2028",
+        "location": {
+          "coordinates": [
+            72.870511,
+            21.218943
+          ],
+          "type": "Point"
+        },
+        "id": "UUID"
+      }
+    ]
+
+temporalEntityresponse2:
+  title: temporalentityresponse2
+  type: object
+  properties:
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    [
+      {
+        "@context": "<Link to explain json+ld> example: https://schema.org/context.jsonld",
+        "trip_direction": "NT",
+        "trip_id": "24374871",
+        "route_id": "17AD",
+        "trip_delay": 948,
+        "last_stop_arrival_time": "15:09:58",
+        "actual_trip_start_time": "2020-11-03T14:22:30+05:30",
+        "vehicle_label": "A09",
+        "observationDateTime": "2020-11-03T15:12:08+05:30",
+        "speed": 25.0,
+        "license_plate": "GJ05BX1916",
+        "last_stop_id": "2028",
+        "location": {
+          "coordinates": [
+            72.870511,
+            21.218943
+          ],
+          "type": "Point"
+        },
+        "id": "UUID"
+      }
+    ]
+
+spatialAttributeEntityresponse:
+  title: spatialAttributeEntityresponse
+  type: object
+  properties:
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    [
+      {
+        "trip_direction": "NT",
+        "trip_id": "24374871",
+        "route_id": "17AD",
+        "vehicle_label": "A09",
+        "speed": 25.0,
+        "license_plate": "GJ05BX1916",
+        "last_stop_id": "2028",
+        "location": {
+          "coordinates": [
+            72.870511,
+            21.218943
+          ],
+          "type": "Point"
+        },
+        "id": "UUID"
+      }
+    ]
+
+spatialAttributeEntityresponse2:
+  title: spatialAttributeEntityresponse2
+  type: object
+  properties:
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    [
+      {
+        "@context": "<Link to explain json+ld> example: https://schema.org/context.jsonld",
+        "trip_direction": "NT",
+        "trip_id": "24374871",
+        "route_id": "17AD",
+        "vehicle_label": "A09",
+        "speed": 25.0,
+        "license_plate": "GJ05BX1916",
+        "last_stop_id": "2028",
+        "location": {
+          "coordinates": [
+            72.870511,
+            21.218943
+          ],
+          "type": "Point"
+        },
+        "id": "UUID"
+      }
+    ]
+
+countResponse:
+  title: Count response
+  type: object
+  properties:
+    results:
+      description: An objects
+      type: object
+      items:
+        type: object
+  example:
+    {
+      "type": "CountResult",
+      "value": 145
+    }
+
+Entity:
+  title: Entity
+  required:
+    - id
+  type: object
+  properties:
+    id:
+      type: string
+      maxLength: 512
+      description: 'A <b> valid data exchange ID </b> of the resource.  <br/> If the resource is a <b> protected resource </b> a <b> valid data exchange Auth token </b> is <b> mandatory </b>  in the header parameter of the request.  <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b> .'
+  example:
+    id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+
+GeoQ:
+  title: GeoQ
+  required:
+    - geometry
+    - coordinates
+    - georel
+    - geoproperty
+  additionalProperties: false
+  type: object
+  properties:
+    geometry:
+      type: string
+      enum: [ Point, point, Polygon, polygon, bbox, LineString, linestring ]
+      description: >
+        The geometry type of <b>geoquery</b> to be performed. <br/>
+        This <b>should</b> be one from the available options in the Enum list. <br/>
+        The list is <b>case sensitive</b>.
+    coordinates:
+      oneOf:
+        - type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            type: number
+          description: >
+            Used for geometry type <b>Point</b>. Represents a single longitude, latitude pair.
+        - type: array
+          minItems: 2
+          maxItems: 10
+          items:
+            type: array
+            minItems: 2
+            maxItems: 2
+            items:
+              type: number
+          description: >
+            Used for geometry types <b>LineString</b> and <b>bbox</b>. Each sub-array is a longitude, latitude pair.
+        - type: array
+          minItems: 1
+          maxItems: 1
+          items:
+            type: array
+            minItems: 4
+            maxItems: 10
+            items:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+          description: >
+            Used for geometry type <b>Polygon</b>. A single polygon defined as an array of linear ring coordinates.
+
+    georel:
+      type: string
+      #          enum: [ near, within, intersects ]
+      description: 'The relation type of <b>geoquery</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property. <br/> Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields. <br/> The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.  <br/> The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.'
+    geoproperty:
+      type: string
+      enum: [ location ]
+      description: 'Name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>. <br /> The current version of the API <b> mandates </b> it to be equal to `location`'
+  example:
+    geometry: Point
+    coordinates:
+      - 25.319768
+      - 82.987988000000001
+    georel: near;maxDistance=1000
+    geoproperty: geoJsonLocation
+
+GeoQ2:
+  title: GeoQ2
+  required:
+    - geometry
+    - coordinates
+    - georel
+    - geoproperty
+  type: object
+  properties:
+    geometry:
+      type: string
+    coordinates:
+      type: array
+      items:
+        type: array
+        items:
+          type: number
+    georel:
+      type: string
+    geoproperty:
+      type: string
+
+TemporalQ:
+  title: TemporalQ
+  required:
+    - timerel
+    - timeAt
+  additionalProperties: false
+  type: object
+  properties:
+    timerel:
+      type: string
+      enum: [ between, before, after ]
+      description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+    timeAt:
+      type: string
+      description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+    endTimeAt:
+      type: string
+      description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
+    timeproperty:
+      type: string
+      enum: [ observationDateTime, observedAt ]
+  example:
+    timerel: between
+    timeAt: 2020-06-01T14:20:00Z
+    endTimeAt: 2020-06-03T15:00:00Z
+    timeproperty: observationDateTime
+
+TemporalQ1:
+  title: TemporalQ1
+  required:
+    - timerel
+    - time
+    - timeProperty
+  type: object
+  properties:
+    timerel:
+      type: string
+    time:
+      type: string
+    timeProperty:
+      type: string
+  example:
+    timerel: before
+    time: 2020-06-01T14:20:00Z
+    timeProperty: timeProperty
+
+complex-temporal-geo:
+  title: complex-geo+time+filterrequest
+  required:
+    - type
+    - entities
+    - temporalQ
+  additionalProperties: false
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [ Query ]
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ'
+    temporalQ:
+      $ref: '#/TemporalQ'
+    orderBy:
+      type: string
+      maxLength: 512
+      description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
+    q:
+      type: string
+      maxLength: 512
+      description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+    omit:
+      type: string
+      maxLength: 512
+      description: 'The omit is used as an <b>omit filter</b>. <br/> This is an optional parameter. It can be used to provide the omit of attributes which the consumer expects to be avoided by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+    pick:
+      type: string
+      maxLength: 512
+      description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: Point
+      coordinates:
+        - 25.319768
+        - 82.987988000000001
+      georel: near;maxDistance=1000
+      geoproperty: geoJsonLocation
+    temporalQ:
+      timerel: between
+      timeAt: 2020-06-01T14:20:00Z
+      endTimeAt: 2020-06-03T15:00:00Z
+      timeproperty: observationDateTime
+
+complex-entities-geo:
+  title: complex-geo+attribute+filterrequest
+  required:
+    - type
+    - entities
+  additionalProperties: false
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [ Query ]
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ'
+    orderBy:
+      type: string
+      maxLength: 512
+      description: Comma-separated list of properties to orderBy from the response. By default it is `desc`, when it is given only. Could be used with `asc` or `desc` keyword. E.g., `observation:desc,speed:asc`, or `observation,speed:asc`, or `observation:desc,speed`, or `observation,speed`
+    q:
+      type: string
+      maxLength: 512
+      description: 'The attribute query is used for querying <b> allowed quantitative</b> properties. <br/> Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`, `==` operators. <br/> For e.g, attribute > value, attribute < value, attribute >= value, attribute <= value, attribute != value and attribute == value. <br/> Allowed values for all operators is double. <br/> For the operator `==` if the query is on `id` then the only value allowed is an `data exchange ID` of a resource.'
+    omit:
+      type: string
+      maxLength: 512
+      description: 'The omit is used as an <b>omit filter</b>. <br/> This is an optional parameter. It can be used to provide the omit of attributes which the consumer expects to be avoided by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+    pick:
+      type: string
+      maxLength: 512
+      description: 'The pick is used as an <b>pick filter</b>. <br/> This is an optional parameter. It can be used to provide the pick of attributes which the consumer expects to be responded by the server. <br/> The consumer is expected to provide <b>only</b> the attributes available in the <b>data descriptor</b> of the item in the DX(Data exchange) Catalogue. <br/> Minimum of 1 and a Maximum of 5 attributes can be provided in a comma separated fashion.'
+  example:
+    type: Query
+    entities:
+      - id: 32cf54e7-be31-474c-ae4c-3d41e556dd2d
+    geoQ:
+      geometry: Point
+      coordinates:
+        - 25.319768
+        - 82.987988000000001
+      georel: near;maxDistance=1000
+      geoproperty: geoJsonLocation
+
+geospatial-circlerequest:
+  title: geospatial-circlerequest
+  required:
+    - type
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ'
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: Point
+      coordinates:
+        - 25.319768
+        - 82.987988000000001
+      georel: near;maxDistance=1000
+      geoproperty: geoJsonLocation
+
+geospatial-circlecount-request:
+  title: geospatial-circle(count)request
+  required:
+    - type
+    - entities
+    - options
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ'
+    options:
+      type: string
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: Point
+      coordinates:
+        - 25.319768
+        - 82.987988000000001
+      georel: near;maxDistance=100
+      geoproperty: geoJsonLocation
+    options: count
+
+geospatial-polygonrequest:
+  title: geospatial-polygonrequest
+  required:
+    - type
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ2'
+
+geospatial-linestringrequest:
+  title: geospatial-linestringrequest
+  required:
+    - type
+    - entities
+    - geoQ
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ2'
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: linestring
+      coordinates:
+        - - 82.973500000000001
+          - 25.3352
+        - - 82.989400000000003
+          - 25.345199999999998
+        - - 82.989999999999995
+          - 25.34
+      georel: intersects
+      geoproperty: geoJsonLocation
+
+geospatial-bboxrequest:
+  title: geospatial-bboxrequest
+  required:
+    - type
+    - entities
+    - geoQ
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ2'
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: bbox
+      coordinates:
+        - - 82.950000000000003
+          - 25.3567
+        - - 83.005300000000005
+          - 25
+      georel: within
+      geoproperty: geoJsonLocation
+
+responsefilterrequest:
+  title: responsefilterrequest
+  required:
+    - type
+    - entities
+    - attrs
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    attrs:
+      type: string
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    attrs: resource-id,latitude,longitude
+
+geospatial-circle-responsefilterrequest:
+  title: geospatial-circle+responsefilterrequest
+  required:
+    - type
+    - entities
+    - geoQ
+    - attrs
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    geoQ:
+      $ref: '#/GeoQ'
+    attrs:
+      type: string
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    geoQ:
+      geometry: Point
+      coordinates:
+        - 25.319768
+        - 82.987988000000001
+      georel: near;maxDistance=1000
+      geoproperty: geoJsonLocation
+    attrs: resource-id,longitude,latitude
+
+temporal-betweenrequest:
+  title: temporal-betweenrequest
+  required:
+    - type
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    temporalQ:
+      timerel: between
+      time: 2020-06-01T14:20:00Z
+      endtime: 2020-06-03T15:00:00Z
+      timeProperty: timeProperty
+
+time-beforerequest:
+  title: time-beforerequest
+  required:
+    - type
+    - entities
+    - temporalQ
+  type: object
+  properties:
+    type:
+      type: string
+    entities:
+      type: array
+      items:
+        $ref: '#/Entity'
+      description: ''
+    temporalQ:
+      $ref: '#/TemporalQ1'
+  example:
+    type: Query
+    entities:
+      - id: 9c0737d6-17df-484f-a7f8-aa472002eae5
+    temporalQ:
+      timerel: before
+      time: 2020-06-01T14:20:00Z
+      timeProperty: timeProperty
