@@ -1,6 +1,7 @@
 package org.cdpg.dx.essearch.model;
 
 import java.util.List;
+import org.cdpg.dx.database.postgres.models.OrderBy;
 import org.cdpg.dx.rs.latest.util.dtoUtil.GeoQ;
 
 public class SearchQuery {

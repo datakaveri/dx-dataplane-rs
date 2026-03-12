@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.database.elastic.model.*;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.database.postgres.models.OrderBy;
 import org.cdpg.dx.essearch.model.*;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
