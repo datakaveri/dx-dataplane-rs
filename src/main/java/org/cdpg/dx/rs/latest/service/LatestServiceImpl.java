@@ -30,7 +30,10 @@ public class LatestServiceImpl implements LatestService {
             results -> {
               LOGGER.debug("Successfully fetched data for ID: {}", getRequestModel.id());
               return new ResponseModel(
-                  results.getResults(), getRequestModel.size(), getRequestModel.page());
+                  results.getResults(),
+                  getRequestModel.size(),
+                  getRequestModel.page(),
+                  results.getTotalCount());
             })
         .onFailure(
             err -> {
@@ -78,7 +81,10 @@ public class LatestServiceImpl implements LatestService {
                   id,
                   searchResultWithCount.getTotalCount());
               return new ResponseModel(
-                  searchResultWithCount.getResults(), searchQuery.getSize(), searchQuery.getPage());
+                  searchResultWithCount.getResults(),
+                  searchQuery.getSize(),
+                  searchQuery.getPage(),
+                  searchResultWithCount.getTotalCount());
             })
         .onFailure(
             err -> {

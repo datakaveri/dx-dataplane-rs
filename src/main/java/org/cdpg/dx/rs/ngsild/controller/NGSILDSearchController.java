@@ -1112,7 +1112,7 @@ public class NGSILDSearchController implements ApiController {
                       /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                       wantsAggregated = true;*/
                       if (wantsAggregated) {
-                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        JsonObject aggs = getTemporalEntityData.getAggregations();
                         if (aggs == null) aggs = new JsonObject();
                         if (aggs.containsKey("results")
                             && aggs.getValue("results") instanceof JsonObject) {
@@ -1192,7 +1192,7 @@ public class NGSILDSearchController implements ApiController {
                       /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                       wantsAggregated = true;*/
                       if (wantsAggregated) {
-                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        JsonObject aggs = getTemporalEntityData.getAggregations();
                         if (aggs == null) aggs = new JsonObject();
                         if (aggs.containsKey("results")
                             && aggs.getValue("results") instanceof JsonObject) {
@@ -1280,7 +1280,7 @@ public class NGSILDSearchController implements ApiController {
                     /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                     wantsAggregated = true;*/
                     if (wantsAggregated) {
-                      JsonObject aggs = ElasticsearchResponse.getAggregations();
+                      JsonObject aggs = getTemporalEntityData.getAggregations();
                       if (aggs == null) aggs = new JsonObject();
                       if (aggs.containsKey("results")
                           && aggs.getValue("results") instanceof JsonObject) {
