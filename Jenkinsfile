@@ -16,6 +16,7 @@ pipeline {
 
     stage('Conditional Execution') {
       when {
+        allOf {
         anyOf {
           changeset "docker/**"
           changeset "docs/**"
@@ -23,7 +24,11 @@ pipeline {
           changeset "src/main/**"
           triggeredBy cause: 'UserIdCause'
         }
+        expression {
+          return env.GIT_BRANCH == 'origin/dev';
+        }
       }
+    }
 
       stages {
 
