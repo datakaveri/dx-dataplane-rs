@@ -2,8 +2,8 @@ package org.cdpg.dx.rs.download.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_ID_ENTITY_DATA;
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_PUT_SEARCH_DATA;
-import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
-import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.download.util.Constants.ID;
 
@@ -26,7 +26,7 @@ import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
-import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 

@@ -1,6 +1,6 @@
 package org.cdpg.dx.essearch.model;
 
-import static org.cdpg.dx.essearch.util.Constants.RESULTS;
+import static org.cdpg.dx.database.elastic.util.Constants.RESULTS;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

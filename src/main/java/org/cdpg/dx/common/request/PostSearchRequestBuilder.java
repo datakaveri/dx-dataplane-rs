@@ -1,12 +1,12 @@
 package org.cdpg.dx.common.request;
 
-import static org.cdpg.dx.essearch.util.Constants.*;
-import static org.cdpg.dx.essearch.util.Constants.FILTER;
-import static org.cdpg.dx.essearch.util.Constants.Q_VALUE;
-import static org.cdpg.dx.essearch.util.Constants.RESPONSE_FILTER;
-import static org.cdpg.dx.essearch.util.Constants.SEARCH_CRITERIA_KEY;
-import static org.cdpg.dx.essearch.util.Constants.SEARCH_TYPE_CRITERIA;
-import static org.cdpg.dx.essearch.util.Constants.SEARCH_TYPE_TEXT;
+import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.database.elastic.util.Constants.FILTER;
+import static org.cdpg.dx.database.elastic.util.Constants.Q_VALUE;
+import static org.cdpg.dx.database.elastic.util.Constants.RESPONSE_FILTER;
+import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_CRITERIA_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_TYPE_CRITERIA;
+import static org.cdpg.dx.database.elastic.util.Constants.SEARCH_TYPE_TEXT;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;

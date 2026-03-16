@@ -2,7 +2,7 @@ package org.cdpg.dx.essearch.model;
 
 import static org.cdpg.dx.database.elastic.util.Constants.FIELD;
 import static org.cdpg.dx.database.elastic.util.Constants.VALUE;
-import static org.cdpg.dx.essearch.util.Constants.*;
+import static org.cdpg.dx.database.elastic.util.Constants.*;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

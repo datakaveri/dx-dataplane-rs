@@ -44,8 +44,8 @@ import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
 import org.cdpg.dx.rs.rsp.gateway.util.QueryMapper2;
-import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
-import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 

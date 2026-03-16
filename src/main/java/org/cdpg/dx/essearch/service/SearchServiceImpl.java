@@ -1,7 +1,7 @@
 package org.cdpg.dx.essearch.service;
 
 import static org.cdpg.dx.database.elastic.util.Constants.MAX_SEARCH_RESULT_LIMIT;
-import static org.cdpg.dx.essearch.util.Constants.SOURCE_ONLY;
+import static org.cdpg.dx.database.elastic.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;

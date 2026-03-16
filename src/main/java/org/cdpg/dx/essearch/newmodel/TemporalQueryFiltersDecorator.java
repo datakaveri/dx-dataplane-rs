@@ -1,8 +1,8 @@
 package org.cdpg.dx.essearch.newmodel;
 
 import static org.cdpg.dx.database.elastic.util.Constants.FIELD;
-import static org.cdpg.dx.essearch.util.Constants.*;
-import static org.cdpg.dx.essearch.util.Constants.AFTER;
+import static org.cdpg.dx.database.elastic.util.Constants.*;
+import static org.cdpg.dx.database.elastic.util.Constants.AFTER;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;

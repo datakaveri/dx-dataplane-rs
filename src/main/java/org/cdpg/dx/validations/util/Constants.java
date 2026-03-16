@@ -1,4 +1,4 @@
-package org.cdpg.dx.validations.util;
+package org.cdpg.dx.common.validations.util;
 
 public class Constants {
     public static final String JSON_ENTITIES = "entities";
