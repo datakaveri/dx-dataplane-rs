@@ -14,46 +14,7 @@ pipeline {
 
   stages {
 
-    stage('Trivy Code Scan (Dependencies)') {
-      steps {
-        script {
-          sh '''
-            trivy fs --scanners vuln,secret,misconfig --output trivy-fs-report.txt .
-          '''
-        }
-      }
-    }
-
-    stage('Building images') {
-      steps{
-        script {
-          echo 'Pulled - ' + env.GIT_BRANCH
-          devImage = docker.build(devRegistry, "-f ./docker/dev.dockerfile .")
-        }
-      }
-    }
-
-    stage('Trivy Docker Image Scan and Report') {
-      steps {
-        script {
-          sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
-        }
-      }
-      post {
-        always {
-          archiveArtifacts artifacts: 'trivy-*.txt', allowEmptyArchive: true
-          publishHTML(target: [
-            allowMissing: true,
-            keepAll: true,
-            reportDir: '.',
-            reportFiles: 'trivy-fs-report.txt, trivy-dev-image-report.txt',
-            reportName: 'Trivy Reports'
-          ])
-        }
-      }
-    }
-
-    stage('Continuous Deployment') {
+    stage('Conditional Execution') {
       when {
         allOf {
           anyOf {
@@ -64,49 +25,110 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.GIT_BRANCH == 'origin/dev';
+            return env.BRANCH_NAME == 'dev'
           }
         }
       }
 
       stages {
 
-        stage('Push Images') {
+        stage('Trivy Code Scan (Dependencies)') {
           steps {
             script {
-              docker.withRegistry(registryUri, registryCredential) {
-                devImage.push("1.0.0-${env.GIT_HASH}")
+              sh '''
+                trivy fs --scanners vuln,secret,misconfig --output trivy-fs-report.txt .
+              '''
+            }
+          }
+        }
+
+        stage('Building images') {
+          steps{
+            script {
+              echo 'Pulled - ' + env.GIT_BRANCH
+              devImage = docker.build(devRegistry, "-f ./docker/dev.dockerfile .")
+            }
+          }
+        }
+
+        stage('Trivy Scan') {
+          steps {
+            script {
+              try {
+                sh "trivy image --severity CRITICAL,HIGH --exit-code 1 ${devImage.imageName()}"
+                echo 'Trivy scan passed: No HIGH or CRITICAL vulnerabilities found.'
+              } catch (Exception e) {
+                echo 'Trivy scan failed: HIGH or CRITICAL vulnerabilities detected.'
+                currentBuild.result = 'FAILURE'
+                throw e
               }
             }
           }
         }
 
-        stage('Docker Swarm deployment') {
+        stage('Trivy Docker Image Scan and Report') {
           steps {
             script {
-              sh "ssh azureuser@docker-swarm 'docker service update iudx-v2-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
-              sh 'sleep 15'
-              sh '''#!/bin/bash
-              response_code=$(curl -s -o /dev/null -w \'%{http_code}\\n\' --connect-timeout 5 --retry 5 --retry-connrefused -XGET https://v2.dev.rs.iudx.io/apis)
-
-              if [[ "$response_code" -ne "200" ]]
-              then
-                echo "Health check failed"
-                exit 1
-              else
-                echo "Health check complete; Server is up."
-                exit 0
-              fi
-              '''
+              sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
             }
           }
-
-          post{
-            failure{
-              error "Failed to deploy image in Docker Swarm"
+          post {
+            always {
+              archiveArtifacts artifacts: 'trivy-*.txt', allowEmptyArchive: true
+              publishHTML(target: [
+                allowMissing: true,
+                keepAll: true,
+                reportDir: '.',
+                reportFiles: 'trivy-fs-report.txt, trivy-dev-image-report.txt',
+                reportName: 'Trivy Reports'
+              ])
             }
           }
+        }
 
+        stage('Continuous Deployment') {
+
+          stages {
+
+            stage('Push Images') {
+              steps {
+                script {
+                  docker.withRegistry(registryUri, registryCredential) {
+                    devImage.push("1.0.0-${env.GIT_HASH}")
+                  }
+                }
+              }
+            }
+
+            stage('Docker Swarm deployment') {
+              steps {
+                script {
+                  sh "ssh azureuser@docker-swarm 'docker service update iudx-v2-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
+                  sh 'sleep 15'
+                  sh '''#!/bin/bash
+                  response_code=$(curl -s -o /dev/null -w \'%{http_code}\\n\' --connect-timeout 5 --retry 5 --retry-connrefused -XGET https://v2.dev.rs.iudx.io/apis)
+
+                  if [[ "$response_code" -ne "200" ]]
+                  then
+                    echo "Health check failed"
+                    exit 1
+                  else
+                    echo "Health check complete; Server is up."
+                    exit 0
+                  fi
+                  '''
+                }
+              }
+
+              post{
+                failure{
+                  error "Failed to deploy image in Docker Swarm"
+                }
+              }
+
+            }
+
+          }
         }
 
       }
@@ -117,7 +139,7 @@ pipeline {
   post{
     failure{
       script{
-        if (env.GIT_BRANCH == 'origin/dev')
+        if (env.BRANCH_NAME == 'dev')
         emailext recipientProviders: [buildUser(), developers()],
         to: '$AAA_RECIPIENTS, $DEFAULT_RECIPIENTS',
         subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
