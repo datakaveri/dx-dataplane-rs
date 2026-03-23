@@ -63,7 +63,8 @@
             <version>${vertx.version}</version>
         </dependency>
         <!--  https://mvnrepository.com/artifact/org.postgresql/postgresql  -->
-        <dependency>
+	<dependency>
+	    <!-- PostgreSQL JDBC driver -->
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
