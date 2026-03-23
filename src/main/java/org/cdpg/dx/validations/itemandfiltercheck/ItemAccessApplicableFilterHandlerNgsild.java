@@ -204,12 +204,6 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
       return;
     }
 
-    JsonArray rsAccessTypes =
-        selectedResourceServer != null
-            ? selectedResourceServer.getJsonArray("accessTypes", new JsonArray())
-            : new JsonArray();
-    boolean hasApiInResourceServer = containsApi(rsAccessTypes);
-
     JsonArray accessArray = source.getJsonArray("access");
     if (accessArray == null) {
       JsonObject cons = getCons(source);
@@ -218,12 +212,8 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
       }
     }
 
-    if ((accessArray == null || accessArray.isEmpty()) && !hasApiInResourceServer) {
-      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
-    }
-
     if (accessArray == null || accessArray.isEmpty()) {
-      return;
+      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
     }
 
     List<JsonObject> apiAccessEntries =
@@ -233,7 +223,7 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
             .filter(access -> "api".equalsIgnoreCase(access.getString("accessType", "")))
             .toList();
 
-    if (apiAccessEntries.isEmpty() && !hasApiInResourceServer) {
+    if (apiAccessEntries.isEmpty()) {
       throw new DxForbiddenNoAccessException(
           "Required accessType 'api' missing for restricted resource");
     }
@@ -257,6 +247,10 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
   }
 
   private boolean isExpired(long expiryEpochSeconds) {
+    LOGGER.debug(
+        "Checking token expiry: expiryEpochSeconds={}, currentEpochSeconds={}",
+        expiryEpochSeconds,
+        System.currentTimeMillis() / 1000L);
     return expiryEpochSeconds > 0 && expiryEpochSeconds <= (System.currentTimeMillis() / 1000L);
   }
 

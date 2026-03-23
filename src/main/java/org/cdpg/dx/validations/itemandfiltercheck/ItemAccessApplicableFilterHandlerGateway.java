@@ -205,12 +205,6 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
       return;
     }
 
-    JsonArray rsAccessTypes =
-        selectedResourceServer != null
-            ? selectedResourceServer.getJsonArray("accessTypes", new JsonArray())
-            : new JsonArray();
-    boolean hasApiInResourceServer = containsApi(rsAccessTypes);
-
     JsonArray accessArray = source.getJsonArray("access");
     if (accessArray == null) {
       JsonObject cons = getCons(source);
@@ -219,12 +213,8 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
       }
     }
 
-    if ((accessArray == null || accessArray.isEmpty()) && !hasApiInResourceServer) {
-      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
-    }
-
     if (accessArray == null || accessArray.isEmpty()) {
-      return;
+      throw new DxForbiddenNoAccessException("API accessType not found for restricted resource");
     }
 
     List<JsonObject> apiAccessEntries =
@@ -234,7 +224,7 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
             .filter(access -> "api".equalsIgnoreCase(access.getString("accessType", "")))
             .toList();
 
-    if (apiAccessEntries.isEmpty() && !hasApiInResourceServer) {
+    if (apiAccessEntries.isEmpty()) {
       throw new DxForbiddenNoAccessException(
           "Required accessType 'api' missing for restricted resource");
     }
