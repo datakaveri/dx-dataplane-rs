@@ -25,10 +25,10 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.GIT_BRANCH == 'origin/dev';
+            return env.BRANCH_NAME == 'stable/v2.2';
           }
-       }
-    }
+        }
+      }
 
       stages {
 
@@ -47,6 +47,21 @@ pipeline {
             script {
               echo 'Pulled - ' + env.GIT_BRANCH
               devImage = docker.build(devRegistry, "-f ./docker/dev.dockerfile .")
+            }
+          }
+        }
+
+        stage('Trivy Scan') {
+          steps {
+            script {
+              try {
+                sh "trivy image --severity CRITICAL,HIGH --exit-code 1 ${devImage.imageName()}"
+                echo 'Trivy scan passed: No HIGH or CRITICAL vulnerabilities found.'
+              } catch (Exception e) {
+                echo 'Trivy scan failed: HIGH or CRITICAL vulnerabilities detected.'
+                currentBuild.result = 'FAILURE'
+                throw e
+              }
             }
           }
         }
@@ -89,6 +104,7 @@ pipeline {
   post{
     failure{
       script{
+        if (env.BRANCH_NAME == 'stable/v2.2')
         emailext recipientProviders: [buildUser(), developers()],
         to: '$AAA_RECIPIENTS, $DEFAULT_RECIPIENTS',
         subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
