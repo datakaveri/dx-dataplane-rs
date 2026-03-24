@@ -22,6 +22,8 @@ import org.cdpg.dx.rs.download.factory.DownloadControllerFactory;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.rs.latest.factory.LatestControllerFactory;
 import org.cdpg.dx.rs.ngsild.factory.NGSILDControllerFactory;
+import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
+import org.cdpg.dx.rs.ngsilddatapublish.factory.NGSILDDataPublishFactory;
 
 public class ControllerFactory {
   private static final Logger LOGGER = LogManager.getLogger(ControllerFactory.class);
@@ -80,13 +82,22 @@ public class ControllerFactory {
                             redisService,
                             redisKeyPrefix*/);
 
-    /* ApiController ngsildDataPublishController =
-    NGSILDDataPublishFactory.create(
-        controlPlaneDomain, urnGenerator, auditingHandler, dataBrokerService);*/
+    int chunkMaxItems = config.getInteger("chunkMaxItems", 2000);
+    int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
+
+    NGSILDDataPublishController publishController =
+            NGSILDDataPublishFactory.create(
+                    config.getString("controlPlaneDomain"),
+                    urnGenerator,
+                    auditingHandler,
+                    dataBrokerService,
+                    elasticsearchService,
+                    chunkMaxItems,
+                    chunkMaxBytes);
     // TODO create other controllers
 
     return List.of(
-        latestController, downloadController, onboardingController, ngsildController /*,
-        ngsildDataPublishController*/);
+        latestController, downloadController, onboardingController, ngsildController ,
+            publishController);
   }
 }

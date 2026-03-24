@@ -84,7 +84,8 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
       docs.add(model);
     }
     return elasticsearchService
-        .createDocumentsAutoId(index, docs)
+            .createDocuments(index, docs)
+        /*.createDocumentsAutoId(index, docs)*/
         .compose(
             ids -> {
               LOGGER.info(
