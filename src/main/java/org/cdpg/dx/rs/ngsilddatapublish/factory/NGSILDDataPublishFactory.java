@@ -2,6 +2,7 @@ package org.cdpg.dx.rs.ngsilddatapublish.factory;
 
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
@@ -12,10 +13,18 @@ public class NGSILDDataPublishFactory {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      DataBrokerService dataBrokerService) {
+      DataBrokerService dataBrokerService,
+      ElasticsearchService elasticsearchService,
+      int chunkMaxItems,
+      int chunkMaxBytes) {
     NGSILDDataPublishService ngsildDataPublishService =
-        new NGSILDDataPublishServiceImpl(dataBrokerService);
+        new NGSILDDataPublishServiceImpl(dataBrokerService, elasticsearchService);
     return new NGSILDDataPublishController(
-        ngsildDataPublishService, controlPlaneDomain, urnGenerator, auditingHandler);
+        ngsildDataPublishService,
+        controlPlaneDomain,
+        urnGenerator,
+        auditingHandler,
+        chunkMaxItems,
+        chunkMaxBytes);
   }
 }

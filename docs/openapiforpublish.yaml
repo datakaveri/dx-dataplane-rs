@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: DX Dataplane Publish API
+  version: 1.1.0
+  description: |
+    # Introduction
+    The Dataplane Server is DXs'(Data exchange) data store which allows publication and discovery of data. It enables *Providers* of datasources to publish data as per the DX(Data exchange) data descriptor.
+    NGSI-LD data publish endpoints.
+    # Tokens
+    All the <b>*Publish API*</b>  calls to the Data plane server should now contain a valid data exchange auth token presented in the query header.
+    # API HTTP Responses
+    Apart from the response codes specified in each API, the API server may respond with certain 4xx and 5xx error codes which are related to common API Gateway behaviours.
+    The application should address them accordingly.
+
+  contact:
+    name: For support contact CDPG Team at
+    email: ${SUPPORT_EMAIL}
+    url: https://dataforpublicgood.org.in/
+  license:
+    name: Apache 2.0
+tags:
+  - name: Data Ingestion Adaptor
+    x-displayName: Data Ingestion Adaptor
+    description: |
+      Data Ingestion Adaptor APIs are used by DX(Data exchange) Data *Providers* for publishing data to the resource server as per the data descriptor. The user could provide a valid access token while using the API.
+servers:
+  - url: 'https://${HOSTNAME}'
+    description: DX Dataplane Publish Server
+paths:
+  /ngsi-ld/v1/ingestion/entities:
+    post:
+      tags: [Data Ingestion Adaptor]
+      summary: Ingestion adapter
+      operationId: postIngestionAdaptorEntities
+      security:
+        - authorization: [ ]
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+      responses:
+        '200':
+          description: Successful pushed the data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+  /ngsi-ld/v1/ingestion/entities/{id}:
+    post:
+      tags: [Data Ingestion Adaptor]
+      summary: Publish Data without On-Seek
+      operationId: postIngestionAdaptorEntitiesAlias
+      security:
+        - authorization: [ ]
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/{id}' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful pushed the data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+  /ngsi-ld/v1/ingestion/entities/{id}/on-seek:
+    post:
+      tags: [Data Ingestion Adaptor]
+      summary: Publish Data Using On-Seek
+      operationId: postIngestionAdaptorEntitiesOnSeek
+      security:
+        - authorization: [ ]
+
+      x-codeSamples:
+        - lang: 'cURL'
+          label: 'ingestion'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities/{id}/on-seek' \
+            --header 'token: <tokenValue>'
+            --header 'Content-Type: application/json' \
+            --data-raw '<payload>'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful pushed the data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/adapterIngestionEntities'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse401'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse400'
+components:
+  securitySchemes:
+    authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Keycloak issued Bearer token
+  schemas:
+    adapterIngestionEntities:
+      title: ingestion
+      type: object
+      properties:
+        details:
+          description: Item Published
+      example:
+        detail: "Item Published"
+    ingestionEntityRequest:
+      title: ingestion entity
+      required:
+        - entities
+      type: array
+      items:
+        type: object
+      example:
+        - currentLevel: 1.16
+          referenceLevel: 15.9
+          measuredDistance: 14.74
+          entities: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+          observationDateTime: "2020-09-22T18:30:00+05:30"
+          deviceInfo:
+            deviceID: FWR055
+    ingestionEntityRequest2:
+      title: ingestion entity
+      type: array
+      items:
+        type: object
+      example:
+        - currentLevel: 1.16
+          referenceLevel: 15.9
+          measuredDistance: 14.74
+          observationDateTime: "2020-09-22T18:30:00+05:30"
+          deviceInfo:
+            deviceID: FWR055
+    NgsiLdSubscriptionErrorResponse400:
+      title: NgsiLdSubscriptionErrorResponse400
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+    NgsiLdSubscriptionErrorResponse404:
+      title: NgsiLdSubscriptionErrorResponse404
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+    NgsiLdSubscriptionErrorResponse401:
+      title: NgsiLdSubscriptionErrorResponse401
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string

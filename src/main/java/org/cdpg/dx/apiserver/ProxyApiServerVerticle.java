@@ -15,7 +15,7 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected int getDefaultPort() {
-    return 8443;
+    return 8444;
   }
 
   @Override
@@ -39,7 +39,6 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
     // Register both gateway controllers and standard controllers (for side-effects)
     List<ApiController> proxyControllers =
         ControllerFactoryProxy.createControllers(vertx, config, urnGenerator);
-    ControllerFactory.createControllers(vertx, config, urnGenerator);
     return proxyControllers;
   }
 }
