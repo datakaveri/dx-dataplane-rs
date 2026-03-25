@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.apiserver;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
@@ -58,3 +59,4 @@ public class PublishedApiServerVerticle extends AbstractApiServerVerticle {
     return -1; // unlimited body size for data ingestion
   }
 }
+*/

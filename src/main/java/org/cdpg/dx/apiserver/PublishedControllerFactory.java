@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.apiserver;
 
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.DATA_BROKER_SERVICE_ADDRESS;
@@ -46,3 +47,4 @@ public class PublishedControllerFactory {
     return List.of(publishController);
   }
 }
+*/

@@ -31,6 +31,12 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
   }
 
   @Override
+  protected long getDefaultTimeoutMs() {
+    // Large file publish flows can exceed the shared default; give more headroom (10 minutes).
+    return 600_000L;
+  }
+
+  @Override
   protected List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
     return ControllerFactory.createControllers(vertx, config, urnGenerator);

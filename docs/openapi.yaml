@@ -1458,6 +1458,8 @@ paths:
     post:
       tags: [ Data Ingestion Adaptor ]
       summary: Publish Data without On-Seek
+      description: 'The api ingestion endpoint publishes data in database, DX resource. Clients send an authenticated POST to /ngsi-ld/v1/ingestion/entities/{id}, where {id} is the DX data-exchange resource UUID obtained from Controlplane. The Dataplane validates the caller’s scope with the DX Auth server before accepting the payload. On success it pushes the observations for that resource and responds with the ingestion result; unauthorized callers receive 401, missing IDs return 404, and schema/format issues return 400.
+      This api works in two ways - either you pass payload body, or we can upload a file in the request.'
       operationId: postIngestionAdaptorEntitiesAlias
       security:
         - authorization: [ ]
@@ -1506,6 +1508,8 @@ paths:
       tags: [ Data Ingestion Adaptor ]
       summary: Publish Data Using On-Seek
       operationId: postIngestionAdaptorEntitiesOnSeek
+      description: 'The on-seek ingestion endpoint publishes data in database, DX resource. Clients send an authenticated POST to /ngsi-ld/v1/ingestion/entities/{id}/on-seek, where {id} is the DX data-exchange resource UUID obtained from Controlplane. The Dataplane validates the caller’s scope with the DX Auth server before accepting the payload. On success it pushes the observations for that resource and responds with the ingestion result; unauthorized callers receive 401, missing IDs return 404, and schema/format issues return 400.
+      This api works in two ways - either you pass payload body, or we can upload a file in the request.'
       security:
         - authorization: [ ]
 

@@ -31,7 +31,10 @@ import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessDataPublishHandler;
 import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
-
+import io.vertx.ext.web.FileUpload;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 public class NGSILDDataPublishController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishController.class);
@@ -114,6 +117,30 @@ public class NGSILDDataPublishController implements ApiController {
 
   private void streamAndPublish(RoutingContext context, String id, boolean onSeek) {
     // Check if the request contains a file ID instead of raw data
+
+    List<FileUpload> uploads = context.fileUploads();
+    if (uploads != null && !uploads.isEmpty()) {
+      FileUpload upload = uploads.get(0);
+      Path tempPath = Path.of(upload.uploadedFileName()); // Vert.x temp file
+        byte[] data = null;
+        try {
+            data = Files.readAllBytes(tempPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String fileId = FileUploadManager.storeFile(data);
+        try {
+            Files.deleteIfExists(tempPath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (fileId == null) {
+        context.fail(new DxBadRequestException("File upload failed"));
+        return;
+      }
+      streamFromUploadedFile(context, id, fileId, onSeek);
+      return;
+    }
     byte[] body = context.getBody().getBytes();
     if (body != null && body.length > 0) {
       try {
@@ -267,6 +294,10 @@ public class NGSILDDataPublishController implements ApiController {
           }
         },
         result -> {
+          if (context.response().ended()) {
+            LOGGER.warn("Response already ended (likely due to timeout); skipping success/failure handling for fileId {}", fileId);
+            return;
+          }
           if (result.succeeded()) {
             if (deleteAfterPublish) {
               FileUploadManager.deleteFile(fileId);
@@ -293,7 +324,6 @@ public class NGSILDDataPublishController implements ApiController {
     LOGGER.info("Total records pushed: {}", totalPushed);
     LOGGER.info("Processing time: {} ms ({} seconds)", totalTime, totalTime / 1000);
     if (totalRead > 0) {
-      LOGGER.info("Performance: {:.2f} records/sec", (totalRead * 1000.0 / totalTime));
     }
     LOGGER.info("================================================================================");
   }
