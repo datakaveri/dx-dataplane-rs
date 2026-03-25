@@ -616,7 +616,6 @@
                             <version>${vertx.version}</version>
                         </path>
                     </annotationProcessorPaths>
-                    <generatedSourcesDirectory>${project.basedir}/src/main/generated</generatedSourcesDirectory>
                 </configuration>
             </plugin>
         </plugins>
