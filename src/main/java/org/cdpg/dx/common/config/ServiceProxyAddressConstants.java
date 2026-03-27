@@ -10,5 +10,6 @@ public class ServiceProxyAddressConstants {
   public static final String AAA_SERVICE_ADDRESS = "org.cdpg.dx.aaa.service";
   public static final String EMAIL_SERVICE_ADDRESS = "org.cdpg.dx.email.service";
   public static final String REDIS_SERVICE_ADDRESS = "org.cdpg.dx.database.redis";
+  public static final String MINIO_SERVICE_ADDRESS = "org.cdpg.dx.cloudstorage.minio";
 
 }
