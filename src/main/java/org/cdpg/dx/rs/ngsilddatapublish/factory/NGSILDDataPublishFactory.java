@@ -29,7 +29,6 @@ public class NGSILDDataPublishFactory {
         urnGenerator,
         auditingHandler,
         chunkMaxItems,
-        chunkMaxBytes,
-            fileOpsHelper);
+        chunkMaxBytes);
   }
 }

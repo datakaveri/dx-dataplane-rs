@@ -102,21 +102,43 @@ public class S3FileOpsHelper {
             s3Client.putObject(putRequest, RequestBody.fromFile(file));
             LOGGER.info("Object upload complete");
 
-            // keep the old behaviour: expiry = now + 1 day (as earlier code did)
-            ZonedDateTime zdt = ZonedDateTime.now().plusDays(1);
-            long expiryEpochMillis = zdt.toEpochSecond() * 1000L;
-
-            // call presign with the same long you used previously (epoch millis).
-            URL presigned = generatePreSignedUrl(expiryEpochMillis, objectKey);
-
-            JsonObject result =
-                    new JsonObject()
-                            .put("s3_url", presigned == null ? null : presigned.toString())
-                            .put("expiry", zdt.toLocalDateTime().toString())
-                            .put("object_id", objectKey);
+            JsonObject result = createUploadResult(objectKey);
 
             promise.complete(result);
 
+        } catch (S3Exception e) {
+            LOGGER.error("S3 upload error", e);
+            promise.fail(e);
+        } catch (Exception e) {
+            LOGGER.error("Unexpected error during S3 upload", e);
+            promise.fail(e);
+        }
+
+        return promise.future();
+    }
+
+    public Future<JsonObject> s3Upload(
+            byte[] bytes, String objectKey, String contentType, String fileName) {
+        Promise<JsonObject> promise = Promise.promise();
+
+        try (S3Client s3Client = buildS3Client()) {
+            PutObjectRequest.Builder builder =
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .contentDisposition(
+                                    "attachment; filename="
+                                            + (fileName == null ? objectKey : fileName));
+
+            if (contentType != null && !contentType.isBlank()) {
+                builder.contentType(contentType);
+            }
+
+            s3Client.putObject(builder.build(), RequestBody.fromBytes(bytes));
+            LOGGER.info("Object upload complete");
+
+            JsonObject result = createUploadResult(objectKey);
+            promise.complete(result);
         } catch (S3Exception e) {
             LOGGER.error("S3 upload error", e);
             promise.fail(e);
@@ -154,5 +176,15 @@ public class S3FileOpsHelper {
             LOGGER.error("Presigned URL generation failed", e);
             return null;
         }
+    }
+
+    private JsonObject createUploadResult(String objectKey) {
+        ZonedDateTime zdt = ZonedDateTime.now().plusDays(1);
+        long expiryEpochMillis = zdt.toEpochSecond() * 1000L;
+        URL presigned = generatePreSignedUrl(expiryEpochMillis, objectKey);
+        return new JsonObject()
+                .put("s3_url", presigned == null ? null : presigned.toString())
+                .put("expiry", zdt.toLocalDateTime().toString())
+                .put("object_id", objectKey);
     }
 }

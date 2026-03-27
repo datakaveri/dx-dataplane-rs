@@ -159,9 +159,13 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     String resolvedContentType =
         (contentType == null || contentType.isBlank()) ? "application/octet-stream" : contentType;
 
-    return minioService
-        .uploadObject(objectName, encodeToBase64(data), resolvedContentType)
-        .compose(presignedUrl -> publishFileMetadata(id, objectName, presignedUrl));
+    return s3FileOpsHelper
+        .s3Upload(data.getBytes(), objectName, resolvedContentType, objectName)
+        .compose(
+            result -> {
+              String presignedUrl = result.getString("s3_url");
+              return publishFileMetadata(id, objectName, presignedUrl);
+            });
   }
 
   @Override

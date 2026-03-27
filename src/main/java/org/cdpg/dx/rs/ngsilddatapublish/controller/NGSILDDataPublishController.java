@@ -7,14 +7,11 @@ import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.*;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
@@ -27,7 +24,6 @@ import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
-import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 import org.cdpg.dx.validations.idhandler.GetIdForIngestionEntityHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
@@ -36,8 +32,6 @@ import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
 
 public class NGSILDDataPublishController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishController.class);
-  private static final boolean KEEP_ONSEEK_TEMP_FILES =
-      Boolean.parseBoolean(System.getenv().getOrDefault("KEEP_ONSEEK_TEMP_FILES", "true"));
   private final int chunkMaxItems;
   private final int chunkMaxBytes;
   private final IdValidation idValidation;
@@ -48,7 +42,6 @@ public class NGSILDDataPublishController implements ApiController {
   private NGSILDDataPublishService ngsildDataPublishService;
   private URNGenerator urnGenerator;
   private AuditingHandler auditingHandler;
-  private S3FileOpsHelper s3FileOpsHelper;
 
   public NGSILDDataPublishController(
           NGSILDDataPublishService ngsildDataPublishService,
@@ -56,8 +49,7 @@ public class NGSILDDataPublishController implements ApiController {
           URNGenerator urnGenerator,
           AuditingHandler auditingHandler,
           int chunkMaxItems,
-          int chunkMaxBytes, S3FileOpsHelper fileOpsHelper) {
-      this.s3FileOpsHelper = fileOpsHelper;
+          int chunkMaxBytes) {
     this.auditingHandler = auditingHandler;
     this.chunkMaxItems = chunkMaxItems;
     this.chunkMaxBytes = chunkMaxBytes * 1024 * 1024; // Convert MB to Bytes
@@ -123,139 +115,61 @@ public class NGSILDDataPublishController implements ApiController {
     if (id == null) {
       id = context.pathParam("id");
     }
-    streamRequestToLocalFileAndUpload(context, id);
+    streamRequestToBufferAndUpload(context, id);
   }
 
-  private void streamRequestToLocalFileAndUpload(RoutingContext context, String id) {
-    Path tempFile;
+  private void streamRequestToBufferAndUpload(RoutingContext context, String id) {
     String contentType = context.request().getHeader("Content-Type");
-    String resolvedContentType =
-        (contentType == null || contentType.isBlank()) ? "application/octet-stream" : contentType;
-    try {
-      tempFile = Files.createTempFile("onseek-", resolveExtensionFromContentType(contentType));
-      LOGGER.info("On-seek temp file created for id {} at {}", id, tempFile.toAbsolutePath());
-    } catch (Exception e) {
-      context.fail(e);
-      return;
-    }
-
     Buffer bufferedBody = context.body() != null ? context.body().buffer() : null;
-    if (bufferedBody != null && bufferedBody.length() > 0) {
-      context
-          .vertx()
-          .fileSystem()
-          .writeFile(tempFile.toString(), bufferedBody)
-          .compose(v -> uploadOnSeekTempFile(context, id, tempFile, resolvedContentType))
-          .onSuccess(v -> respondSuccess(context, context.response(), id))
-          .onFailure(
-              err -> {
-                deleteTempFile(tempFile);
-                context.fail(err);
-              });
+    if (bufferedBody != null) {
+      if (bufferedBody.length() == 0) {
+        context.fail(new DxBadRequestException("Empty request body"));
+        return;
+      }
+      uploadBufferAndRespond(context, id, bufferedBody, contentType);
       return;
     }
 
     if (context.request().isEnded()) {
-      deleteTempFile(tempFile);
       context.fail(new DxBadRequestException("Empty request body"));
       return;
     }
 
-    context
-        .vertx()
-        .fileSystem()
-        .open(
-            tempFile.toString(),
-            new OpenOptions().setCreate(true).setWrite(true).setTruncateExisting(true))
-        .onSuccess(
-            asyncFile -> {
-              context.request().pause();
-              context.request().handler(asyncFile::write);
-              context.request()
-                  .endHandler(
-                      ignored ->
-                          asyncFile
-                              .close()
-                              .compose(v -> uploadOnSeekTempFile(context, id, tempFile, resolvedContentType))
-                              .onSuccess(v -> respondSuccess(context, context.response(), id))
-                              .onFailure(
-                                  err -> {
-                                    deleteTempFile(tempFile);
-                                    context.fail(err);
-                                  }));
-              context.request()
-                  .exceptionHandler(
-                      err ->
-                          asyncFile
-                              .close()
-                              .onComplete(ignored -> deleteTempFile(tempFile))
-                              .onComplete(ignored -> context.fail(err)));
-              context.request().resume();
+    Buffer aggregated = Buffer.buffer();
+    context.request().handler(aggregated::appendBuffer);
+    context.request()
+        .endHandler(
+            ignored -> {
+              if (aggregated.length() == 0) {
+                context.fail(new DxBadRequestException("Empty request body"));
+                return;
+              }
+              uploadBufferAndRespond(context, id, aggregated, contentType);
             })
-        .onFailure(
-            err -> {
-              deleteTempFile(tempFile);
-              context.fail(err);
-            });
+        .exceptionHandler(err -> context.fail(err));
+    context.request().resume();
   }
 
-  private Future<Void> uploadOnSeekTempFile(
-      RoutingContext context, String id, Path tempFile, String contentType) {
-    return context
-        .vertx()
-        .executeBlocking(
-            promise -> {
-              try {
-                long size = Files.size(tempFile);
-                LOGGER.info(
-                    "On-seek temp file ready for upload id {} path {} sizeBytes={}",
-                    id,
-                    tempFile.toAbsolutePath(),
-                    size);
-                promise.complete();
-              } catch (Exception e) {
-                promise.fail(e);
-              }
-            })
-        .compose(
-            ignored ->
-                ngsildDataPublishService.uploadPathToMinioAndPublishMetadata(
-                    tempFile, id, contentType, tempFile.getFileName().toString()))
+  private void uploadBufferAndRespond(
+      RoutingContext context, String id, Buffer payload, String contentType) {
+    Buffer data = payload.copy();
+    LOGGER.info(
+        "On-seek payload ready for upload id {} sizeBytes={}", id, data.length());
+    ngsildDataPublishService
+        .uploadFileToMinioAndPublishMetadata(data, id, contentType)
         .map(
             ignored -> {
               LOGGER.info("On-seek raw upload complete for id {}", id);
-              deleteTempFile(tempFile);
-              return null;
+              return ignored;
+            })
+        .onSuccess(
+            v -> {
+              respondSuccess(context, context.response(), id);
+            })
+        .onFailure(
+            err -> {
+              context.fail(err);
             });
-  }
-
-  private void deleteTempFile(Path tempFile) {
-    if (KEEP_ONSEEK_TEMP_FILES) {
-      LOGGER.warn("Keeping on-seek temp file for debugging at {}", tempFile.toAbsolutePath());
-      return;
-    }
-    try {
-      Files.deleteIfExists(tempFile);
-    } catch (Exception e) {
-      LOGGER.warn("Failed to delete temp file {}: {}", tempFile, e.getMessage());
-    }
-  }
-
-  private String resolveExtensionFromContentType(String contentType) {
-    if (contentType == null) {
-      return ".bin";
-    }
-    String lower = contentType.toLowerCase();
-    if (lower.contains("json")) {
-      return ".json";
-    }
-    if (lower.contains("csv")) {
-      return ".csv";
-    }
-    if (lower.contains("xml")) {
-      return ".xml";
-    }
-    return ".bin";
   }
 
   private void streamAndPublish(RoutingContext context, String id, boolean onSeek) {
