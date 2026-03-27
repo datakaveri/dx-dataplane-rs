@@ -16,14 +16,14 @@ import java.util.UUID;
 import java.util.Base64;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cdpg.dx.database.elastic.model.QueryModel;
-import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
+import org.cdpg.dx.cloudstorage.minio.service.MinioService;
 import org.cdpg.dx.databroker.model.ExchangeSubscribersResponse;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.databroker.util.Vhosts;
+import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
-import org.cdpg.dx.cloudstorage.minio.service.MinioService;
-import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 
 public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishServiceImpl.class);
@@ -31,16 +31,16 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   private final DataBrokerService dataBrokerService;
   private final ElasticsearchService elasticsearchService;
   private final MinioService minioService;
-  private final S3FileOpsHelper s3FileOpsHelper;
+  private final S3FileService s3FileService;
 
   public NGSILDDataPublishServiceImpl(
           DataBrokerService dataBrokerService,
           ElasticsearchService elasticsearchService,
-          MinioService minioService, S3FileOpsHelper fileOpsHelper) {
+          MinioService minioService, S3FileService s3FileService) {
     this.dataBrokerService = dataBrokerService;
     this.elasticsearchService = elasticsearchService;
     this.minioService = minioService;
-    this.s3FileOpsHelper = fileOpsHelper;
+    this.s3FileService = s3FileService;
   }
 
   @Override
@@ -159,8 +159,8 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     String resolvedContentType =
         (contentType == null || contentType.isBlank()) ? "application/octet-stream" : contentType;
 
-    return s3FileOpsHelper
-        .s3Upload(data.getBytes(), objectName, resolvedContentType, objectName)
+    return s3FileService
+        .uploadObject(objectName, encodeToBase64(data), resolvedContentType, objectName)
         .compose(
             result -> {
               String presignedUrl = result.getString("s3_url");
@@ -261,9 +261,8 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
       Path path, String id, String contentType, String originalName) {
     String objectName = buildObjectName(id, resolveExtension(originalName));
 
-    // Use S3FileOpsHelper for uploads because MinIO client was unstable in the on-seek flow.
-    return s3FileOpsHelper
-        .s3Upload(path.toFile(), objectName)
+    return s3FileService
+        .uploadObjectFromFile(objectName, path.toString())
         .compose(
             result -> {
               String presignedUrl = result.getString("s3_url");

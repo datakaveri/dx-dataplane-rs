@@ -3,6 +3,7 @@ package org.cdpg.dx.apiserver;
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.DATA_BROKER_SERVICE_ADDRESS;
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.ELASTIC_SERVICE_ADDRESS;
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.MINIO_SERVICE_ADDRESS;
+import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.S3_SERVICE_ADDRESS;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_EXCHANGE;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_ROUTING_KEY;
 
@@ -14,12 +15,11 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
 import org.cdpg.dx.rs.ngsilddatapublish.factory.NGSILDDataPublishFactory;
-import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 
 public class PublishedControllerFactory {
-  public static S3FileOpsHelper fileOpsHelper;
   private PublishedControllerFactory() {}
 
   public static List<ApiController> createControllers(
@@ -31,6 +31,7 @@ public class PublishedControllerFactory {
     long minioProxyTimeoutMs = config.getLong("minioProxyTimeoutMs", 180000L);
     MinioService minioService =
         MinioService.createProxy(vertx, MINIO_SERVICE_ADDRESS, minioProxyTimeoutMs);
+    S3FileService s3FileService = S3FileService.createProxy(vertx, S3_SERVICE_ADDRESS);
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -49,8 +50,6 @@ public class PublishedControllerFactory {
    // LOGGER.info("MinIO config endpoint={} bucket={} region={}", endpoint, bucket, region);
 
     System.out.println(endpoint + "--> " + bucket + "---> " + region);
-    fileOpsHelper =
-            new S3FileOpsHelper(endpoint, region, accessKey, secretKey, bucket);
 
     NGSILDDataPublishController publishController =
         NGSILDDataPublishFactory.create(
@@ -62,7 +61,7 @@ public class PublishedControllerFactory {
             minioService,
             chunkMaxItems,
             chunkMaxBytes,
-                fileOpsHelper);
+            s3FileService);
 
     return List.of(publishController);
   }
