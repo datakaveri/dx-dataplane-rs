@@ -8,26 +8,28 @@ import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishServiceImpl;
+import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 
 public class NGSILDDataPublishFactory {
   public static NGSILDDataPublishController create(
-      String controlPlaneDomain,
-      URNGenerator urnGenerator,
-      AuditingHandler auditingHandler,
-      DataBrokerService dataBrokerService,
-      ElasticsearchService elasticsearchService,
-      MinioService minioService,
-      int chunkMaxItems,
-      int chunkMaxBytes) {
+          String controlPlaneDomain,
+          URNGenerator urnGenerator,
+          AuditingHandler auditingHandler,
+          DataBrokerService dataBrokerService,
+          ElasticsearchService elasticsearchService,
+          MinioService minioService,
+          int chunkMaxItems,
+          int chunkMaxBytes, S3FileOpsHelper fileOpsHelper) {
     NGSILDDataPublishService ngsildDataPublishService =
         new NGSILDDataPublishServiceImpl(
-            dataBrokerService, elasticsearchService, minioService);
+            dataBrokerService, elasticsearchService, minioService, fileOpsHelper);
     return new NGSILDDataPublishController(
         ngsildDataPublishService,
         controlPlaneDomain,
         urnGenerator,
         auditingHandler,
         chunkMaxItems,
-        chunkMaxBytes);
+        chunkMaxBytes,
+            fileOpsHelper);
   }
 }

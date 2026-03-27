@@ -23,6 +23,7 @@ import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.databroker.util.Vhosts;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 
 public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishServiceImpl.class);
@@ -30,14 +31,16 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   private final DataBrokerService dataBrokerService;
   private final ElasticsearchService elasticsearchService;
   private final MinioService minioService;
+  private final S3FileOpsHelper s3FileOpsHelper;
 
   public NGSILDDataPublishServiceImpl(
-      DataBrokerService dataBrokerService,
-      ElasticsearchService elasticsearchService,
-      MinioService minioService) {
+          DataBrokerService dataBrokerService,
+          ElasticsearchService elasticsearchService,
+          MinioService minioService, S3FileOpsHelper fileOpsHelper) {
     this.dataBrokerService = dataBrokerService;
     this.elasticsearchService = elasticsearchService;
     this.minioService = minioService;
+    this.s3FileOpsHelper = fileOpsHelper;
   }
 
   @Override
@@ -254,11 +257,14 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
       Path path, String id, String contentType, String originalName) {
     String objectName = buildObjectName(id, resolveExtension(originalName));
 
-    String resolvedContentType =
-        (contentType == null || contentType.isBlank()) ? "application/octet-stream" : contentType;
-    return minioService
-        .uploadObjectFromFile(objectName, path.toString(), resolvedContentType)
-        .compose(presignedUrl -> publishFileMetadata(id, objectName, presignedUrl));
+    // Use S3FileOpsHelper for uploads because MinIO client was unstable in the on-seek flow.
+    return s3FileOpsHelper
+        .s3Upload(path.toFile(), objectName)
+        .compose(
+            result -> {
+              String presignedUrl = result.getString("s3_url");
+              return publishFileMetadata(id, objectName, presignedUrl);
+            });
   }
 
   private String resolveExtension(String originalName) {

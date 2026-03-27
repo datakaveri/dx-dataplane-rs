@@ -27,6 +27,7 @@ import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
+import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 import org.cdpg.dx.validations.idhandler.GetIdForIngestionEntityHandler;
 import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
@@ -47,14 +48,16 @@ public class NGSILDDataPublishController implements ApiController {
   private NGSILDDataPublishService ngsildDataPublishService;
   private URNGenerator urnGenerator;
   private AuditingHandler auditingHandler;
+  private S3FileOpsHelper s3FileOpsHelper;
 
   public NGSILDDataPublishController(
-      NGSILDDataPublishService ngsildDataPublishService,
-      String controlPlaneDomain,
-      URNGenerator urnGenerator,
-      AuditingHandler auditingHandler,
-      int chunkMaxItems,
-      int chunkMaxBytes) {
+          NGSILDDataPublishService ngsildDataPublishService,
+          String controlPlaneDomain,
+          URNGenerator urnGenerator,
+          AuditingHandler auditingHandler,
+          int chunkMaxItems,
+          int chunkMaxBytes, S3FileOpsHelper fileOpsHelper) {
+      this.s3FileOpsHelper = fileOpsHelper;
     this.auditingHandler = auditingHandler;
     this.chunkMaxItems = chunkMaxItems;
     this.chunkMaxBytes = chunkMaxBytes * 1024 * 1024; // Convert MB to Bytes

@@ -16,9 +16,10 @@ import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
 import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
 import org.cdpg.dx.rs.ngsilddatapublish.factory.NGSILDDataPublishFactory;
+import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
 
 public class PublishedControllerFactory {
-
+  public static S3FileOpsHelper fileOpsHelper;
   private PublishedControllerFactory() {}
 
   public static List<ApiController> createControllers(
@@ -38,6 +39,19 @@ public class PublishedControllerFactory {
     int chunkMaxItems = config.getInteger("chunkMaxItems", 2000);
     int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
 
+
+    String endpoint = config.getString("minioEndpoint");
+    String accessKey = config.getString("minioAccessKey");
+    String secretKey = config.getString("minioSecretKey");
+    String bucket = config.getString("minioBucket");
+    String region = config.getString("minioRegion", null);
+    int presignedExpirySeconds = config.getInteger("minioUrlExpirySeconds", 3600);
+   // LOGGER.info("MinIO config endpoint={} bucket={} region={}", endpoint, bucket, region);
+
+    System.out.println(endpoint + "--> " + bucket + "---> " + region);
+    fileOpsHelper =
+            new S3FileOpsHelper(endpoint, region, accessKey, secretKey, bucket);
+
     NGSILDDataPublishController publishController =
         NGSILDDataPublishFactory.create(
             config.getString("controlPlaneDomain"),
@@ -47,7 +61,8 @@ public class PublishedControllerFactory {
             elasticsearchService,
             minioService,
             chunkMaxItems,
-            chunkMaxBytes);
+            chunkMaxBytes,
+                fileOpsHelper);
 
     return List.of(publishController);
   }

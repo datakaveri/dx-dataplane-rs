@@ -80,7 +80,7 @@ public class PublishedApiServerVerticle extends AbstractVerticle {
         .writeFileBlocking(tempFile.toAbsolutePath().toString(), Buffer.buffer(updatedYaml));
 
     Future<RouterBuilder> routerBuilderFuture =
-        RouterBuilder.create(vertx, tempFile.toAbsolutePath().toString());
+            RouterBuilder.create(vertx, tempFile.toUri().toString());
 
     BlockingExecutionUtil.initialize(vertx);
 

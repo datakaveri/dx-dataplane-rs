@@ -96,7 +96,7 @@ public class ApiServerVerticle extends AbstractVerticle {
 
     // Build the router from the temporary spec
     Future<RouterBuilder> routerFuture =
-        RouterBuilder.create(vertx, tempFile.toAbsolutePath().toString());
+        RouterBuilder.create(vertx, tempFile.toUri().toString());
 
     // Init shared worker executor for this verticle
     BlockingExecutionUtil.initialize(vertx);
