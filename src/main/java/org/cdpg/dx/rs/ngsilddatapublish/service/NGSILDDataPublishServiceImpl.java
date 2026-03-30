@@ -3,26 +3,26 @@ package org.cdpg.dx.rs.ngsilddatapublish.service;
 import static org.cdpg.dx.databroker.util.Constants.ID;
 
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.Promise;
-import java.util.ArrayList;
-import java.util.List;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.UUID;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
+import org.cdpg.dx.database.elastic.model.QueryModel;
+import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.model.ExchangeSubscribersResponse;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.databroker.util.Vhosts;
-import org.cdpg.dx.database.elastic.model.QueryModel;
-import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.rs.indexgenerator.IndexNameCreation;
 
 public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
@@ -34,9 +34,10 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   private final S3FileService s3FileService;
 
   public NGSILDDataPublishServiceImpl(
-          DataBrokerService dataBrokerService,
-          ElasticsearchService elasticsearchService,
-          MinioService minioService, S3FileService s3FileService) {
+      DataBrokerService dataBrokerService,
+      ElasticsearchService elasticsearchService,
+      MinioService minioService,
+      S3FileService s3FileService) {
     this.dataBrokerService = dataBrokerService;
     this.elasticsearchService = elasticsearchService;
     this.minioService = minioService;
@@ -88,8 +89,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   }
 
   @Override
-  public Future<String> uploadBatchToMinioAndPublishMetadata(
-      JsonArray pushedData, String id) {
+  public Future<String> uploadBatchToMinioAndPublishMetadata(JsonArray pushedData, String id) {
     for (int i = 0; i < pushedData.size(); i++) {
       JsonObject jsonObject = pushedData.getJsonObject(i);
       jsonObject.remove("entities");
@@ -161,6 +161,23 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
 
     return s3FileService
         .uploadObject(objectName, encodeToBase64(data), resolvedContentType, objectName)
+        .compose(
+            result -> {
+              String presignedUrl = result.getString("s3_url");
+              return publishFileMetadata(id, objectName, presignedUrl);
+            });
+  }
+
+  @Override
+  public Future<String> uploadFileToMinioAndPublishMetadata(
+      Path filePath, String id, String contentType) {
+    String objectName = buildObjectName(id, ".bin");
+
+    String resolvedContentType =
+        (contentType == null || contentType.isBlank()) ? "application/octet-stream" : contentType;
+
+    return s3FileService
+        .uploadObjectFromFile(objectName, filePath.toString())
         .compose(
             result -> {
               String presignedUrl = result.getString("s3_url");

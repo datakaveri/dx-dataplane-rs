@@ -30,6 +30,10 @@ import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessDataPublishHandler;
 import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+
 public class NGSILDDataPublishController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishController.class);
   private final int chunkMaxItems;
@@ -135,19 +139,47 @@ public class NGSILDDataPublishController implements ApiController {
       return;
     }
 
-    Buffer aggregated = Buffer.buffer();
-    context.request().handler(aggregated::appendBuffer);
-    context.request()
-        .endHandler(
-            ignored -> {
-              if (aggregated.length() == 0) {
-                context.fail(new DxBadRequestException("Empty request body"));
-                return;
-              }
-              uploadBufferAndRespond(context, id, aggregated, contentType);
-            })
-        .exceptionHandler(err -> context.fail(err));
-    context.request().resume();
+    try {
+      Path tempFile = Files.createTempFile("onseek-upload-", ".tmp");
+      context.request().handler(buffer -> {
+        try {
+          Files.write(tempFile, buffer.getBytes(), StandardOpenOption.APPEND);
+        } catch (Exception e) {
+          context.fail(e);
+        }
+      });
+      context.request()
+          .endHandler(
+              ignored -> {
+                try {
+                  long fileSize = Files.size(tempFile);
+                  if (fileSize == 0) {
+                    Files.deleteIfExists(tempFile);
+                    context.fail(new DxBadRequestException("Empty request body"));
+                    return;
+                  }
+                  uploadFileAndRespond(context, id, tempFile, contentType);
+                } catch (Exception e) {
+                  try {
+                    Files.deleteIfExists(tempFile);
+                  } catch (Exception ex) {
+                    LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+                  }
+                  context.fail(e);
+                }
+              })
+          .exceptionHandler(err -> {
+            try {
+              Files.deleteIfExists(tempFile);
+            } catch (Exception ex) {
+              LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+            }
+            context.fail(err);
+          });
+      context.request().resume();
+    } catch (Exception e) {
+      context.fail(e);
+    }
   }
 
   private void uploadBufferAndRespond(
@@ -168,6 +200,36 @@ public class NGSILDDataPublishController implements ApiController {
             })
         .onFailure(
             err -> {
+              context.fail(err);
+            });
+  }
+
+  private void uploadFileAndRespond(
+      RoutingContext context, String id, Path filePath, String contentType) {
+    LOGGER.info("On-seek file ready for upload id {} sizeBytes={}", id, filePath.toFile().length());
+    ngsildDataPublishService
+        .uploadFileToMinioAndPublishMetadata(filePath, id, contentType)
+        .map(
+            ignored -> {
+              LOGGER.info("On-seek raw upload complete for id {}", id);
+              return ignored;
+            })
+        .onSuccess(
+            v -> {
+              try {
+                Files.deleteIfExists(filePath);
+              } catch (Exception e) {
+                LOGGER.warn("Failed to delete temp file {}: {}", filePath, e.getMessage());
+              }
+              respondSuccess(context, context.response(), id);
+            })
+        .onFailure(
+            err -> {
+              try {
+                Files.deleteIfExists(filePath);
+              } catch (Exception e) {
+                LOGGER.warn("Failed to delete temp file {}: {}", filePath, e.getMessage());
+              }
               context.fail(err);
             });
   }

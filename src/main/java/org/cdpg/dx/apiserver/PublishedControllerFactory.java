@@ -11,11 +11,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
-import org.cdpg.dx.cloudstorage.minio.service.MinioService;
-import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.rs.ngsilddatapublish.controller.NGSILDDataPublishController;
 import org.cdpg.dx.rs.ngsilddatapublish.factory.NGSILDDataPublishFactory;
 
@@ -31,7 +31,9 @@ public class PublishedControllerFactory {
     long minioProxyTimeoutMs = config.getLong("minioProxyTimeoutMs", 180000L);
     MinioService minioService =
         MinioService.createProxy(vertx, MINIO_SERVICE_ADDRESS, minioProxyTimeoutMs);
-    S3FileService s3FileService = S3FileService.createProxy(vertx, S3_SERVICE_ADDRESS);
+    long s3ProxyTimeoutMs = config.getLong("s3ProxyTimeoutMs", 240000L);
+    S3FileService s3FileService =
+        S3FileService.createProxy(vertx, S3_SERVICE_ADDRESS, s3ProxyTimeoutMs);
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -40,16 +42,12 @@ public class PublishedControllerFactory {
     int chunkMaxItems = config.getInteger("chunkMaxItems", 2000);
     int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
 
-
     String endpoint = config.getString("minioEndpoint");
     String accessKey = config.getString("minioAccessKey");
     String secretKey = config.getString("minioSecretKey");
     String bucket = config.getString("minioBucket");
     String region = config.getString("minioRegion", null);
     int presignedExpirySeconds = config.getInteger("minioUrlExpirySeconds", 3600);
-   // LOGGER.info("MinIO config endpoint={} bucket={} region={}", endpoint, bucket, region);
-
-    System.out.println(endpoint + "--> " + bucket + "---> " + region);
 
     NGSILDDataPublishController publishController =
         NGSILDDataPublishFactory.create(
