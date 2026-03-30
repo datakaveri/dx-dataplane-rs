@@ -8,10 +8,10 @@ import io.vertx.core.Promise;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceBinder;
-import org.cdpg.dx.cloudstorage.minio.service.MinioService;
-import org.cdpg.dx.cloudstorage.minio.service.MinioServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.cloudstorage.minio.service.MinioServiceImpl;
 
 public class MinioVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger(MinioVerticle.class);
@@ -36,12 +36,10 @@ public class MinioVerticle extends AbstractVerticle {
     }
     MinioClient client = builder.build();
 
-    MinioService minioService =
-        new MinioServiceImpl(vertx, client, bucket, presignedExpirySeconds);
+    MinioService minioService = new MinioServiceImpl(vertx, client, bucket, presignedExpirySeconds);
 
     binder = new ServiceBinder(vertx);
-    consumer =
-        binder.setAddress(MINIO_SERVICE_ADDRESS).register(MinioService.class, minioService);
+    consumer = binder.setAddress(MINIO_SERVICE_ADDRESS).register(MinioService.class, minioService);
 
     startPromise.complete();
   }

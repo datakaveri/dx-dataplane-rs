@@ -1,4 +1,4 @@
-package org.cdpg.dx.rs.ngsilddatapublish.util;
+package org.cdpg.dx.cloudstorage.util;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -183,7 +183,7 @@ public class S3FileOpsHelper {
   }
 
   private JsonObject createUploadResult(String objectKey) {
-    ZonedDateTime zdt = ZonedDateTime.now().plusDays(1);
+    ZonedDateTime zdt = ZonedDateTime.now().plusDays(7);
     long expiryEpochMillis = zdt.toEpochSecond() * 1000L;
     URL presigned = generatePreSignedUrl(expiryEpochMillis, objectKey);
     return new JsonObject()

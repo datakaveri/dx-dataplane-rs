@@ -21,13 +21,12 @@ import org.apache.logging.log4j.Logger;
 
 public class MinioServiceImpl implements MinioService {
   private static final Logger LOGGER = LogManager.getLogger(MinioServiceImpl.class);
-
+  private static final int STAT_RETRIES = 6;
+  private static final long STAT_RETRY_DELAY_MS = 1000L;
   private final Vertx vertx;
   private final MinioClient client;
   private final String bucket;
   private final int presignedExpirySeconds;
-  private static final int STAT_RETRIES = 6;
-  private static final long STAT_RETRY_DELAY_MS = 1000L;
 
   public MinioServiceImpl(Vertx vertx, MinioClient client, String bucket, int presignedExpiry) {
     this.vertx = vertx;
@@ -40,8 +39,7 @@ public class MinioServiceImpl implements MinioService {
     return vertx.executeBlocking(
         promise -> {
           try {
-            boolean exists =
-                client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+            boolean exists = client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
             if (!exists) {
               client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
             }
@@ -68,10 +66,8 @@ public class MinioServiceImpl implements MinioService {
                             data.length);
                         ObjectWriteResponse writeResponse =
                             client.putObject(
-                                PutObjectArgs.builder()
-                                    .bucket(bucket)
-                                    .object(objectName)
-                                    .stream(new ByteArrayInputStream(data), data.length, -1)
+                                PutObjectArgs.builder().bucket(bucket).object(objectName).stream(
+                                        new ByteArrayInputStream(data), data.length, -1)
                                     .contentType(contentType)
                                     .build());
                         LOGGER.info("MinIO put done bucket={} object={}", bucket, objectName);
@@ -120,7 +116,8 @@ public class MinioServiceImpl implements MinioService {
   }
 
   @Override
-  public Future<String> uploadObjectFromFile(String objectName, String filePath, String contentType) {
+  public Future<String> uploadObjectFromFile(
+      String objectName, String filePath, String contentType) {
     return ensureBucket()
         .compose(
             v ->
@@ -136,12 +133,12 @@ public class MinioServiceImpl implements MinioService {
                             size);
                         ObjectWriteResponse writeResponse =
                             client.uploadObject(
-                            UploadObjectArgs.builder()
-                                .bucket(bucket)
-                                .object(objectName)
-                                .filename(filePath)
-                                .contentType(contentType)
-                                .build());
+                                UploadObjectArgs.builder()
+                                    .bucket(bucket)
+                                    .object(objectName)
+                                    .filename(filePath)
+                                    .contentType(contentType)
+                                    .build());
                         LOGGER.info("MinIO put(file) done bucket={} object={}", bucket, objectName);
                         if (writeResponse != null) {
                           LOGGER.info(

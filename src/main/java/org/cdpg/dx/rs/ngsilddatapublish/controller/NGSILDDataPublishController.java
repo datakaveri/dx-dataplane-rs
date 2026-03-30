@@ -12,6 +12,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
@@ -30,10 +33,6 @@ import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessDataPublishHandler;
 import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-
 public class NGSILDDataPublishController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDDataPublishController.class);
   private final int chunkMaxItems;
@@ -48,12 +47,12 @@ public class NGSILDDataPublishController implements ApiController {
   private AuditingHandler auditingHandler;
 
   public NGSILDDataPublishController(
-          NGSILDDataPublishService ngsildDataPublishService,
-          String controlPlaneDomain,
-          URNGenerator urnGenerator,
-          AuditingHandler auditingHandler,
-          int chunkMaxItems,
-          int chunkMaxBytes) {
+      NGSILDDataPublishService ngsildDataPublishService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      AuditingHandler auditingHandler,
+      int chunkMaxItems,
+      int chunkMaxBytes) {
     this.auditingHandler = auditingHandler;
     this.chunkMaxItems = chunkMaxItems;
     this.chunkMaxBytes = chunkMaxBytes * 1024 * 1024; // Convert MB to Bytes
@@ -141,14 +140,18 @@ public class NGSILDDataPublishController implements ApiController {
 
     try {
       Path tempFile = Files.createTempFile("onseek-upload-", ".tmp");
-      context.request().handler(buffer -> {
-        try {
-          Files.write(tempFile, buffer.getBytes(), StandardOpenOption.APPEND);
-        } catch (Exception e) {
-          context.fail(e);
-        }
-      });
-      context.request()
+      context
+          .request()
+          .handler(
+              buffer -> {
+                try {
+                  Files.write(tempFile, buffer.getBytes(), StandardOpenOption.APPEND);
+                } catch (Exception e) {
+                  context.fail(e);
+                }
+              });
+      context
+          .request()
           .endHandler(
               ignored -> {
                 try {
@@ -168,14 +171,15 @@ public class NGSILDDataPublishController implements ApiController {
                   context.fail(e);
                 }
               })
-          .exceptionHandler(err -> {
-            try {
-              Files.deleteIfExists(tempFile);
-            } catch (Exception ex) {
-              LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
-            }
-            context.fail(err);
-          });
+          .exceptionHandler(
+              err -> {
+                try {
+                  Files.deleteIfExists(tempFile);
+                } catch (Exception ex) {
+                  LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+                }
+                context.fail(err);
+              });
       context.request().resume();
     } catch (Exception e) {
       context.fail(e);
@@ -185,8 +189,7 @@ public class NGSILDDataPublishController implements ApiController {
   private void uploadBufferAndRespond(
       RoutingContext context, String id, Buffer payload, String contentType) {
     Buffer data = payload.copy();
-    LOGGER.info(
-        "On-seek payload ready for upload id {} sizeBytes={}", id, data.length());
+    LOGGER.info("On-seek payload ready for upload id {} sizeBytes={}", id, data.length());
     ngsildDataPublishService
         .uploadFileToMinioAndPublishMetadata(data, id, contentType)
         .map(

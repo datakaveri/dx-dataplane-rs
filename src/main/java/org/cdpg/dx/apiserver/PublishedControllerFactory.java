@@ -42,13 +42,6 @@ public class PublishedControllerFactory {
     int chunkMaxItems = config.getInteger("chunkMaxItems", 2000);
     int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
 
-    String endpoint = config.getString("minioEndpoint");
-    String accessKey = config.getString("minioAccessKey");
-    String secretKey = config.getString("minioSecretKey");
-    String bucket = config.getString("minioBucket");
-    String region = config.getString("minioRegion", null);
-    int presignedExpirySeconds = config.getInteger("minioUrlExpirySeconds", 3600);
-
     NGSILDDataPublishController publishController =
         NGSILDDataPublishFactory.create(
             config.getString("controlPlaneDomain"),

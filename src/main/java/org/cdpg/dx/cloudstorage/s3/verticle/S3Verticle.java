@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.cloudstorage.s3.service.S3FileServiceImpl;
-import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
+import org.cdpg.dx.cloudstorage.util.S3FileOpsHelper;
 
 public class S3Verticle extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger(S3Verticle.class);
@@ -22,11 +22,11 @@ public class S3Verticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) {
     JsonObject cfg = config();
-    String endpoint = cfg.getString("s3Endpoint", cfg.getString("minioEndpoint"));
-    String accessKey = cfg.getString("s3AccessKey", cfg.getString("minioAccessKey"));
-    String secretKey = cfg.getString("s3SecretKey", cfg.getString("minioSecretKey"));
-    String bucket = cfg.getString("s3Bucket", cfg.getString("minioBucket"));
-    String region = cfg.getString("s3Region", cfg.getString("minioRegion"));
+    String endpoint = cfg.getString("s3Endpoint", null);
+    String accessKey = cfg.getString("s3AccessKey", null);
+    String secretKey = cfg.getString("s3SecretKey", null);
+    String bucket = cfg.getString("s3Bucket", null);
+    String region = cfg.getString("s3Region", null);
 
     LOGGER.info("S3 config endpoint={} bucket={} region={}", endpoint, bucket, region);
 

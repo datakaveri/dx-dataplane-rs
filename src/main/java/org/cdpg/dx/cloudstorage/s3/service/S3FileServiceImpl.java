@@ -5,7 +5,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import java.io.File;
 import java.util.Base64;
-import org.cdpg.dx.rs.ngsilddatapublish.util.S3FileOpsHelper;
+import org.cdpg.dx.cloudstorage.util.S3FileOpsHelper;
 
 public class S3FileServiceImpl implements S3FileService {
   private final S3FileOpsHelper s3FileOpsHelper;
