@@ -81,18 +81,14 @@
       "databasePassword": ""
     },
     {
-      "id": "org.cdpg.dx.database.redis.verticle.RedisVerticle",
+      "id": "org.cdpg.dx.cloudstorage.s3.verticle.S3Verticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
-      "redisMode": "",
-      "redisUsername": "",
-      "redisPassword": "",
-      "redisMaxPoolSize": 30,
-      "redisMaxPoolWaiting": 200,
-      "redisMaxWaitingHandlers": 1024,
-      "redisPoolRecycleTimeout": 1500,
-      "redisHost": "",
-      "redisPort": 1234
+      "s3AccessKey": "",
+      "s3SecretKey": "",
+      "s3Bucket": "",
+      "s3Region": "",
+      "s3ProxyTimeoutMs": 240000
     },
     {
       "id": "org.cdpg.dx.apiserver.ApiServerVerticle",

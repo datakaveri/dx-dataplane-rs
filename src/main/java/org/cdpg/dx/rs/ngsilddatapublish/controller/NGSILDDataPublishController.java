@@ -6,11 +6,15 @@ import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.*;
 
 import io.vertx.core.Future;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
@@ -80,7 +84,7 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)
-        .handler(context -> handleDataPublishAlias(context));
+        .handler(this::handleDataPublishOnSeek);
 
     builder
         .operation(POST_NGSILD_ENTITY_PUBLISH_ALIAS)
@@ -90,7 +94,7 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)
-        .handler(context -> handleDataPublishAlias(context));
+        .handler(this::handleDataPublishAlias);
   }
 
   public void handleDataPublish(RoutingContext context) {
@@ -106,6 +110,131 @@ public class NGSILDDataPublishController implements ApiController {
       id = context.pathParam("id");
     }
     streamAndPublish(context, id, true);
+  }
+
+  public void handleDataPublishOnSeek(RoutingContext context) {
+    LOGGER.info("Handling NGSI-LD Data Publish on seek");
+    String id = RoutingContextHelper.getId(context);
+    if (id == null) {
+      id = context.pathParam("id");
+    }
+    streamRequestToBufferAndUpload(context, id);
+  }
+
+  private void streamRequestToBufferAndUpload(RoutingContext context, String id) {
+    String contentType = context.request().getHeader("Content-Type");
+    Buffer bufferedBody = context.body() != null ? context.body().buffer() : null;
+    if (bufferedBody != null) {
+      if (bufferedBody.length() == 0) {
+        context.fail(new DxBadRequestException("Empty request body"));
+        return;
+      }
+      uploadBufferAndRespond(context, id, bufferedBody, contentType);
+      return;
+    }
+
+    if (context.request().isEnded()) {
+      context.fail(new DxBadRequestException("Empty request body"));
+      return;
+    }
+
+    try {
+      Path tempFile = Files.createTempFile("onseek-upload-", ".tmp");
+      context
+          .request()
+          .handler(
+              buffer -> {
+                try {
+                  Files.write(tempFile, buffer.getBytes(), StandardOpenOption.APPEND);
+                } catch (Exception e) {
+                  context.fail(e);
+                }
+              });
+      context
+          .request()
+          .endHandler(
+              ignored -> {
+                try {
+                  long fileSize = Files.size(tempFile);
+                  if (fileSize == 0) {
+                    Files.deleteIfExists(tempFile);
+                    context.fail(new DxBadRequestException("Empty request body"));
+                    return;
+                  }
+                  uploadFileAndRespond(context, id, tempFile, contentType);
+                } catch (Exception e) {
+                  try {
+                    Files.deleteIfExists(tempFile);
+                  } catch (Exception ex) {
+                    LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+                  }
+                  context.fail(e);
+                }
+              })
+          .exceptionHandler(
+              err -> {
+                try {
+                  Files.deleteIfExists(tempFile);
+                } catch (Exception ex) {
+                  LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+                }
+                context.fail(err);
+              });
+      context.request().resume();
+    } catch (Exception e) {
+      context.fail(e);
+    }
+  }
+
+  private void uploadBufferAndRespond(
+      RoutingContext context, String id, Buffer payload, String contentType) {
+    Buffer data = payload.copy();
+    LOGGER.info("On-seek payload ready for upload id {} sizeBytes={}", id, data.length());
+    ngsildDataPublishService
+        .uploadFileToMinioAndPublishMetadata(data, id, contentType)
+        .map(
+            ignored -> {
+              LOGGER.info("On-seek raw upload complete for id {}", id);
+              return ignored;
+            })
+        .onSuccess(
+            v -> {
+              respondSuccess(context, context.response(), id);
+            })
+        .onFailure(
+            err -> {
+              context.fail(err);
+            });
+  }
+
+  private void uploadFileAndRespond(
+      RoutingContext context, String id, Path filePath, String contentType) {
+    LOGGER.info("On-seek file ready for upload id {} sizeBytes={}", id, filePath.toFile().length());
+    ngsildDataPublishService
+        .uploadFileToMinioAndPublishMetadata(filePath, id, contentType)
+        .map(
+            ignored -> {
+              LOGGER.info("On-seek raw upload complete for id {}", id);
+              return ignored;
+            })
+        .onSuccess(
+            v -> {
+              try {
+                Files.deleteIfExists(filePath);
+              } catch (Exception e) {
+                LOGGER.warn("Failed to delete temp file {}: {}", filePath, e.getMessage());
+              }
+              respondSuccess(context, context.response(), id);
+            })
+        .onFailure(
+            err -> {
+              try {
+                Files.deleteIfExists(filePath);
+              } catch (Exception e) {
+                LOGGER.warn("Failed to delete temp file {}: {}", filePath, e.getMessage());
+              }
+              context.fail(err);
+            });
   }
 
   private void streamAndPublish(RoutingContext context, String id, boolean onSeek) {
