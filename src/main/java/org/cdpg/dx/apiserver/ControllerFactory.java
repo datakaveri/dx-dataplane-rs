@@ -1,6 +1,7 @@
 package org.cdpg.dx.apiserver;
 
 import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.*;
+import static org.cdpg.dx.common.config.ServiceProxyAddressConstants.S3_SERVICE_ADDRESS;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_EXCHANGE;
 import static org.cdpg.dx.rs.rsp.entities.controller.config.DEFAULT_AUDITING_ROUTING_KEY;
 
@@ -10,6 +11,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.cloudstorage.minio.service.MinioService;
+import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
@@ -40,6 +43,12 @@ public class ControllerFactory {
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
     String timeLimit = config.getString("timeLimit");
     SearchService searchService = new SearchServiceImpl(elasticsearchService, timeLimit);
+    long minioProxyTimeoutMs = config.getLong("minioProxyTimeoutMs", 180000L);
+    MinioService minioService =
+        MinioService.createProxy(vertx, MINIO_SERVICE_ADDRESS, minioProxyTimeoutMs);
+    long s3ProxyTimeoutMs = config.getLong("s3ProxyTimeoutMs", 240000L);
+    S3FileService s3FileService =
+        S3FileService.createProxy(vertx, S3_SERVICE_ADDRESS, s3ProxyTimeoutMs);
 
     String tenantPrefix = config.getString("tenantPrefix");
     String controlPlaneDomain = config.getString("controlPlaneDomain");
@@ -86,18 +95,23 @@ public class ControllerFactory {
     int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
 
     NGSILDDataPublishController publishController =
-            NGSILDDataPublishFactory.create(
-                    config.getString("controlPlaneDomain"),
-                    urnGenerator,
-                    auditingHandler,
-                    dataBrokerService,
-                    elasticsearchService,
-                    chunkMaxItems,
-                    chunkMaxBytes);
+        NGSILDDataPublishFactory.create(
+            config.getString("controlPlaneDomain"),
+            urnGenerator,
+            auditingHandler,
+            dataBrokerService,
+            elasticsearchService,
+            minioService,
+            chunkMaxItems,
+            chunkMaxBytes,
+            s3FileService);
     // TODO create other controllers
 
     return List.of(
-        latestController, downloadController, onboardingController, ngsildController ,
-            publishController);
+        latestController,
+        downloadController,
+        onboardingController,
+        ngsildController,
+        publishController);
   }
 }
