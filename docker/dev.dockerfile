@@ -4,10 +4,19 @@ ARG VERSION="0.0.1-SNAPSHOT"
 FROM maven:3-eclipse-temurin-21-jammy as builder
 
 WORKDIR /usr/share/app
+
+# Clone dx-common inside Docker
+RUN git clone -b dev https://github.com/datakaveri/dx-common.git /dx-common
+
+# Build dx-common
+RUN cd /dx-common && mvn clean install -DskipTests
+
 COPY pom.xml .
+
 # Downloads all packages defined in pom.xml
 RUN mvn clean package
 COPY src src
+
 # Build the source code to generate the fatjar
 RUN mvn clean package -Dmaven.test.skip=true
 
@@ -31,11 +40,15 @@ RUN curl -sSL -o /usr/share/app/elastic-apm-agent.jar \
     https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.45.0/elastic-apm-agent-1.45.0.jar
 
 EXPOSE 8080 8443 8081
+
 # Creating a non-root user
 RUN useradd -r -u 1001 -g root rs-user
+
 # Create storage directory and make rs-user as owner
 RUN mkdir -p /usr/share/app/storage/temp-dir && chown rs-user /usr/share/app/storage/temp-dir
+
 # hint for volume mount 
 VOLUME /usr/share/app/storage/temp-dir
+
 # Setting non-root user to use when container starts
 USER rs-user
