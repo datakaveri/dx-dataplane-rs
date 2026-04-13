@@ -53,7 +53,7 @@ public class PublishedApiServerVerticle extends AbstractVerticle {
     ObjectMapper mapper = DatabindCodec.mapper();
     mapper.registerModule(new JavaTimeModule());
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    /*mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);*/
     DatabindCodec.mapper().setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
 
     ObjectMapper prettyMapper = mapper.copy();
