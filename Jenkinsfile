@@ -25,7 +25,7 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.BRANCH_NAME == 'dev'
+            return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME.startsWith('PR-');
           }
         }
       }
@@ -51,25 +51,18 @@ pipeline {
           }
         }
 
-        stage('Trivy Scan') {
+        stage('Trivy Scan and Report') {
           steps {
             script {
               try {
                 sh "trivy image --severity CRITICAL,HIGH --exit-code 1 ${devImage.imageName()}"
                 echo 'Trivy scan passed: No HIGH or CRITICAL vulnerabilities found.'
+                sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
               } catch (Exception e) {
                 echo 'Trivy scan failed: HIGH or CRITICAL vulnerabilities detected.'
                 currentBuild.result = 'FAILURE'
                 throw e
               }
-            }
-          }
-        }
-
-        stage('Trivy Docker Image Scan and Report') {
-          steps {
-            script {
-              sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
             }
           }
           post {
@@ -87,6 +80,11 @@ pipeline {
         }
 
         stage('Continuous Deployment') {
+          when {
+            expression {
+              return env.BRANCH_NAME == 'dev'
+            }
+          }
 
           stages {
 
