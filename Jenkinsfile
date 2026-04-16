@@ -88,7 +88,7 @@ pipeline {
           steps {
             script {
               docker.withRegistry(registryUri, registryCredential) {
-                devImage.push("v2.2.RC1-${env.GIT_HASH}")
+                devImage.push("v2.2RC2-${env.GIT_HASH}")
               }
             }
           }
