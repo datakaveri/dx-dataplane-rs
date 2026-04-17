@@ -32,12 +32,15 @@ public class JwksResolver {
     this.jwksClient = new JwksClient(vertx, aaaKeyProvider);
   }
 
-  public Future<JWTAuth> resolve(String issuer) {
-    LOGGER.debug("Resolving JWTAuth for issuer: {}", issuer);
+  public Future<JWTAuth> resolve(String issuer, String kid) {
+    String cacheKey = issuer + "#" + kid;
+    LOGGER.debug("Resolving JWTAuth for issuer: {}, kid: {}", issuer, kid);
 
-    if (cache.containsKey(issuer)) {
-      return Future.succeededFuture(cache.get(issuer));
+    if (cache.containsKey(cacheKey)) {
+      LOGGER.info("cache hit for issuer {}, kid {}", issuer, kid);
+      return Future.succeededFuture(cache.get(cacheKey));
     }
+    LOGGER.info("cache miss - need to create JWTAuth provider for issuer {}, kid {}", issuer, kid);
 
     JsonObject cfg = issuerConfig.getJsonObject(issuer);
     if (cfg == null) {
@@ -48,12 +51,17 @@ public class JwksResolver {
 
     return jwksClient
         .fetchJwks(type, jwksUrl)
-        .map(
+        .compose(
             jwks -> {
               List<JsonObject> keys =
                   jwks.getJsonArray("keys").stream()
                       .map(obj -> (JsonObject) obj)
+                      .filter(k -> kid.equals(k.getString("kid")))
                       .collect(Collectors.toList());
+
+              if (keys.isEmpty()) {
+                return Future.failedFuture("No JWK found for issuer: " + issuer + ", kid: " + kid);
+              }
 
               JWTAuthOptions options =
                   new JWTAuthOptions()
@@ -65,10 +73,10 @@ public class JwksResolver {
                               .setIssuer(issuer));
 
               JWTAuth jwtAuth = JWTAuth.create(vertx, options);
-              cache.put(issuer, jwtAuth);
+              cache.put(cacheKey, jwtAuth);
 
-              LOGGER.info("Created new JWTAuth provider for issuer {}", issuer);
-              return jwtAuth;
+              LOGGER.info("Created new JWTAuth provider for issuer {}, kid {}", issuer, kid);
+              return Future.succeededFuture(jwtAuth);
             });
   }
 }
