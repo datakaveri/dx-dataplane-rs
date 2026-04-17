@@ -25,25 +25,12 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.BRANCH_NAME == 'dev'
+            return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME.startsWith('PR-');
           }
         }
       }
 
       stages {
-
-        stage('Build dx-common Dependency') {
-          steps {
-            script {
-              dir('dx-common') {
-                git branch: 'origin/dev', 
-                    url: 'https://github.com/datakaveri/dx-common.git'
-                
-                sh 'mvn clean install -Dmaven.test.skip=true'
-              }
-            }
-          }
-        }
 
         stage('Trivy Code Scan (Dependencies)') {
           steps {
@@ -64,25 +51,18 @@ pipeline {
           }
         }
 
-        stage('Trivy Scan') {
+        stage('Trivy Scan and Report') {
           steps {
             script {
               try {
                 sh "trivy image --severity CRITICAL,HIGH --exit-code 1 ${devImage.imageName()}"
                 echo 'Trivy scan passed: No HIGH or CRITICAL vulnerabilities found.'
+                sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
               } catch (Exception e) {
                 echo 'Trivy scan failed: HIGH or CRITICAL vulnerabilities detected.'
                 currentBuild.result = 'FAILURE'
                 throw e
               }
-            }
-          }
-        }
-
-        stage('Trivy Docker Image Scan and Report') {
-          steps {
-            script {
-              sh "trivy image --output trivy-dev-image-report.txt ${devImage.imageName()}"
             }
           }
           post {
@@ -100,6 +80,11 @@ pipeline {
         }
 
         stage('Continuous Deployment') {
+          when {
+            expression {
+              return env.BRANCH_NAME == 'dev'
+            }
+          }
 
           stages {
 
