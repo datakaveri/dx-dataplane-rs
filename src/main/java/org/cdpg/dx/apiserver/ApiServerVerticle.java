@@ -11,8 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auth.appid.AppIdAuthHandler;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.CombinedAuthHandler;
-import org.cdpg.dx.auth.appid.cache.AppIdCacheService;
-import org.cdpg.dx.auth.appid.cache.AppIdItemAccessCacheService;
+import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.authentication.client.JwksResolver;
 import org.cdpg.dx.auth.authentication.handler.MultiIssuerJwtAuthHandler;
@@ -55,12 +54,10 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
     String host = config.getString("controlplaneHost", "localhost");
     int port = config.getInteger("controlplaneGrpcPort", 9090);
-    int maxSize = config.getInteger("appIdCacheMaxSize", 1000);
-    long ttlMinutes = config.getLong("appIdCacheTtlMinutes", 5L);
 
     this.appIdClient = new AppIdVerificationClient(host, port);
-    AppIdItemAccessCacheService itemAccessCache = new AppIdItemAccessCacheService(maxSize, ttlMinutes);
-    AppIdItemAccessHandler appIdItemAccessHandler = new AppIdItemAccessHandler(itemAccessCache, appIdClient);
+    AppIdItemAccessHandler appIdItemAccessHandler =
+        new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
 
     LOGGER.info("AppId gRPC client configured: {}:{}", host, port);
     return ControllerFactory.createControllers(vertx, config, urnGenerator, appIdItemAccessHandler);
@@ -68,17 +65,12 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected AuthenticationHandler getAppIdAuthHandler() {
-    return combinedAuthHandler; // same instance — satisfies "appIdAuth" scheme requirement
+    return combinedAuthHandler;
   }
 
   @Override
   protected AuthenticationHandler createMainAuthHandler(JwksResolver jwksResolver) {
-    JsonObject cfg = config();
-    int maxSize = cfg.getInteger("appIdCacheMaxSize", 1000);
-    long ttlMinutes = cfg.getLong("appIdCacheTtlMinutes", 5L);
-
-    AppIdCacheService cacheService = new AppIdCacheService(maxSize, ttlMinutes);
-    AppIdAuthHandler appIdAuthHandler = new AppIdAuthHandler(cacheService, appIdClient);
+    AppIdAuthHandler appIdAuthHandler = new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
     MultiIssuerJwtAuthHandler jwtAuthHandler = new MultiIssuerJwtAuthHandler(jwksResolver);
     this.combinedAuthHandler = new CombinedAuthHandler(appIdAuthHandler, jwtAuthHandler);
     return combinedAuthHandler;
@@ -102,11 +94,11 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
     FileUploadController fileUploadController = new FileUploadController();
 
     router.post("/ngsi-ld/v1/upload")
-            .handler(BodyHandler.create().setBodyLimit(Long.MAX_VALUE))
-            .handler(fileUploadController::handleUpload);
+        .handler(BodyHandler.create().setBodyLimit(Long.MAX_VALUE))
+        .handler(fileUploadController::handleUpload);
 
     router.delete("/ngsi-ld/v1/upload/:fileId")
-            .handler(fileUploadController::handleDelete);
+        .handler(fileUploadController::handleDelete);
   }
 
   @Override

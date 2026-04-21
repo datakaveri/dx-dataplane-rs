@@ -1,0 +1,32 @@
+HTTP Token-Exchange Approach (AppId + AppSecret -> JWT)
+-------------------------------------------------------
+
+Concept
+- Dataplane accepts Bearer JWT or appId+appSecret headers.
+- For app credentials, dataplane exchanges them with controlplane endpoint `/iudx/auth/v2/app/token` to obtain a JWT, then proceeds through the existing JWT handler chain unchanged.
+
+Flow
+1. Client sends headers: `appId`, `appSecret`.
+2. AuthenticationHandler detects app credentials, calls controlplane `/app/token` with JSON `{ appId, appSecret }` and dataplane service credential.
+3. Controlplane returns JWT + expiry; handler sets `Authorization: Bearer <jwt>` on the request headers and calls `context.next()`.
+4. Existing AuthorizationHandler and downstream handlers run as-is.
+
+Pros
+- Minimal dataplane code change; reuse current JWT path.
+- No need to add dual auth context handling.
+
+Cons
+- Controlplane call per request; adds latency and token generation cost.
+- Does not meet “appId-only” requirement unless secret is still mandated.
+- Still forwards user JWT to downstream controlplane calls (unchanged pattern).
+
+Best when
+- Security policy requires secret.
+- Fast to ship as interim solution before rich-context.
+
+Implementation notes
+- Add AuthenticationHandler; wire controlplane base URL and service credential.
+- Add retry + timeout around token exchange (e.g., 500–800 ms timeout, 1 retry with jitter).
+- Cache tokens per appId for short TTL to reduce load (respect expiry; keep under 5 minutes to limit blast radius).
+- Log and metric: exchange success/failure, added latency.
+

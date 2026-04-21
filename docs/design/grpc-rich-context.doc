@@ -1,0 +1,46 @@
+gRPC Rich-Context Approach (Optimized Internal Hop)
+---------------------------------------------------
+
+Concept
+- Same logical model as HTTP Rich-Context: controlplane returns AppAuthContext.
+- Transport between dataplane and controlplane is gRPC with mTLS for lower latency and strong service authentication.
+
+Flow
+1. Dataplane AuthenticationHandler uses a gRPC client stub to call `GetAppAuthContext(AppIdRequest)`; includes mTLS client cert (preferred) or service JWT in metadata.
+2. Controlplane gRPC service validates appId/secret, revocation, constraints; returns AppAuthContext protobuf.
+3. Handler maps protobuf fields into RoutingContext keys, matching JWT branch semantics.
+
+Pros
+- Lower latency and smaller overhead vs HTTP+JSON.
+- Built-in deadlines and retries via gRPC client.
+- Strong mTLS identity; easier to enforce per-service authz.
+
+Cons
+- Requires gRPC infra (load balancer, cert distribution, observability).
+- Additional deployment complexity compared to HTTP.
+
+When to choose
+- If controlplane already serves gRPC or infra can support it.
+- High QPS machine-to-machine traffic where latency is sensitive.
+
+Data contract (proto sketch)
+message AppIdRequest { string app_id = 1; string app_secret = 2; }
+message AppAuthContext {
+  string app_id = 1;
+  string role = 2;
+  string iid = 3;
+  string drl = 4;
+  string did = 5;
+  map<string, string> cons = 6;
+  repeated string allowed_attributes = 7;
+  string access_policy = 8;
+  string owner_user_id = 9;
+  int64 expires_at = 10;
+  int64 revocation_version = 11;
+}
+
+Operational notes
+- Enforce deadlines (e.g., 500 ms) and max retry count (1) in client.
+- Export metrics: deadlineExceeded, unavailable, permissionDenied.
+- Rotate mTLS certs via existing PKI; pin controlplane CA in dataplane.
+

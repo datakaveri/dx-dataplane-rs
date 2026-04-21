@@ -1,0 +1,29 @@
+Open Questions Checklist (Decide Before Build)
+---------------------------------------------
+
+Security model
+- Is appId alone acceptable as a bearer credential? If not, require appSecret and use token-exchange.
+- Do we mandate mTLS for dataplane->controlplane, or allow Bearer service JWT?
+- Maximum TTL for caches and tokens? (e.g., <=5 minutes for tokens, <=60 seconds for context cache)
+
+Controlplane API
+- Approve new rich-context endpoint contract (fields, status codes, error model).
+- Should context include embedded item policies for bulk constraints, or remain per-request iid?
+
+Revocation and audit
+- How is revocation propagated? (revocationVersion increment, cache invalidation strategy)
+- What auditing fields must be logged for appId calls? (appId, method, resource, authMethod)
+
+Client contract
+- Headers allowed: `appId` only, or `appId` + `appSecret`? Case sensitivity?
+- Should we allow app credentials in query params for non-browser clients? (default no)
+
+Operational
+- Target SLO for controlplane auth endpoint latency/availability; fail-open ever allowed?
+- Rate limits per appId and per source IP?
+- Backward compatibility window and rollout plan (feature flag, per-route enablement).
+
+Risk mitigations
+- Leakage of appId: monitoring, allowlist for source IPs, ability to rotate appId quickly?
+- Controlplane unavailability: fallback behavior and alert thresholds.
+

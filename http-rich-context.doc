@@ -1,0 +1,68 @@
+HTTP Rich-Context Approach (Recommended for AppId-only or AppId+Secret)
+----------------------------------------------------------------------
+
+Concept
+- Dataplane accepts Bearer JWT or app credentials.
+- For app credentials, dataplane calls new controlplane endpoint `/iudx/auth/v2/app/context` over HTTPS with its own service credential.
+- Controlplane returns a full authorization context (AppAuthContext) containing all fields downstream handlers need (roles, constraints, iid, allowedAttributes, accessPolicy, ownerUserId, expiry metadata).
+- Dataplane injects this context into RoutingContext keys already used by downstream handlers, so business logic remains unchanged.
+
+Flow (app credential path)
+1. Client sends headers: `appId` (and optionally `appSecret` if policy requires).
+2. AuthenticationHandler detects absence of Bearer token, presence of appId (and secret if mandated).
+3. Dataplane -> Controlplane: POST `/iudx/auth/v2/app/context` with JSON `{ appId, appSecret? }`, plus `Authorization: Bearer <dataplane-service-token>` or mTLS client cert.
+4. Controlplane validates app, secret (if any), status, revocation, constraints; returns JSON payload (AppAuthContext).
+5. AuthenticationHandler maps fields into RoutingContext:
+   - iid
+   - role / delegated role
+   - cons / allowedAttributes / accessPolicy
+   - ownerUserId
+   - expiry / cache-control version
+6. Downstream handlers proceed exactly as in JWT branch (no code change).
+
+Data contract: AppAuthContext (example fields)
+{
+  "appId": "uuid",
+  "role": "consumer|provider|delegate|org_admin|compute",
+  "iid": "provider:resourceId" | null,
+  "cons": { "allowedAttributes": [...], "access": "...", "constraintsVersion": "v123" },
+  "allowedAttributes": [...],
+  "accessPolicy": "OPEN|RESTRICTED|DENY",
+  "ownerUserId": "uuid",
+  "drl": "delegated-role?" ,
+  "did": "delegator-id?",
+  "expiresAt": 1712345678,
+  "revocationVersion": 42
+}
+
+Handler updates
+- New AuthenticationHandler (first in chain) branches JWT vs app.
+- ApiConstants: add `appId`, `appSecret` header constants; allow in CORS.
+- Main verticle: inject controlplane base URL, service credential, timeouts, retry policy.
+- Auditing: log auth method and appId.
+
+Service-to-service auth
+- Prefer mTLS between dataplane and controlplane.
+- If mTLS not ready, issue a long-lived dataplane service JWT scoped to the app-context endpoint.
+
+Caching
+- Positive cache TTL: 30–60 seconds, keyed by appId (+secret hash if used) and revocationVersion.
+- Negative cache TTL: 5–10 seconds to avoid thundering herd.
+- Fail-closed on controlplane errors by default; make fail-open a feature flag for read-only endpoints if required.
+
+Pros
+- Single controlplane call; no JWT minting overhead.
+- Works when clients send only appId.
+- Instant revocation via revocationVersion.
+
+Cons
+- Requires new controlplane endpoint and schema.
+- Dataplane must manage dual auth contexts (JWT vs AppAuthContext).
+
+Rollout steps
+1) Add controlplane endpoint and service credential.
+2) Implement AuthenticationHandler branch and mapping.
+3) Wire CORS/OpenAPI/headers.
+4) Add metrics: latency of app-context calls, cache hit ratio, auth-method split.
+5) Gradual enablement behind feature flag per route.
+

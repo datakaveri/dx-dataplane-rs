@@ -1,0 +1,24 @@
+Dual Authentication Strategy for DX Dataplane
+--------------------------------------------
+
+Document set:
+1) Strategy and Decisions (this file)
+2) HTTP Rich-Context Approach (http-rich-context.doc)
+3) HTTP Token-Exchange Approach (http-token-exchange.doc)
+4) gRPC Rich-Context Approach (grpc-rich-context.doc)
+5) Open Questions Checklist (open-questions.doc)
+
+Purpose
+Provide implementation-ready guidance to support both JWT and AppId/AppSecret (or AppId-only) authentication on the dataplane, with clear options for HTTP and gRPC links to the controlplane, trade-offs, and decision points.
+
+Key goals
+- Allow clients to call dataplane with either Bearer JWT or app credentials (AppId +/- AppSecret).
+- Keep downstream authorization logic unchanged wherever possible.
+- Ensure service-to-service calls from dataplane to controlplane are authenticated and efficient.
+
+Recommended default
+- Use Rich-Context verification (no JWT minting) over HTTP (or gRPC if infra ready).
+
+Contents
+- See the per-approach docs listed above for flow, sequence diagrams (text), data contracts, and rollout steps.
+
