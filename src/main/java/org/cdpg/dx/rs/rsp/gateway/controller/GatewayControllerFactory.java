@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.rsp.gateway.controller;
 
 import io.vertx.core.json.JsonObject;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.databroker.service.DataBrokerService;
@@ -12,12 +13,12 @@ public class GatewayControllerFactory {
       DataBrokerService dataBrokerService,
       URNGenerator urnGenerator,
       JsonObject config,
-      AuditingHandler auditingHandler /*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 365);
-
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
     GatewayParamValidator validator = new GatewayParamValidator(maxDaysSync, maxDaysAsync);
 
@@ -26,7 +27,8 @@ public class GatewayControllerFactory {
         validator,
         urnGenerator,
         config.getString("controlPlaneDomain"),
-        auditingHandler /*,
+        auditingHandler,
+        appIdItemAccessHandler /*,
                         redisService,
                         redisKeyPrefix*/);
   }

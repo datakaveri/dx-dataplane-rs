@@ -97,6 +97,7 @@ paths:
       description: Search for temporal entities with various filters
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -273,6 +274,7 @@ paths:
       description: Search for spatial and attribute entities with various filters
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -406,6 +408,7 @@ paths:
       summary: Entities Spatial and Attribute Post Search Query
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       operationId: postEntitiesSearch
       parameters:
         - name: did
@@ -579,6 +582,7 @@ paths:
       summary: Temporal Post Search Query
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       operationId: postTemporalEntitiesSearch
       parameters:
         - name: did
@@ -772,6 +776,7 @@ paths:
         Note: time and endTime parameters are only supported if timeRel is given.
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -1059,6 +1064,7 @@ paths:
       operationId: postLatestEntityDataSearch
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -1234,6 +1240,7 @@ paths:
       operationId: downloadIdEntityData
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -1294,6 +1301,7 @@ paths:
       operationId: downloadPutSearchData
       security:
         - authorization: [ ]
+        - appIdAuth: [ ]
       parameters:
         - name: did
           in: header
@@ -1560,6 +1568,10 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Keycloak issued Bearer token
+    appIdAuth:
+      type: http
+      scheme: basic
+      description: Direct AppId authentication. Credentials as base64(appId:appSecret) in Authorization header.
   schemas:
     GeoSearchRequest:
       type: object

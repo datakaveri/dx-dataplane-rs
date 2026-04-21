@@ -26,6 +26,7 @@ import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
@@ -34,6 +35,7 @@ public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
@@ -45,10 +47,12 @@ public class DownloadController implements ApiController {
       DownloadService downloadService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler /*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.downloadService = downloadService;
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
@@ -64,6 +68,7 @@ public class DownloadController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -73,6 +78,7 @@ public class DownloadController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)

@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
@@ -31,7 +32,8 @@ public class ControllerFactory {
   private ControllerFactory() {}
 
   public static List<ApiController> createControllers(
-      Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
+      Vertx vertx, JsonObject config, URNGenerator urnGenerator,
+      AppIdItemAccessHandler appIdItemAccessHandler) {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
@@ -58,7 +60,8 @@ public class ControllerFactory {
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
         LatestControllerFactory.create(
-            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler /*,
+            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler,
+            appIdItemAccessHandler /*,
             redisService,
             redisKeyPrefix*/);
     ApiController downloadController =
@@ -67,7 +70,8 @@ public class ControllerFactory {
             controlPlaneDomain,
             urnGenerator,
             elasticsearchService,
-            auditingHandler /*,
+            auditingHandler,
+            appIdItemAccessHandler /*,
                             redisService,
                             redisKeyPrefix*/);
 
@@ -78,7 +82,8 @@ public class ControllerFactory {
             urnGenerator,
             maxDaysSync,
             maxDaysAsync,
-            auditingHandler /*,
+            auditingHandler,
+            appIdItemAccessHandler /*,
                             redisService,
                             redisKeyPrefix*/);
 
