@@ -1,10 +1,14 @@
 package org.cdpg.dx.auth.appid;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.util.List;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.impl.AuthenticationHandlerInternal;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.apache.logging.log4j.LogManager;
@@ -23,10 +27,13 @@ import org.cdpg.dx.common.exception.DxUnauthorizedException;
  * {@code appId} string in routing-context data under {@link #APP_ID_KEY} so that the subsequent
  * {@link AppIdItemAccessHandler} can perform the per-entity access check.
  */
-public class AppIdAuthHandler implements AuthenticationHandler {
+public class AppIdAuthHandler implements AuthenticationHandlerInternal {
 
   /** Routing-context key that signals an AppId-authenticated request. */
   public static final String APP_ID_KEY = "appId";
+
+  /** Temporary principal key used to pass appId from authenticate() to postAuthentication(). */
+  static final String PRINCIPAL_APP_ID_KEY = "_appId";
 
   private static final Logger LOGGER = LogManager.getLogger(AppIdAuthHandler.class);
 
@@ -40,30 +47,42 @@ public class AppIdAuthHandler implements AuthenticationHandler {
 
   @Override
   public void handle(RoutingContext ctx) {
+    authenticate(ctx, res -> {
+      if (res.succeeded()) {
+        ctx.setUser(res.result());
+        postAuthentication(ctx);
+      } else {
+        ctx.fail(res.cause());
+      }
+    });
+  }
+
+  @Override
+  public void authenticate(RoutingContext ctx, Handler<AsyncResult<User>> handler) {
     String authHeader = ctx.request().getHeader("Authorization");
     if (authHeader == null || !authHeader.startsWith("Basic ")) {
-      ctx.fail(new DxUnauthorizedException("Missing or invalid Authorization header (expected Basic auth)"));
+      handler.handle(Future.failedFuture(new DxUnauthorizedException("Missing or invalid Authorization header (expected Basic auth)")));
       return;
     }
 
     String appId;
     String appSecret;
     try {
-      String decoded = new String(Base64.getDecoder().decode(authHeader.substring(6)), StandardCharsets.UTF_8);
+      String decoded = new String(Base64.getDecoder().decode(authHeader.substring(6).trim()), StandardCharsets.UTF_8);
       int colonIdx = decoded.indexOf(':');
       if (colonIdx < 0) {
-        ctx.fail(new DxUnauthorizedException("Invalid Basic auth format (expected base64(appId:appSecret))"));
+        handler.handle(Future.failedFuture(new DxUnauthorizedException("Invalid Basic auth format (expected base64(appId:appSecret))")));
         return;
       }
       appId = decoded.substring(0, colonIdx);
       appSecret = decoded.substring(colonIdx + 1);
     } catch (IllegalArgumentException e) {
-      ctx.fail(new DxUnauthorizedException("Invalid Base64 in Authorization header"));
+      handler.handle(Future.failedFuture(new DxUnauthorizedException("Invalid Base64 in Authorization header")));
       return;
     }
 
     if (appId.isBlank() || appSecret.isBlank()) {
-      ctx.fail(new DxUnauthorizedException("AppId or AppSecret must not be blank"));
+      handler.handle(Future.failedFuture(new DxUnauthorizedException("AppId or AppSecret must not be blank")));
       return;
     }
 
@@ -72,45 +91,49 @@ public class AppIdAuthHandler implements AuthenticationHandler {
         .ifPresentOrElse(
             principal -> {
               LOGGER.debug("AppId cache hit for appId={}", appId);
-              applyPrincipal(ctx, principal);
-              ctx.next();
+              handler.handle(Future.succeededFuture(buildUser(principal)));
             },
-            () -> verifyWithControlplane(ctx, appId, appSecret));
+            () -> verifyWithControlplane(appId, appSecret, handler));
   }
 
-  private void verifyWithControlplane(RoutingContext ctx, String appId, String appSecret) {
+  @Override
+  public void postAuthentication(RoutingContext ctx) {
+    String appId = ctx.user().principal().getString(PRINCIPAL_APP_ID_KEY);
+    if (appId != null) {
+      ctx.put(APP_ID_KEY, appId);
+      ctx.user().principal().remove(PRINCIPAL_APP_ID_KEY);
+    }
+    ctx.next();
+  }
+
+  private void verifyWithControlplane(String appId, String appSecret, Handler<AsyncResult<User>> handler) {
     verificationClient
         .verify(appId, appSecret)
-        .onSuccess(
-            response -> {
-              if (!response.getSuccess()) {
-                LOGGER.warn("AppId verification failed for appId={}", appId);
-                ctx.fail(new DxUnauthorizedException("Invalid AppId credentials"));
-                return;
-              }
-              AppIdPrincipal principal = AppIdPrincipal.fromProto(response.getPrincipal());
-              cacheService.put(appId, principal);
-              applyPrincipal(ctx, principal);
-              ctx.next();
-            })
-        .onFailure(
-            err -> {
-              LOGGER.error("gRPC verification error for appId={}: {}", appId, err.getMessage());
-              ctx.fail(new DxUnauthorizedException("Authentication service unavailable"));
-            });
+        .onSuccess(response -> {
+          if (!response.getSuccess()) {
+            LOGGER.warn("AppId verification failed for appId={}", appId);
+            handler.handle(Future.failedFuture(new DxUnauthorizedException("Invalid AppId credentials")));
+            return;
+          }
+          AppIdPrincipal principal = AppIdPrincipal.fromProto(response.getPrincipal());
+          cacheService.put(appId, principal);
+          handler.handle(Future.succeededFuture(buildUser(principal)));
+        })
+        .onFailure(err -> {
+          LOGGER.error("gRPC verification error for appId={}: {}", appId, err.getMessage());
+          handler.handle(Future.failedFuture(new DxUnauthorizedException("Authentication service unavailable")));
+        });
   }
 
-  /**
-   * Sets minimal {@code ctx.user()} (identity fields only) and stores {@code appId} in ctx
-   * so {@link AppIdItemAccessHandler} can issue the per-entity access-check gRPC call.
-   */
-  private void applyPrincipal(RoutingContext ctx, AppIdPrincipal principal) {
+  private User buildUser(AppIdPrincipal principal) {
+    // AppId-authenticated requests always get "consumer" role for the AuthorizationHandler gate.
+    // Fine-grained per-resource authorization is enforced by AppIdItemAccessHandler (CheckItemAccess gRPC).
     JsonObject userPrincipal =
         new JsonObject()
             .put("sub", principal.ownerId())
             .put("iss", "dx-controlplane")
-            .put("realm_access", new JsonObject().put("roles", new JsonArray(principal.roles())));
-    ctx.setUser(User.create(userPrincipal));
-    ctx.put(APP_ID_KEY, principal.appId());
+            .put("realm_access", new JsonObject().put("roles", new JsonArray(List.of("consumer"))))
+            .put(PRINCIPAL_APP_ID_KEY, principal.appId());
+    return User.create(userPrincipal);
   }
 }
