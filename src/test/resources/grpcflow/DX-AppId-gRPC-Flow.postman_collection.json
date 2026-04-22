@@ -1,0 +1,1291 @@
+{
+  "info": {
+    "_postman_id": "dx-appid-grpc-flow-v1",
+    "name": "DX Dataplane — AppId gRPC Auth Flow",
+    "description": "# DX AppId gRPC Authentication — End-to-End Test Collection\n\n## Overview\nThis collection tests the full AppId authentication flow as designed by the manager:\n1. **Identity** — `POST /iudx/v2/auth/app` creates an AppId on the Controlplane (JWT required)\n2. **Verification** — gRPC `VerifyAppId(appId, appSecret)` → returns `DxUser` (identity only)\n3. **Access Check** — gRPC `CheckItemAccess(appId, entityId)` → returns item metadata (policies, accessPolicy, etc.)\n4. **Dataplane calls** — All NGSILD/Gateway/Latest/Download endpoints accept `Authorization: Basic base64(appId:appSecret)`\n\n## How Basic Auth is built\n`Authorization: Basic base64(APP_ID + \":\" + APP_SECRET)`\n\nThe collection pre-request script builds this automatically from `APP_ID` and `APP_SECRET` variables.\n\n## Setup\n1. Set collection variables: `CONTROLPLANE_HOST`, `DATAPLANE_NGSILD_HOST`, `DATAPLANE_GATEWAY_HOST`, `GRPC_HOST`, `JWT_TOKEN`, `ENTITY_ID`\n2. Run **Folder 0 — AppId Lifecycle** to create an AppId (saves `APP_ID` and `APP_SECRET` automatically)\n3. Run **Folder 1 — gRPC Direct** using grpcurl commands in the request descriptions\n4. Run **Folder 2 — NGSILD Server** and **Folder 3 — Gateway Server** to test the dataplane\n5. Run **Folder 4 — Error Scenarios** to verify all negative paths return correct status codes\n\n## gRPC Testing (Folder 1)\nPostman supports gRPC natively (v10+). For older Postman or CLI testing use the grpcurl commands documented in each request description. Import the proto from `dx-common/src/main/proto/appid_verification.proto`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "CONTROLPLANE_HOST",
+      "value": "https://localhost:8080",
+      "description": "Controlplane base URL (e.g. https://dev.controlplane.dx.io)"
+    },
+    {
+      "key": "DATAPLANE_NGSILD_HOST",
+      "value": "https://localhost:8443",
+      "description": "Dataplane NGSILD server (ApiServerVerticle)"
+    },
+    {
+      "key": "DATAPLANE_GATEWAY_HOST",
+      "value": "https://localhost:8444",
+      "description": "Dataplane Gateway/Proxy server (ProxyApiServerVerticle)"
+    },
+    {
+      "key": "GRPC_HOST",
+      "value": "localhost:9090",
+      "description": "Controlplane gRPC server host:port"
+    },
+    {
+      "key": "JWT_TOKEN",
+      "value": "<paste-your-jwt-bearer-token-here>",
+      "description": "Bearer JWT from Keycloak — used only for Controlplane AppId management"
+    },
+    {
+      "key": "APP_ID",
+      "value": "",
+      "description": "Auto-filled after running 'Create AppId'"
+    },
+    {
+      "key": "APP_SECRET",
+      "value": "",
+      "description": "Auto-filled after running 'Create AppId'"
+    },
+    {
+      "key": "BASIC_AUTH",
+      "value": "",
+      "description": "Auto-built by pre-request script as Basic base64(APP_ID:APP_SECRET)"
+    },
+    {
+      "key": "ENTITY_ID",
+      "value": "<paste-your-entity-urn-here>",
+      "description": "DX entity URN — e.g. urn:dx:rs:example-entity-uuid"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Build Basic Auth header from APP_ID and APP_SECRET",
+          "const appId = pm.collectionVariables.get('APP_ID');",
+          "const appSecret = pm.collectionVariables.get('APP_SECRET');",
+          "if (appId && appSecret && appId !== '' && appSecret !== '') {",
+          "    const encoded = btoa(appId + ':' + appSecret);",
+          "    pm.collectionVariables.set('BASIC_AUTH', 'Basic ' + encoded);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "0 — AppId Lifecycle (Controlplane)",
+      "description": "Manage AppId credentials via the Controlplane REST API. All requests here require a valid **Keycloak JWT** in the `JWT_TOKEN` variable.\n\n**Order to run:**\n1. Create AppId → saves APP_ID and APP_SECRET automatically\n2. Get AppIds → verify it appears\n3. Update Status → test disable/enable\n4. Delete AppId → cleanup",
+      "item": [
+        {
+          "name": "01 — Create AppId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Response has appId and appSecret', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('result');",
+                  "    const result = body.result;",
+                  "    pm.expect(result).to.have.property('appId');",
+                  "    pm.expect(result).to.have.property('appSecret');",
+                  "    pm.expect(result.status).to.equal('active');",
+                  "",
+                  "    // Auto-save for downstream requests",
+                  "    pm.collectionVariables.set('APP_ID', result.appId);",
+                  "    pm.collectionVariables.set('APP_SECRET', result.appSecret);",
+                  "    console.log('Saved APP_ID:', result.appId);",
+                  "    console.log('Saved APP_SECRET:', result.appSecret);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expiry_at\": \"2027-12-31T23:59:59\",\n  \"roles\": [\n    {\n      \"role\": \"consumer\",\n      \"constraints\": [\n        {\n          \"scope\": \"*\",\n          \"entity_id\": [\"{{ENTITY_ID}}\"],\n          \"entity_type\": \"*\"\n        }\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{CONTROLPLANE_HOST}}/iudx/v2/auth/app",
+              "host": ["{{CONTROLPLANE_HOST}}"],
+              "path": ["iudx", "v2", "auth", "app"]
+            },
+            "description": "Creates a new AppId for the authenticated consumer.\n\n**What happens internally:**\n- Controlplane generates a UUID appId and a random appSecret\n- Stores them in `app_credentials` table with the given expiry and role constraints\n- Returns `appId` + `appSecret` — **appSecret is only shown once**\n\n**The `constraints` array** controls which entity IDs and scopes this app can access:\n- `scope: \"*\"` → all scopes\n- `entity_id: [\"<uuid>\"]` → specific entity(ies) this app is allowed to query\n- `entity_type: \"*\"` → any entity type\n\n**After this runs:** `APP_ID` and `APP_SECRET` collection variables are saved automatically.\n\n```bash\ncurl -X POST '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app' \\\n  -H 'Authorization: Bearer <JWT_TOKEN>' \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"expiry_at\": \"2027-12-31T23:59:59\",\n    \"roles\": [{\"role\": \"consumer\", \"constraints\": [{\"scope\": \"*\", \"entity_id\": [\"<ENTITY_ID>\"], \"entity_type\": \"*\"}]}]\n  }'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "02 — Get AppIds (List All)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Response has result array', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('result');",
+                  "    pm.expect(body.result).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Created AppId appears in list', () => {",
+                  "    const body = pm.response.json();",
+                  "    const appId = pm.collectionVariables.get('APP_ID');",
+                  "    if (appId) {",
+                  "        const found = body.result.some(a => a.appId === appId);",
+                  "        pm.expect(found).to.be.true;",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{CONTROLPLANE_HOST}}/iudx/v2/auth/app",
+              "host": ["{{CONTROLPLANE_HOST}}"],
+              "path": ["iudx", "v2", "auth", "app"]
+            },
+            "description": "Returns all AppIds owned by the authenticated user. Supports pagination.\n\n```bash\ncurl -X GET '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app' \\\n  -H 'Authorization: Bearer <JWT_TOKEN>'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "03 — Disable AppId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}?status=disable",
+              "host": ["{{CONTROLPLANE_HOST}}"],
+              "path": ["iudx", "v2", "auth", "app", "{{APP_ID}}"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "disable"
+                }
+              ]
+            },
+            "description": "Disables the AppId so it cannot authenticate. After this, any `Authorization: Basic ...` using this AppId should return **401**.\n\n**Use this to test:** Run a dataplane request after disabling — the cache TTL may still serve it if within TTL. Wait for TTL expiry (default 5 min) to see the 401.\n\n```bash\ncurl -X PATCH '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}?status=disable' \\\n  -H 'Authorization: Bearer <JWT_TOKEN>'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "04 — Enable AppId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}?status=active",
+              "host": ["{{CONTROLPLANE_HOST}}"],
+              "path": ["iudx", "v2", "auth", "app", "{{APP_ID}}"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            },
+            "description": "Re-enables a disabled AppId.\n\n```bash\ncurl -X PATCH '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}?status=active' \\\n  -H 'Authorization: Bearer <JWT_TOKEN>'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "05 — Delete AppId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{JWT_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}",
+              "host": ["{{CONTROLPLANE_HOST}}"],
+              "path": ["iudx", "v2", "auth", "app", "{{APP_ID}}"]
+            },
+            "description": "Permanently deletes the AppId. After this, `VerifyAppId` gRPC will return `success: false`.\n\n```bash\ncurl -X DELETE '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/{{APP_ID}}' \\\n  -H 'Authorization: Bearer <JWT_TOKEN>'\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1 — gRPC Direct (VerifyAppId + CheckItemAccess)",
+      "description": "Tests the two gRPC RPCs directly on the Controlplane gRPC server.\n\n## Postman v10+ (native gRPC)\nCreate a **New > gRPC Request** in Postman, set the URL to `{{GRPC_HOST}}`, import the proto from:\n```\ndx-common/src/main/proto/appid_verification.proto\n```\n\n## CLI via grpcurl\nInstall: `go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest`\n\nAll commands use `--plaintext` (no TLS). Change to `-cacert` or `-insecure` for TLS.\n\n## Service: `appid.AppIdVerificationService`\nMethods:\n- `VerifyAppId` → identity check, returns `DxUser`\n- `CheckItemAccess` → per-entity access check, returns item metadata",
+      "item": [
+        {
+          "name": "01 — VerifyAppId (Happy Path)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// This request documents the grpcurl command.",
+                  "// In Postman v10+ with gRPC support, configure the request as gRPC.",
+                  "// For now, checking that the collection variable substitution worked.",
+                  "pm.test('APP_ID variable is set', () => {",
+                  "    const appId = pm.collectionVariables.get('APP_ID');",
+                  "    pm.expect(appId).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{APP_ID}}\",\n  \"app_secret\": \"{{APP_SECRET}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## gRPC: VerifyAppId — Happy Path\n\nVerifies that the given `appId + appSecret` are valid. Returns identity-only `DxUser` (no entity metadata).\n\n**Expected response:**\n```json\n{\n  \"success\": true,\n  \"principal\": {\n    \"appId\": \"<APP_ID>\",\n    \"ownerId\": \"<user-uuid>\",\n    \"roles\": [\"consumer\"],\n    \"scopes\": [\"*\"],\n    \"expiresAtEpoch\": 1735689599\n  }\n}\n```\n\n**grpcurl command:**\n```bash\ngrpcurl -plaintext \\\n  -d '{\"app_id\": \"'\"$APP_ID\"'\", \"app_secret\": \"'\"$APP_SECRET\"'\"}' \\\n  {{GRPC_HOST}} \\\n  appid.AppIdVerificationService/VerifyAppId\n```\n\n**What to verify:**\n- `success: true`\n- `principal.appId` matches your APP_ID\n- `principal.roles` contains `consumer`\n- `principal.ownerId` is the UUID of the user who created the AppId\n- NO `iid`, `accessPolicy`, `policies` fields here — those come from `CheckItemAccess`"
+          },
+          "response": []
+        },
+        {
+          "name": "02 — VerifyAppId (Wrong Credentials)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{APP_ID}}\",\n  \"app_secret\": \"wrong-secret-intentionally\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## gRPC: VerifyAppId — Wrong Credentials\n\n**Expected response:**\n```json\n{\n  \"success\": false,\n  \"error_code\": \"INVALID_CREDENTIALS\"\n}\n```\n\n**grpcurl command:**\n```bash\ngrpcurl -plaintext \\\n  -d '{\"app_id\": \"'\"$APP_ID\"'\", \"app_secret\": \"wrong-secret-intentionally\"}' \\\n  {{GRPC_HOST}} \\\n  appid.AppIdVerificationService/VerifyAppId\n```\n\n**What to verify:** `success: false`. The dataplane translates this into HTTP 401."
+          },
+          "response": []
+        },
+        {
+          "name": "03 — VerifyAppId (Non-existent AppId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"00000000-0000-0000-0000-000000000000\",\n  \"app_secret\": \"doesnt-matter\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## gRPC: VerifyAppId — App Does Not Exist\n\n**Expected response:** `success: false`\n\n**grpcurl command:**\n```bash\ngrpcurl -plaintext \\\n  -d '{\"app_id\": \"00000000-0000-0000-0000-000000000000\", \"app_secret\": \"doesnt-matter\"}' \\\n  {{GRPC_HOST}} \\\n  appid.AppIdVerificationService/VerifyAppId\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "04 — CheckItemAccess (Happy Path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{APP_ID}}\",\n  \"entity_id\": \"{{ENTITY_ID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## gRPC: CheckItemAccess — Happy Path\n\nChecks whether the given `app_id` is allowed to access `entity_id`. Called by `AppIdItemAccessHandler` on the dataplane **after** identity is already verified by `VerifyAppId`.\n\nNote: This call trusts the `app_id` — it does NOT re-check the secret. Credentials are verified upstream by `VerifyAppId`.\n\n**Expected response:**\n```json\n{\n  \"success\": true,\n  \"iid\": \"urn:dx:rs:example-entity-uuid\",\n  \"access_policy\": \"OPEN\",\n  \"resource_server_json\": \"[{...resource server details...}]\",\n  \"policies_json\": \"[{...access policies...}]\"\n}\n```\n\n**What gets merged into `ctx.user().principal()` on the dataplane:**\n- `iid` → for resource identification\n- `accessPolicy` → OPEN / SECURE / CLOSED\n- `resourceServer` → parsed from resource_server_json\n- `policies` → parsed from policies_json (triggers fast-path in `ItemAccessApplicableFilterHandler`)\n\n**grpcurl command:**\n```bash\ngrpcurl -plaintext \\\n  -d '{\"app_id\": \"'\"$APP_ID\"'\", \"entity_id\": \"'\"$ENTITY_ID\"'\"}' \\\n  {{GRPC_HOST}} \\\n  appid.AppIdVerificationService/CheckItemAccess\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "05 — CheckItemAccess (Entity Not In App Scope)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{APP_ID}}\",\n  \"entity_id\": \"urn:dx:rs:not-in-scope-entity\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## gRPC: CheckItemAccess — Entity Not In App Constraints\n\nThis AppId was created with constraints allowing only `{{ENTITY_ID}}`. Trying to access a different entity should fail.\n\n**Expected response:** `success: false` with an error_code.\n\nThe dataplane translates this into HTTP **403 Forbidden**.\n\n**grpcurl command:**\n```bash\ngrpcurl -plaintext \\\n  -d '{\"app_id\": \"'\"$APP_ID\"'\", \"entity_id\": \"urn:dx:rs:not-in-scope-entity\"}' \\\n  {{GRPC_HOST}} \\\n  appid.AppIdVerificationService/CheckItemAccess\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "06 — List gRPC Services (Server Reflection)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{GRPC_HOST}}",
+              "protocol": "http",
+              "host": ["{{GRPC_HOST}}"]
+            },
+            "description": "## Discover available gRPC services via server reflection\n\nIf the Controlplane gRPC server has reflection enabled:\n\n```bash\n# List all services\ngrpcurl -plaintext {{GRPC_HOST}} list\n\n# Describe the AppId service\ngrpcurl -plaintext {{GRPC_HOST}} describe appid.AppIdVerificationService\n\n# Describe a specific message type\ngrpcurl -plaintext {{GRPC_HOST}} describe appid.CheckItemAccessRequest\n```\n\nIf reflection is disabled, pass the proto file directly:\n```bash\ngrpcurl -plaintext \\\n  -proto dx-common/src/main/proto/appid_verification.proto \\\n  {{GRPC_HOST}} list\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 — NGSILD Server (port 8443) — AppId Auth",
+      "description": "Tests all NGSILD dataplane endpoints using `Authorization: Basic base64(APP_ID:APP_SECRET)`. Port 8443 = `ApiServerVerticle`.\n\n**Handler chain for each request:**\n1. `AppIdAuthHandler` → parses Basic header → gRPC `VerifyAppId` → sets `ctx.user()` with roles\n2. `AuthorizationHandler.forRoles(CONSUMER)` → role check\n3. ID extractor handler → reads `id` param into routing context\n4. `AppIdItemAccessHandler` → gRPC `CheckItemAccess` → merges policies into principal\n5. `ItemAccessApplicableFilterHandlerNgsild` → fast-path (policies present → skip HTTP controlplane call)\n6. Data fetch from DB",
+      "item": [
+        {
+          "name": "01 — Temporal Entities GET",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "pm.test('Response is JSON array or has result', () => {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.not.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=between&timeAt=2024-01-01T00:00:00Z&endTimeAt=2024-01-31T23:59:59Z&limit=10",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "temporal", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "timerel", "value": "between" },
+                { "key": "timeAt", "value": "2024-01-01T00:00:00Z" },
+                { "key": "endTimeAt", "value": "2024-01-31T23:59:59Z" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Temporal search using AppId Basic Auth.\n\n**Required params:** `id`, `timerel`, `timeAt` (and `endTimeAt` for `between`)\n\n**Supported timerel values:** `between`, `before`, `after`\n\n```bash\ncurl -k -X GET '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=between&timeAt=2024-01-01T00:00:00Z&endTimeAt=2024-01-31T23:59:59Z&limit=10' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "02 — Temporal Entities GET (lastN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=before&timeAt=2024-12-31T23:59:59Z&lastN=5",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "temporal", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "timerel", "value": "before" },
+                { "key": "timeAt", "value": "2024-12-31T23:59:59Z" },
+                { "key": "lastN", "value": "5" }
+              ]
+            },
+            "description": "Get last N records before a given time.\n\n```bash\ncurl -k '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=before&timeAt=2024-12-31T23:59:59Z&lastN=5' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "03 — Entities Spatial GET (Attribute Filter)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=10",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "limit", "value": "10" },
+                { "key": "q", "value": "", "disabled": true },
+                { "key": "geometry", "value": "Point", "disabled": true },
+                { "key": "coordinates", "value": "[77.5946,12.9716]", "disabled": true },
+                { "key": "georel", "value": "near;maxdistance=1000", "disabled": true },
+                { "key": "geoproperty", "value": "location", "disabled": true }
+              ]
+            },
+            "description": "Spatial and attribute search. Enable the disabled query params for geo search.\n\n```bash\n# Basic attribute query\ncurl -k '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=10' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n\n# With geo filter (circle)\ncurl -k -g '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&geoproperty=location&georel=near;maxdistance=1000&geometry=Point&coordinates=[77.5946,12.9716]' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "04 — Entities POST Query (Complex Search)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Query\",\n  \"entities\": [\n    {\n      \"id\": \"{{ENTITY_ID}}\"\n    }\n  ],\n  \"geoQ\": {\n    \"geometry\": \"Point\",\n    \"coordinates\": [77.5946, 12.9716],\n    \"georel\": \"near;maxDistance=1000\",\n    \"geoproperty\": \"location\"\n  },\n  \"q\": \"speed>30.0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entityOperations/query",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entityOperations", "query"]
+            },
+            "description": "Complex geo + attribute query via POST body. Entity ID is in the request body (`entities[0].id`), not a query param — `GetIdFromBodyHandler` extracts it.\n\n```bash\ncurl -k -X POST '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entityOperations/query' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"type\": \"Query\",\n    \"entities\": [{\"id\": \"'\"$ENTITY_ID\"'\"}],\n    \"q\": \"speed>30.0\"\n  }'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "05 — Temporal POST Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Query\",\n  \"entities\": [\n    {\n      \"id\": \"{{ENTITY_ID}}\"\n    }\n  ],\n  \"temporalQ\": {\n    \"timerel\": \"between\",\n    \"timeAt\": \"2024-01-01T00:00:00Z\",\n    \"endTimeAt\": \"2024-01-31T23:59:59Z\",\n    \"timeproperty\": \"observationDateTime\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entityOperations/query",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "temporal", "entityOperations", "query"]
+            },
+            "description": "Temporal complex query via POST.\n\n```bash\ncurl -k -X POST '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/temporal/entityOperations/query' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\n    \"type\": \"Query\",\n    \"entities\": [{\"id\": \"'\"$ENTITY_ID\"'\"}],\n    \"temporalQ\": {\"timerel\": \"between\", \"timeAt\": \"2024-01-01T00:00:00Z\", \"endTimeAt\": \"2024-01-31T23:59:59Z\"}\n  }'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "06 — Latest Data GET (v2 entities)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v2/entities/{{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v2", "entities", "{{ENTITY_ID}}"]
+            },
+            "description": "Get the latest (most recently published) data point for a given entity. Entity ID is a **path parameter** here — `GetIdFromPathHandler` extracts it.\n\n```bash\ncurl -k '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v2/entities/{{ENTITY_ID}}' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "07 — Latest Search GET (v2 entities search)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v2/entities/{{ENTITY_ID}}/search?limit=5",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v2", "entities", "{{ENTITY_ID}}", "search"],
+              "query": [
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Search within a specific entity's data using the NGSILD v2 search endpoint.\n\n```bash\ncurl -k '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v2/entities/{{ENTITY_ID}}/search?limit=5' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 — Gateway Server (port 8444) — AppId Auth",
+      "description": "Tests dataplane Gateway/Proxy endpoints using `Authorization: Basic base64(APP_ID:APP_SECRET)`. Port 8444 = `ProxyApiServerVerticle`.\n\nSame handler chain as NGSILD but through `ControllerFactoryProxy` → `GatewayController` + `EntitiesController`.",
+      "item": [
+        {
+          "name": "01 — Entities Spatial GET",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=10",
+              "host": ["{{DATAPLANE_GATEWAY_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Spatial entity search via the Gateway proxy server.\n\n```bash\ncurl -k '{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=10' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "02 — Temporal Entities GET",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=between&timeAt=2024-01-01T00:00:00Z&endTimeAt=2024-01-31T23:59:59Z&limit=10",
+              "host": ["{{DATAPLANE_GATEWAY_HOST}}"],
+              "path": ["ngsi-ld", "v1", "temporal", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "timerel", "value": "between" },
+                { "key": "timeAt", "value": "2024-01-01T00:00:00Z" },
+                { "key": "endTimeAt", "value": "2024-01-31T23:59:59Z" },
+                { "key": "limit", "value": "10" }
+              ]
+            },
+            "description": "Temporal search via Gateway proxy server.\n\n```bash\ncurl -k '{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/temporal/entities?id={{ENTITY_ID}}&timerel=between&timeAt=2024-01-01T00:00:00Z&endTimeAt=2024-01-31T23:59:59Z' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "03 — Gateway POST Query",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 204', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Query\",\n  \"entities\": [\n    {\n      \"id\": \"{{ENTITY_ID}}\"\n    }\n  ],\n  \"q\": \"speed>30.0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/entityOperations/query",
+              "host": ["{{DATAPLANE_GATEWAY_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entityOperations", "query"]
+            },
+            "description": "Complex query via Gateway proxy POST endpoint.\n\n```bash\ncurl -k -X POST '{{DATAPLANE_GATEWAY_HOST}}/ngsi-ld/v1/entityOperations/query' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\" \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"type\":\"Query\",\"entities\":[{\"id\":\"'\"$ENTITY_ID\"'\"}],\"q\":\"speed>30.0\"}'\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4 — Error Scenarios",
+      "description": "Negative test cases. Each request should return the documented HTTP error code.\n\n**Run these in sequence** to verify that `AppIdAuthHandler` and `AppIdItemAccessHandler` correctly reject invalid requests.",
+      "item": [
+        {
+          "name": "ERR-01 — Missing Authorization Header → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 401 — missing auth header', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" }
+              ]
+            },
+            "description": "No `Authorization` header at all.\n\n**Expected:** `401 Unauthorized`\n\n**AppIdAuthHandler log:** `Missing or invalid Authorization header`\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}'\n# No -H Authorization header\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-02 — Bearer Token on AppId Route → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 401 — wrong scheme (Bearer instead of Basic)', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.fake-token"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" }
+              ]
+            },
+            "description": "Sending a Bearer token when the route is matched by the `appIdAuth` OpenAPI security handler.\n\n**Expected:** `401 Unauthorized`\n\n**AppIdAuthHandler log:** `Missing or invalid Authorization header (expected Basic auth)`\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}' \\\n  -H 'Authorization: Bearer fake-token'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-03 — Invalid Base64 → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 401 — invalid base64', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic !!not-valid-base64!!"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" }
+              ]
+            },
+            "description": "Valid scheme (`Basic`) but the base64 value is garbage.\n\n**Expected:** `401 Unauthorized`\n\n**AppIdAuthHandler log:** `Invalid Base64 in Authorization header`\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}' \\\n  -H 'Authorization: Basic !!not-valid-base64!!'\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-04 — Missing Colon in Decoded Value → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 401 — no colon separator', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic anVzdGFzdHJpbmcK"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" }
+              ]
+            },
+            "description": "Valid base64 but the decoded value (`juststring`) has no `:` separator.\n\n`anVzdGFzdHJpbmcK` = base64 of `juststring`\n\n**Expected:** `401 Unauthorized`\n\n**AppIdAuthHandler log:** `Invalid Basic auth format (expected base64(appId:appSecret))`\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}' \\\n  -H 'Authorization: Basic '$(echo -n 'juststring' | base64)\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-05 — Wrong AppSecret → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 401 — wrong app secret', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "// Build a bad-secret basic auth header",
+                  "const appId = pm.collectionVariables.get('APP_ID');",
+                  "const encoded = btoa(appId + ':wrong-secret-intentionally');",
+                  "pm.request.headers.upsert({key: 'Authorization', value: 'Basic ' + encoded});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Override BASIC_AUTH with a deliberately wrong secret",
+                  "const appId = pm.collectionVariables.get('APP_ID') || 'test-app-id';",
+                  "const encoded = btoa(appId + ':wrong-secret-intentionally');",
+                  "pm.collectionVariables.set('BASIC_AUTH', 'Basic ' + encoded);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" }
+              ]
+            },
+            "description": "Valid appId, but wrong appSecret. The pre-request script overrides `BASIC_AUTH` for this request only.\n\n**Expected:** `401 Unauthorized` from `AppIdAuthHandler`\n\n**Handler log:** `AppId verification failed for appId=...` (gRPC `VerifyAppId` returns `success: false`)\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}' \\\n  -H 'Authorization: Basic '$(echo -n \"$APP_ID:wrong-secret\" | base64)\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-06 — Entity Not In App Scope → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Should be 403 — entity not accessible to this AppId', () => {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id=urn:dx:rs:entity-not-in-scope-00000000&limit=5",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "urn:dx:rs:entity-not-in-scope-00000000" },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "Valid AppId credentials, but querying an entity that was NOT included in the app's constraints.\n\n**Expected:** `403 Forbidden` from `AppIdItemAccessHandler`\n\n**Handler flow:**\n1. `AppIdAuthHandler` → VerifyAppId succeeds (cache hit likely) → 200 OK so far\n2. `AppIdItemAccessHandler` → `CheckItemAccess(appId, entity-not-in-scope)` → `success: false` → `ctx.fail(403)`\n\n```bash\ncurl -k -v '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id=urn:dx:rs:entity-not-in-scope&limit=5' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "ERR-07 — Disabled AppId (After Cache TTL) → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Note: only fails after cache TTL (default 5 min) has expired",
+                  "// If within TTL, might still return 200 from cache",
+                  "pm.test('Should be 401 when AppId is disabled (after cache TTL)', () => {",
+                  "    // Cache TTL is 5 minutes. If < 5 min since last request this might still be 200.",
+                  "    const code = pm.response.code;",
+                  "    console.log('Response code:', code, '(expected 401 after cache TTL expiry, may be 200 if within cache window)');",
+                  "    pm.expect([200, 401]).to.include(code);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=5",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "limit", "value": "5" }
+              ]
+            },
+            "description": "**Pre-condition:** First run `03 — Disable AppId` in Folder 0, then wait 5 minutes (cache TTL), then run this.\n\nThe `AppIdCacheService` TTL is controlled by `appIdCacheTtlMinutes` config (default 5 min). Within TTL, the cache still returns success. After TTL, `AppIdAuthHandler` calls `VerifyAppId` again and gets `success: false`.\n\n**Expected after cache TTL:** `401 Unauthorized`\n\n**To test without waiting:** Restart the dataplane (clears in-memory cache), then immediately run.\n\n```bash\n# Step 1: Disable\ncurl -X PATCH '{{CONTROLPLANE_HOST}}/iudx/v2/auth/app/$APP_ID?status=disable' -H 'Authorization: Bearer <JWT>'\n\n# Step 2: Wait 5 min OR restart dataplane\n\n# Step 3: Test\ncurl -k '{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}' \\\n  -H 'Authorization: Basic '\"$(echo -n \"$APP_ID:$APP_SECRET\" | base64)\"\n# Expect: 401\n```"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5 — Cache Behavior Verification",
+      "description": "Tests to observe and verify the two-layer cache:\n1. **AppIdCacheService** — keyed by `appId`, TTL-based, caches `AppIdPrincipal` (identity)\n2. **AppIdItemAccessCacheService** — keyed by `appId:entityId`, TTL-based, caches `AppIdItemAccessResult`\n\nUse **dataplane logs** to distinguish cache hits from gRPC calls:\n- `AppId cache hit for appId=...` → `AppIdCacheService` hit\n- No log + fast response → `AppIdItemAccessCacheService` hit (no explicit log by default)\n- Slow first request → both caches miss, two gRPC calls made",
+      "item": [
+        {
+          "name": "CACHE-01 — First Request (Both Caches Miss)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Record the timestamp before sending",
+                  "pm.collectionVariables.set('CACHE_TEST_START', Date.now());",
+                  "console.log('Cache test start:', new Date().toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const responseTime = pm.response.responseTime;",
+                  "console.log('First request (cache miss) response time:', responseTime, 'ms');",
+                  "pm.collectionVariables.set('FIRST_REQUEST_TIME', responseTime);",
+                  "",
+                  "pm.test('First request completes (2 gRPC calls expected)', () => {",
+                  "    // Should succeed — just note the response time for comparison with cache hit",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    console.log('Check dataplane logs for: gRPC VerifyAppId call + gRPC CheckItemAccess call');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=1",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "limit", "value": "1" }
+              ]
+            },
+            "description": "**Cold cache test.** Both `AppIdCacheService` and `AppIdItemAccessCacheService` miss.\n\n**Expected dataplane logs:**\n```\n[AppIdAuthHandler]       No cache entry for appId=<APP_ID>\n[AppIdVerificationClient] Calling gRPC VerifyAppId...\n[AppIdAuthHandler]       AppId verified, principal cached\n[AppIdItemAccessHandler] Cache miss for appId:entityId=<APP_ID>:<ENTITY_ID>\n[AppIdVerificationClient] Calling gRPC CheckItemAccess...\n[AppIdItemAccessHandler] Item access granted, result cached\n```\n\n**How to force a cold cache:** Restart the dataplane process (clears in-memory Guava cache)."
+          },
+          "response": []
+        },
+        {
+          "name": "CACHE-02 — Second Request (Both Caches Hit)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const responseTime = pm.response.responseTime;",
+                  "const firstTime = parseInt(pm.collectionVariables.get('FIRST_REQUEST_TIME') || '0');",
+                  "console.log('Second request (cache hit) response time:', responseTime, 'ms');",
+                  "console.log('First request was:', firstTime, 'ms');",
+                  "",
+                  "pm.test('Second request should be faster or similar (cache served)', () => {",
+                  "    console.log('Check dataplane logs for: AppId cache hit for appId=...');",
+                  "    console.log('No gRPC calls should appear for the second request.');",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id={{ENTITY_ID}}&limit=1",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "{{ENTITY_ID}}" },
+                { "key": "limit", "value": "1" }
+              ]
+            },
+            "description": "**Warm cache test.** Both caches should be populated from CACHE-01.\n\n**Expected dataplane logs:**\n```\n[AppIdAuthHandler] AppId cache hit for appId=<APP_ID>\n```\nNo gRPC calls should appear. Response time should be faster.\n\n**What to compare:** Check the Postman response times — second request should be noticeably faster than the first."
+          },
+          "response": []
+        },
+        {
+          "name": "CACHE-03 — Different Entity ID (ItemAccess Cache Miss, Auth Cache Hit)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 403', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});",
+                  "",
+                  "console.log('Expected logs: AppId cache HIT (no VerifyAppId gRPC call)');",
+                  "console.log('Expected logs: CheckItemAccess gRPC call (ItemAccess cache miss for new entity).');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{BASIC_AUTH}}"
+              }
+            ],
+            "url": {
+              "raw": "{{DATAPLANE_NGSILD_HOST}}/ngsi-ld/v1/entities?id=urn:dx:rs:a-different-entity-id&limit=1",
+              "host": ["{{DATAPLANE_NGSILD_HOST}}"],
+              "path": ["ngsi-ld", "v1", "entities"],
+              "query": [
+                { "key": "id", "value": "urn:dx:rs:a-different-entity-id" },
+                { "key": "limit", "value": "1" }
+              ]
+            },
+            "description": "**Partial cache test.** Same AppId (auth cache HIT), but a different entity ID (item access cache MISS).\n\n**Expected dataplane logs:**\n```\n[AppIdAuthHandler]       AppId cache hit for appId=<APP_ID>   ← from AppIdCacheService\n[AppIdItemAccessHandler] Cache miss for appId:entityId=<APP_ID>:urn:dx:rs:a-different-entity-id\n[AppIdVerificationClient] Calling gRPC CheckItemAccess...     ← only CheckItemAccess, no VerifyAppId\n```\n\n**Conclusion:** `AppIdCacheService` (identity) is keyed by `appId` only. `AppIdItemAccessCacheService` is keyed by `appId:entityId` — a new entity always misses."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

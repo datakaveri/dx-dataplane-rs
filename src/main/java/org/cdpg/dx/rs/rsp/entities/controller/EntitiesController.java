@@ -30,6 +30,7 @@ import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ParamsValidator;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
@@ -44,6 +45,7 @@ public class EntitiesController implements ApiController {
   private final URNGenerator urnGenerator;
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
@@ -54,10 +56,12 @@ public class EntitiesController implements ApiController {
       ParamsValidator paramsValidator,
       URNGenerator urnGenerator,
       String controlPlaneDomain,
-      AuditingHandler auditingHandler/*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler/*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
     this.paramsValidator = paramsValidator;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerGateway =
@@ -75,6 +79,7 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -84,6 +89,7 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -95,6 +101,7 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -104,6 +111,7 @@ public class EntitiesController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)

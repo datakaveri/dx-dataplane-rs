@@ -1,5 +1,6 @@
 package org.cdpg.dx.rs.ngsild.factory;
 
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.redis.service.RedisService;
@@ -15,7 +16,8 @@ public class NGSILDControllerFactory {
       URNGenerator urnGenerator,
       int maxDaysSync,
       int maxDaysAsync,
-      AuditingHandler auditingHandler/*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler/*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     NGSILDService NGSILDService = new NGSILDServiceImpl(searchService);
@@ -25,7 +27,8 @@ public class NGSILDControllerFactory {
         urnGenerator,
         maxDaysSync,
         maxDaysAsync,
-        auditingHandler/*,
+        auditingHandler,
+        appIdItemAccessHandler/*,
         redisService,
         redisKeyPrefix*/);
   }
