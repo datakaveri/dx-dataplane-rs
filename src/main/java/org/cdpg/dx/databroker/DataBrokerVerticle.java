@@ -29,6 +29,7 @@ public class DataBrokerVerticle extends BaseDataBrokerVerticle {
 
     int maxSize = config().getInteger("appIdCacheMaxSize", 1000);
     long ttlMinutes = config().getLong("appIdCacheTtlMinutes", 5L);
+    String appIdRevokeExchange = config().getString("appIdRevokeExchange", "revoked-appid");
     String appIdRevokeQueue = config().getString("appIdRevokeQueue", "revoked-appid");
 
     AppIdCacheService appIdCache = new AppIdCacheService(maxSize, ttlMinutes);
@@ -39,7 +40,8 @@ public class DataBrokerVerticle extends BaseDataBrokerVerticle {
     LOGGER.info(
         "AppId caches registered in holder (maxSize={}, ttlMinutes={})", maxSize, ttlMinutes);
 
-    new AppIdRevocationConsumer(internalClient, appIdCache, itemAccessCache, appIdRevokeQueue)
+    new AppIdRevocationConsumer(
+            internalClient, appIdCache, itemAccessCache, appIdRevokeExchange, appIdRevokeQueue)
         .start();
   }
 }
