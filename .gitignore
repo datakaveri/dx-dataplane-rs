@@ -3,6 +3,7 @@
 ### IUDX ###
 config.properties
 /configs/
+src/main/generated/
 
 
 ### STS ###
