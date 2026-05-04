@@ -11,6 +11,10 @@
     "timeLimitForAsync": 365,
     "tenantPrefix": "iudx-v2",
     "redisKeyPrefix": "dx",
+    "supportEmail": "support@cdpg.org.in",
+    "gatewayurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp",
+    "ngsildurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in",
+    "publishedurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/published",
     "corsAllowedOrigin": [
       "*",
       "http://localhost:4001"
@@ -83,18 +87,14 @@
       "databasePassword": ""
     },
     {
-      "id": "org.cdpg.dx.database.redis.verticle.RedisVerticle",
+      "id": "org.cdpg.dx.cloudstorage.s3.verticle.S3Verticle",
       "isWorkerVerticle": false,
       "verticleInstances": 1,
-      "redisMode": "",
-      "redisUsername": "",
-      "redisPassword": "",
-      "redisMaxPoolSize": 30,
-      "redisMaxPoolWaiting": 200,
-      "redisMaxWaitingHandlers": 1024,
-      "redisPoolRecycleTimeout": 1500,
-      "redisHost": "",
-      "redisPort": 1234
+      "s3AccessKey": "",
+      "s3SecretKey": "",
+      "s3Bucket": "",
+      "s3Region": "",
+      "s3ProxyTimeoutMs": 240000
     },
     {
       "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
@@ -121,6 +121,21 @@
       "urnPrefix": "dx:dataplaneProxy:",
       "maxDaysSync": 10,
       "maxDaysAsync": 365
+    },
+    {
+      "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "ssl": true,
+      "production": false,
+      "httpPort": 8445,
+      "isAdexInstance": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "urnPrefix": "dx:dataplanePublished:",
+      "chunkMaxItems" : 200,
+      "chunkMaxBytes" : 3,
+      "timeout": 500000
     }
   ]
 }
