@@ -10,14 +10,13 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
 import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
-import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.essearch.service.SearchServiceImpl;
 import org.cdpg.dx.rs.admin.controller.ElasticOnboardingController;
@@ -36,7 +35,9 @@ public class ControllerFactory {
   private ControllerFactory() {}
 
   public static List<ApiController> createControllers(
-      Vertx vertx, JsonObject config, URNGenerator urnGenerator,
+      Vertx vertx,
+      JsonObject config,
+      URNGenerator urnGenerator,
       AppIdItemAccessHandler appIdItemAccessHandler) {
 
     ElasticsearchService elasticsearchService =
@@ -70,10 +71,14 @@ public class ControllerFactory {
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
     ApiController latestController =
         LatestControllerFactory.create(
-            searchService, timeLimit, controlPlaneDomain, urnGenerator, auditingHandler,
+            searchService,
+            timeLimit,
+            controlPlaneDomain,
+            urnGenerator,
+            auditingHandler,
             appIdItemAccessHandler /*,
-            redisService,
-            redisKeyPrefix*/);
+                                   redisService,
+                                   redisKeyPrefix*/);
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit,
@@ -82,8 +87,8 @@ public class ControllerFactory {
             elasticsearchService,
             auditingHandler,
             appIdItemAccessHandler /*,
-                            redisService,
-                            redisKeyPrefix*/);
+                                   redisService,
+                                   redisKeyPrefix*/);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -94,8 +99,8 @@ public class ControllerFactory {
             maxDaysAsync,
             auditingHandler,
             appIdItemAccessHandler /*,
-                            redisService,
-                            redisKeyPrefix*/);
+                                   redisService,
+                                   redisKeyPrefix*/);
 
     int chunkMaxItems = config.getInteger("chunkMaxItems", 2000);
     int chunkMaxBytes = config.getInteger("chunkMaxBytes", 5);
