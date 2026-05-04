@@ -20,6 +20,12 @@
       "http://localhost:4001"
     ],
     "controlPlaneDomain": "https://v2.dev.controlplane.iudx.io",
+    "controlplaneHost": "localhost",
+    "controlplaneGrpcPort": 9090,
+    "appIdCacheMaxSize": 1000,
+    "appIdCacheTtlMinutes": 5,
+    "appIdRevokeExchange": "revoked-appid",
+    "appIdRevokeQueue": "revoked-appid",
     "issuers": {
       "jwtIgnoreExpiry": true,
       "leeway": 60,

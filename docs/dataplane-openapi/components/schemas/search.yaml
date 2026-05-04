@@ -1,0 +1,708 @@
+GeoSearchRequest:
+  type: object
+  additionalProperties: true
+  properties:
+    geoQ:
+      type: object
+      additionalProperties: false
+      properties:
+        geometry:
+          type: string
+          enum: [ point, Point, polygon, Polygon, LineString, linestring, bbox ]
+          default: ""
+          pattern: "^.*$"
+        coordinates:
+          anyOf:
+            - type: array
+              maxItems: 2
+              default: [ ]
+              items:
+                type: number
+                default: 0.0
+            - type: array
+              default: [ ]
+              items:
+                type: array
+                default: [ ]
+                items:
+                  type: array
+                  default: [ ]
+                  items:
+                    type: number
+                    default: 0.0
+            - type: array
+              default: [ ]
+              items:
+                type: array
+                default: [ ]
+                items:
+                  type: number
+                  default: 0.0
+        georel:
+          type: string
+          minLength: 1
+          maxLength: 512
+          default: ""
+          pattern: "^.*$"
+        geoproperty:
+          type: string
+          enum: [ location ]
+          default: ""
+          pattern: "^.*$"
+
+TextSearchRequest:
+  type: object
+  additionalProperties: false
+  properties:
+    q:
+      type: string
+      description: The search query string.
+    fuzzy:
+      type: boolean
+      description: Enables fuzzy matching.
+    autoComplete:
+      type: boolean
+      description: Enables autocomplete suggestions.
+  required:
+    - q
+
+AutocompleteFuzzyTextSearchRequest:
+  type: object
+  additionalProperties: false
+  properties:
+    q:
+      type: string
+      description: The search query string for autocomplete.
+    fuzzy:
+      type: boolean
+      description: Enables fuzzy matching for the search query.
+    autoComplete:
+      type: boolean
+      description: Enables autocomplete suggestions.
+    filter:
+      type: array
+      items:
+        type: string
+      description: List of properties to include in the response (e.g., id, label, name, description, tags).
+  required:
+    - q
+  example:
+    q: "sat"
+    autoComplete: true
+    fuzzy: true
+    filter:
+      - "id"
+      - "label"
+      - "name"
+      - "description"
+      - "tags"
+
+SearchCriteriaRequest:
+  type: object
+  additionalProperties: false   # (or true, if you prefer)
+  properties:
+    searchCriteria:
+      type: array
+      items:
+        $ref: '#/SearchCriteria'
+    filter:
+      type: array
+      items:
+        type: string
+      description: List of fields to return
+  required:
+    - searchCriteria
+
+SearchCriteria:
+  type: object
+  additionalProperties: false
+  required:
+    - field
+    - searchType
+    - values
+  properties:
+    field:
+      type: string
+      description: Name of the property to filter.
+    searchType:
+      type: string
+      enum:
+        - term
+        - betweenTemporal
+        - beforeTemporal
+        - afterTemporal
+        - betweenRange
+        - beforeRange
+        - afterRange
+      description: |
+        Type of search to apply. Valid types:
+        - term: Property match
+        - betweenTemporal: ISO datetime range
+        - beforeTemporal: Before datetime
+        - afterTemporal: After datetime
+        - betweenRange: Numeric range
+        - beforeRange: Less than value
+        - afterRange: Greater than value
+    values:
+      type: array
+      items:
+        oneOf:
+          - type: string
+          - type: number
+      description: |
+        Values for the selected `searchType`. Required value format:
+        - `term`: One or more strings
+        - `betweenTemporal`: Two ISO date-time strings
+        - `beforeTemporal` / `afterTemporal`: One ISO date-time string
+        - `betweenRange`: Two numbers
+        - `beforeRange` / `afterRange`: One number
+
+ComplexSearchRequest:
+  type: object
+  additionalProperties: false
+  properties:
+    q:
+      type: string
+      description: The search query string.
+    fuzzy:
+      type: boolean
+      description: Enables fuzzy matching.
+    autoComplete:
+      type: boolean
+      description: Enables autocomplete suggestions.
+    searchCriteria:
+      type: array
+      items:
+        $ref: '#/SearchCriteria'
+      description: List of property-based search criteria.
+  required:
+    - q
+    - searchCriteria
+
+successResponseForAutocompleteFuzzyTextSearch:
+  type: object
+  title: search by text
+  properties:
+    type:
+      type: string
+      description: URN type of the response indicating if the query was successful or if any errors have been triggered.
+    title:
+      type: string
+      description: A human-readable title for the message response.
+    pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: Current page number.
+        size:
+          type: integer
+          description: Number of items per page.
+        totalCount:
+          type: integer
+          description: Total number of items across all pages.
+        totalPages:
+          type: integer
+          description: Total number of pages.
+        hasNext:
+          type: boolean
+          description: Whether there is a next page.
+        hasPrevious:
+          type: boolean
+          description: Whether there is a previous page.
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Resource identifier.
+          label:
+            type: string
+            description: Label of the resource.
+          name:
+            type: string
+            description: Name of the resource.
+          description:
+            type: string
+            description: Description of the resource.
+          tags:
+            type: array
+            items:
+              type: string
+            description: List of tags associated with the resource.
+        required:
+          - id
+          - label
+          - name
+          - description
+          - tags
+  required:
+    - type
+    - title
+    - pagination
+    - results
+  example:
+    type: "dx:dataplane:Success"
+    title: "Success"
+    pagination:
+      page: 1
+      size: 100
+      totalCount: 5
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+    results:
+      - id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
+        label: "Satellite-Derived Geospatial Layers"
+        name: "satellite-derived-geospatial-layers"
+        description: "The Satellite-Derived Geospatial Layers dataset provides high-resolution satellite imagery and geospatial data..."
+        tags:
+          - "Satellite"
+          - "Geospatial"
+      - id: "9c0737d6-17df-484f-a7f8-aa472002eae5"
+        label: "Corporate Employee Performance Data"
+        name: "corporate-employee-performance-data"
+        description: "The Corporate Employee Performance Data set is a comprehensive collection of performance metrics, key performance indicators (KPIs)..."
+        tags:
+          - "Corporate"
+          - "HR Analytics"
+          - "Performance"
+      - id: "f7c3489d-6a58-44a2-97f6-2dbd49291b3b"
+        label: "AI-Based Traffic Congestion Prediction"
+        name: "AI-Based Traffic Congestion Prediction"
+        description: "The AI-Based Traffic Congestion Prediction tool is an advanced solution aimed at alleviating urban traffic issues..."
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "mlmodel"
+          - "smart cities"
+          - "traffic"
+          - "congestion"
+          - "urban planning"
+          - "transportation"
+          - "optimization"
+      - id: "a4e2f75c-91b7-4b6e-9de1-78f6c9f84e63"
+        label: "AI-Powered High-Risk Pregnancy Detection"
+        name: "AI-Powered High-Risk Pregnancy Detection"
+        description: "The AI-Powered High-Risk Pregnancy Detection model leverages artificial intelligence to analyze antenatal records and identify pregnancies at high risk..."
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "mlmodel"
+          - "ai-model"
+          - "ml-model"
+          - "machine learning"
+          - "pregnancy detection"
+          - "healthcare"
+          - "maternal health"
+          - "high-risk pregnancy"
+      - id: "2b1a2e8d-45f4-43a1-9e8e-d1f8ad1002bb"
+        label: "School Dropout Risk Prediction Model"
+        name: "school-dropout-risk-prediction-model"
+        description: "The School Dropout Risk Prediction Model is an advanced AI-powered tool designed to predict the likelihood of students dropping out of school..."
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "mlmodel"
+          - "education"
+          - "risk prediction"
+          - "student analytics"
+
+successResponseForSearchByItemType:
+  type: object
+  title: search by item type
+  properties:
+    type:
+      type: string
+      description: URN type of the response indicating if the query was successful or if any errors have been triggered.
+    title:
+      type: string
+      description: A human-readable title for the message response.
+    pagination:
+      type: object
+      description: Pagination metadata for the results.
+      properties:
+        page:
+          type: integer
+          description: Current page number.
+        size:
+          type: integer
+          description: Number of items per page.
+        totalCount:
+          type: integer
+          description: Total number of items across all pages.
+        totalPages:
+          type: integer
+          description: Total number of pages available.
+        hasNext:
+          type: boolean
+          description: Indicates if more pages are available.
+        hasPrevious:
+          type: boolean
+          description: Indicates if previous pages exist.
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Resource identifier.
+        required:
+          - id
+  required:
+    - type
+    - title
+    - pagination
+    - results
+  example:
+    type: "dx:dataplane:Success"
+    title: "Success"
+    pagination:
+      page: 1
+      size: 100
+      totalCount: 3
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+    results:
+      - id: "a4e3b98f-d073-4a2f-8587-e8d1718f2a89"
+      - id: "d7d34f8d-8cd4-4a68-8a4d-3b7fc5e8bb13"
+      - id: "2b1a2e8d-45f4-43a1-9e8e-d1f8ad1002bb"
+
+successResponseForRangeSearch:
+  type: object
+  title: Range search
+  properties:
+    type:
+      type: string
+      description: URN type of the response indicating if the query was successful or if any errors have been triggered
+    title:
+      type: string
+      description: A human-readable title for the message response
+    pagination:
+      type: object
+      description: Pagination metadata for the results
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        size:
+          type: integer
+          description: Number of items per page
+        totalCount:
+          type: integer
+          description: Total number of items across all pages
+        totalPages:
+          type: integer
+          description: Total number of pages available
+        hasNext:
+          type: boolean
+          description: Indicates if more pages are available
+        hasPrevious:
+          type: boolean
+          description: Indicates if previous pages exist
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Resource identifier
+          tags:
+            type: array
+            items:
+              type: string
+            description: List of tags associated with the resource
+          dataReadiness:
+            type: integer
+            description: Optional field indicating how ready the data is (if applicable)
+        required:
+          - id
+          - tags
+  required:
+    - type
+    - title
+    - pagination
+    - results
+  example:
+    type: "dx:dataplane:Success"
+    title: "Success"
+    pagination:
+      page: 1
+      size: 25
+      totalCount: 5
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+    results:
+      - id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
+        tags:
+          - "Satellite"
+          - "Geospatial"
+      - id: "861bc29a-fca7-45b5-b4c8-5b07dc88a594"
+        tags:
+          - "Transport"
+          - "Network"
+      - id: "d09a4b85-3899-4bfc-93f4-430bba8aefb4"
+        tags:
+          - "Maternal Health"
+          - "Healthcare"
+          - "Community Health"
+      - id: "28653cd7-9715-47d5-b12b-9d725ecfcad0"
+        tags:
+          - "Transport"
+          - "Railway"
+      - id: "9c0737d6-17df-484f-a7f8-aa472002eae5"
+        tags:
+          - "Corporate"
+          - "HR Analytics"
+          - "Performance"
+        dataReadiness: 85
+
+successResponseForTemporalSearch:
+  type: object
+  title: Temporal search
+  properties:
+    type:
+      type: string
+      description: URN type of the response indicating if the query was successful or if any errors have been triggered
+    title:
+      type: string
+      description: A human-readable title for the message response
+    pagination:
+      type: object
+      description: Pagination metadata for the results.
+      properties:
+        page:
+          type: integer
+          description: Current page number.
+        size:
+          type: integer
+          description: Number of items per page.
+        totalCount:
+          type: integer
+          description: Total number of items across all pages.
+        totalPages:
+          type: integer
+          description: Total number of pages available.
+        hasNext:
+          type: boolean
+          description: Indicates if more pages are available.
+        hasPrevious:
+          type: boolean
+          description: Indicates if previous pages exist.
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Resource identifier
+          tags:
+            type: array
+            items:
+              type: string
+            description: List of tags associated with the resource
+          itemCreatedAt:
+            type: string
+            format: date-time
+            description: Item creation timestamp in ISO 8601 format
+        required:
+          - id
+          - tags
+          - itemCreatedAt
+  required:
+    - type
+    - title
+    - pagination
+    - results
+  example:
+    type: "dx:dataplane:Success"
+    title: "Success"
+    pagination:
+      page: 1
+      size: 50
+      totalCount: 3
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+    results:
+      - id: "a4e3b98f-d073-4a2f-8587-e8d1718f2a89"
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "grievance classification"
+          - "telugu"
+          - "text classification"
+          - "machine learning"
+        itemCreatedAt: "2025-04-15T10:30:00Z"
+      - id: "d7d34f8d-8cd4-4a68-8a4d-3b7fc5e8bb13"
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "mlmodel"
+          - "crop disease detection"
+          - "plant health"
+          - "agriculture"
+        itemCreatedAt: "2025-04-15T10:30:00Z"
+      - id: "2b1a2e8d-45f4-43a1-9e8e-d1f8ad1002bb"
+        tags:
+          - "ai"
+          - "ml"
+          - "model"
+          - "aimodel"
+          - "mlmodel"
+          - "education"
+          - "risk prediction"
+          - "student analytics"
+        itemCreatedAt: "2025-04-15T10:30:00Z"
+
+successResponseForComplexSearch:
+  type: object
+  title: Complex search
+  properties:
+    type:
+      type: string
+      description: URN type of the response indicating if the query was successful or if any errors have been triggered
+    title:
+      type: string
+      description: A human-readable title for the message response
+    pagination:
+      type: object
+      description: Pagination metadata for the results
+      properties:
+        page:
+          type: integer
+          description: Current page number
+        size:
+          type: integer
+          description: Number of items per page
+        totalCount:
+          type: integer
+          description: Total number of items across all pages
+        totalPages:
+          type: integer
+          description: Total number of pages available
+        hasNext:
+          type: boolean
+          description: Indicates if more pages are available
+        hasPrevious:
+          type: boolean
+          description: Indicates if previous pages exist
+      required:
+        - page
+        - size
+        - totalCount
+        - totalPages
+        - hasNext
+        - hasPrevious
+    results:
+      type: array
+      items:
+        type: object
+        properties:
+          type:
+            type: array
+            items:
+              type: string
+            description: List of resource types
+          id:
+            type: string
+            description: Resource identifier
+          department:
+            type: string
+            description: Department name
+          itemCreatedAt:
+            type: string
+            format: date-time
+            description: Item creation timestamp in ISO 8601 format
+        required:
+          - type
+          - id
+          - department
+          - itemCreatedAt
+  required:
+    - type
+    - title
+    - pagination
+    - results
+  example:
+    type: "dx:dataplane:Success"
+    title: "Success"
+    pagination:
+      page: 1
+      size: 25
+      totalCount: 1
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+    results:
+      - type:
+          - "adex:DataBank"
+        id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
+        department: "Environment Forests Science and Technology"
+        itemCreatedAt: "2025-04-15T10:30:00Z"
+
+errorResponseForDiscovery:
+  type: object
+  title: Root Type for Discovery APIs
+  description: 'Standard Error Response for the search, count and geo queries'
+  properties:
+    type:
+      type: string
+      description: |
+        Type of the response indicating if the query was successful or if any errors have been triggered.
+    title:
+      description: A human readable title to the message response.
+    detail:
+      type: string
+      description: Detailed description of the type or response
+  required:
+    - type
+  example:
+    type: <error urn>
+    title: <error title
+    detail: <error detail description>

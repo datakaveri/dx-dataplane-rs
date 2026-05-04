@@ -1,8 +1,8 @@
 package org.cdpg.dx.rs.latest.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
-import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
-import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
 import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
@@ -27,7 +27,8 @@ import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
-import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
@@ -37,6 +38,7 @@ public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
@@ -48,10 +50,12 @@ public class LatestController implements ApiController {
       LatestService latestService,
       String controlPlaneDomain,
       URNGenerator urnGenerator,
-      AuditingHandler auditingHandler/*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler/*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.latestService = latestService;
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.urnGenerator = urnGenerator;
@@ -67,6 +71,7 @@ public class LatestController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -76,6 +81,7 @@ public class LatestController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)

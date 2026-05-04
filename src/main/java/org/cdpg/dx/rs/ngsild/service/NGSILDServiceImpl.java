@@ -29,9 +29,8 @@ public class NGSILDServiceImpl implements NGSILDService {
                   "Successfully fetched count for ID: {}",
                   ngsildQueryParams.getId().get(0).toString());
               // If client requested aggregatedValues (either via format or options), return
-              // aggregations instead of document hits. The ElasticsearchServiceImpl already
-              // parsed aggregations into ElasticsearchResponse.getAggregations(). Use the
-              // ResponseModel constructor that populates the response with aggregations.
+              // aggregations instead of document hits. Aggregations are now carried in
+              // SearchResultWithCount instead of a static field.
               String fmt = ngsildQueryParams.getFormat();
               String opts = ngsildQueryParams.getOptions();
               boolean wantsAggregated = false;
@@ -39,14 +38,17 @@ public class NGSILDServiceImpl implements NGSILDService {
               if (opts != null && opts.toLowerCase().contains("aggregatedvalues"))
                 wantsAggregated = true;
               if (wantsAggregated) {
-                return new ResponseModel(searchResultWithCount.getResults());
+                return new ResponseModel(
+                    searchResultWithCount.getResults(),
+                    searchResultWithCount.getAggregations());
               }
 
               // Default behavior: return paginated hits
               return new ResponseModel(
                   searchResultWithCount.getResults(),
                   ngsildQueryParams.getPageSize(),
-                  ngsildQueryParams.getPageFrom());
+                  ngsildQueryParams.getPageFrom(),
+                  searchResultWithCount.getTotalCount());
             })
         .onFailure(
             err -> {
@@ -89,7 +91,8 @@ public class NGSILDServiceImpl implements NGSILDService {
               return new ResponseModel(
                   searchResultWithCount.getResults(),
                   ngsildQueryParams.getPageSize(),
-                  ngsildQueryParams.getPageFrom());
+                  ngsildQueryParams.getPageFrom(),
+                  searchResultWithCount.getTotalCount());
             })
         .onFailure(
             err -> {

@@ -27,13 +27,15 @@ import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.service.NGSILDService;
 import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.validation.ngsild.NGSILDParamsValidator;
-import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
-import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class NGSILDSearchController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(NGSILDSearchController.class);
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
   private final URNGenerator urnGenerator;
   private final IdValidation idValidation;
@@ -50,10 +52,12 @@ public class NGSILDSearchController implements ApiController {
       URNGenerator urnGenerator,
       int maxDaysSync,
       int maxDaysAsync,
-      AuditingHandler auditingHandler /*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.ngsildService = ngsildService;
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
     this.itemAccessApplicableFilterHandlerNgsild =
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.idValidation = new IdValidation();
@@ -70,6 +74,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -79,6 +84,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -88,6 +94,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -97,6 +104,7 @@ public class NGSILDSearchController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -1112,7 +1120,7 @@ public class NGSILDSearchController implements ApiController {
                       /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                       wantsAggregated = true;*/
                       if (wantsAggregated) {
-                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        JsonObject aggs = getTemporalEntityData.getAggregations();
                         if (aggs == null) aggs = new JsonObject();
                         if (aggs.containsKey("results")
                             && aggs.getValue("results") instanceof JsonObject) {
@@ -1192,7 +1200,7 @@ public class NGSILDSearchController implements ApiController {
                       /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                       wantsAggregated = true;*/
                       if (wantsAggregated) {
-                        JsonObject aggs = ElasticsearchResponse.getAggregations();
+                        JsonObject aggs = getTemporalEntityData.getAggregations();
                         if (aggs == null) aggs = new JsonObject();
                         if (aggs.containsKey("results")
                             && aggs.getValue("results") instanceof JsonObject) {
@@ -1280,7 +1288,7 @@ public class NGSILDSearchController implements ApiController {
                     /*if (format != null && format.toLowerCase().contains("aggregatedvalues"))
                     wantsAggregated = true;*/
                     if (wantsAggregated) {
-                      JsonObject aggs = ElasticsearchResponse.getAggregations();
+                      JsonObject aggs = getTemporalEntityData.getAggregations();
                       if (aggs == null) aggs = new JsonObject();
                       if (aggs.containsKey("results")
                           && aggs.getValue("results") instanceof JsonObject) {

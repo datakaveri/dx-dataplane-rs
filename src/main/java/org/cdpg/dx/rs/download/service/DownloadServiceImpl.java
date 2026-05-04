@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.database.elastic.model.QueryModel;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
-import org.cdpg.dx.essearch.model.OrderBy;
+import org.cdpg.dx.database.postgres.models.OrderBy;
 import org.cdpg.dx.essearch.model.QueryDecoder;
 import org.cdpg.dx.essearch.model.SearchQuery;
 import org.cdpg.dx.essearch.model.TemporalQueryRequestModel;

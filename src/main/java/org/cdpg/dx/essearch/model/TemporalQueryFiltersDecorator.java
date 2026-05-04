@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.cdpg.dx.essearch.util.Constants.*;
+import static org.cdpg.dx.database.elastic.util.Constants.*;
 
 public class TemporalQueryFiltersDecorator implements ElasticsearchQueryDecorator {
     private final int defaultDateLimit;

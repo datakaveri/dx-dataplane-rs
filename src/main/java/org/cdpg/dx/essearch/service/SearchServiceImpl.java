@@ -1,7 +1,7 @@
 package org.cdpg.dx.essearch.service;
 
 import static org.cdpg.dx.database.elastic.util.Constants.MAX_SEARCH_RESULT_LIMIT;
-import static org.cdpg.dx.essearch.util.Constants.SOURCE_ONLY;
+import static org.cdpg.dx.database.elastic.util.Constants.SOURCE_ONLY;
 
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.database.elastic.model.*;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
+import org.cdpg.dx.database.postgres.models.OrderBy;
 import org.cdpg.dx.essearch.model.*;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 
@@ -69,13 +70,17 @@ public class SearchServiceImpl implements SearchService {
                 }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
-                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+                    .map(
+                        searchResult ->
+                            new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations()));
               }
             })
         .onSuccess(
             result -> {
               LOGGER.debug("Temporal search with count validation completed successfully");
-              ElasticsearchResponse.setTotalHits(result.getTotalCount());
               promise.complete(result);
             })
         .onFailure(
@@ -112,7 +117,12 @@ public class SearchServiceImpl implements SearchService {
                 }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
-                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+                    .map(
+                        searchResult ->
+                            new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -120,7 +130,6 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.debug(
                   "Latest All data search completed successfully with {} results",
                   result.getTotalCount());
-              ElasticsearchResponse.setTotalHits(result.getTotalCount());
               promise.complete(result);
             })
         .onFailure(
@@ -174,12 +183,14 @@ public class SearchServiceImpl implements SearchService {
                   return elasticsearchService
                       .search(index, queryModel, SOURCE_ONLY)
                       .map(
-                          searchResults -> {
+                          searchResult -> {
                             LOGGER.debug(
                                 "Search completed successfully with {} results",
-                                searchResults.size());
-                            ElasticsearchResponse.setTotalHits(count);
-                            return new SearchResultWithCount(searchResults, count);
+                                searchResult.getResults().size());
+                            return new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations());
                           });
                 }
               })
@@ -218,7 +229,12 @@ public class SearchServiceImpl implements SearchService {
                 }
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
-                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+                    .map(
+                        searchResult ->
+                            new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -226,7 +242,6 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.debug(
                   "Latest All data(attr) search completed successfully with {} results",
                   result.getTotalCount());
-              ElasticsearchResponse.setTotalHits(result.getTotalCount());
               promise.complete(result);
             })
         .onFailure(
@@ -263,7 +278,12 @@ public class SearchServiceImpl implements SearchService {
               } else {
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
-                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+                    .map(
+                        searchResult ->
+                            new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -271,7 +291,6 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.debug(
                   "Get temporal entity search completed successfully with {} results",
                   result.getTotalCount());
-              ElasticsearchResponse.setTotalHits(result.getTotalCount());
               promise.complete(result);
             })
         .onFailure(
@@ -331,7 +350,12 @@ public class SearchServiceImpl implements SearchService {
               } else {
                 return elasticsearchService
                     .search(index, queryModel, SOURCE_ONLY)
-                    .map(searchResult -> new SearchResultWithCount(searchResult, count));
+                    .map(
+                        searchResult ->
+                            new SearchResultWithCount(
+                                searchResult.getResults(),
+                                count,
+                                searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -339,7 +363,6 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.debug(
                   "Get entities attribute search completed successfully with {} results",
                   result.getTotalCount());
-              ElasticsearchResponse.setTotalHits(result.getTotalCount());
               promise.complete(result);
             })
         .onFailure(

@@ -1,302 +1,79 @@
 package org.cdpg.dx.apiserver;
 
-import static org.cdpg.dx.apiserver.config.ApiConstants.*;
-import static org.cdpg.dx.common.config.CorsUtil.allowedOrigins;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.DatabindCodec;
-import io.vertx.core.net.JksOptions;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.openapi.RouterBuilder;
-import io.vertx.ext.web.openapi.RouterBuilderOptions;
-import io.vertx.serviceproxy.HelperUtils;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cdpg.dx.auth.authentication.client.JwksResolver;
-import org.cdpg.dx.auth.authentication.handler.MultiIssuerJwtAuthHandler;
-import org.cdpg.dx.auth.authentication.handler.OptionalMultiIssuerJwtAuthHandler;
-import org.cdpg.dx.common.FailureHandler;
-import org.cdpg.dx.common.HttpStatusCode;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
+import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
+import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
 import org.cdpg.dx.common.URNGenerator;
-import org.cdpg.dx.common.util.BlockingExecutionUtil;
 import org.cdpg.dx.rs.rsp.entities.controller.ControllerFactoryProxy;
 
-public class ProxyApiServerVerticle extends AbstractVerticle {
-  private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);
-  private int port;
-  private HttpServer server;
-  private Router router;
-  private URNGenerator urnGenerator;
+public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
 
-  public static String errorResponse(HttpStatusCode code, URNGenerator urnGenerator) {
-    String urn = urnGenerator.generateUrn(code.getPath());
-    return new JsonObject()
-        .put("type", urn)
-        .put("title", code.getDescription())
-        .put("detail", code.getDescription())
-        .toString();
+  private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);
+
+  private AppIdVerificationClient appIdClient;
+
+  @Override
+  protected String getOpenApiSpecPath(JsonObject config) {
+    return "docs/openapiForGateway.yaml";
   }
 
   @Override
-  public void start() throws Exception {
-
-    port = config().getInteger("httpPort", 8443);
-    allowedOrigins = config().getJsonArray("corsAllowedOrigin").getList();
-    String urnPrefix = config().getString("urnPrefix", "urn:dx:dataplane:");
-    this.urnGenerator = new URNGenerator(urnPrefix);
-
-    // Configure Jackson mappers
-    ObjectMapper mapper = DatabindCodec.mapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    /*mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);*/
-    DatabindCodec.mapper().setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
-
-    ObjectMapper prettyMapper = mapper.copy();
-    prettyMapper.enable(SerializationFeature.INDENT_OUTPUT);
-    DatabindCodec.prettyMapper()
-        .setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
-
-    // Read base URL from config
-    String baseUrl = config().getString("gatewayurl", "example.com");
-    String supportEmail = config().getString("supportEmail", "support@cdpg.org.in");
-
-    /* Initialize api spec buffer - since configured hostname support_email needs to be in it */
-    String yamlContent =
-        vertx
-            .fileSystem()
-            .readFileBlocking("docs/openapiForGateway.yaml")
-            .toString(StandardCharsets.UTF_8);
-
-    // Replace placeholders
-    String updatedYaml =
-        yamlContent.replace("${HOSTNAME}", baseUrl).replace("${SUPPORT_EMAIL}", supportEmail);
-
-    // Create a temporary file (OS-independent)
-    Path tempFile = Files.createTempFile("openapi2-", ".yaml");
-
-    // Optional: delete on JVM exit
-    tempFile.toFile().deleteOnExit();
-
-    // Write the modified spec to the temp file
-    vertx
-        .fileSystem()
-        .writeFileBlocking(tempFile.toAbsolutePath().toString(), Buffer.buffer(updatedYaml));
-
-    // Build the router from the temporary spec
-    Future<RouterBuilder> routerFuture =
-            RouterBuilder.create(vertx, tempFile.toUri().toString());
-
-    // Init shared worker executor for this verticle
-    BlockingExecutionUtil.initialize(vertx);
-
-    List<ApiController> controllers =
-        ControllerFactoryProxy.createControllers(vertx, config(), this.urnGenerator);
-    ControllerFactory.createControllers(vertx, config(), this.urnGenerator);
-
-    routerFuture
-        .onSuccess(
-            routerBuilder -> {
-              try {
-
-                String keyStorePath = config().getString("keystorePath");
-                String keyStorePassword = config().getString("keystorePassword");
-
-                // Create JWKS resolver (reads config -> jwks URLs / internal)
-                JwksResolver jwksResolver =
-                    new JwksResolver(vertx, config().getJsonObject("issuers"), null);
-
-                // Our single unified handlers
-                MultiIssuerJwtAuthHandler authHandler = new MultiIssuerJwtAuthHandler(jwksResolver);
-                OptionalMultiIssuerJwtAuthHandler optionalAuthHandler =
-                    new OptionalMultiIssuerJwtAuthHandler(jwksResolver);
-
-                LOGGER.debug("Adding platform handlers...");
-                int timeout = config().getInteger("timeout", 1000000);
-                routerBuilder.rootHandler(TimeoutHandler.create(timeout, 408));
-                routerBuilder.rootHandler(BodyHandler.create().setHandleFileUploads(false));
-
-                LOGGER.debug("Registering controllers...");
-                RouterBuilderOptions factoryOptions =
-                    new RouterBuilderOptions().setMountResponseContentTypeHandler(true);
-                routerBuilder.setOptions(factoryOptions);
-
-                // Use unified handlers in OpenAPI security schemes
-                routerBuilder.securityHandler("authorization", authHandler);
-                routerBuilder.securityHandler("optionalAuth", optionalAuthHandler);
-
-                controllers.forEach(controller -> controller.register(routerBuilder));
-
-                LOGGER.debug("Creating router...");
-                router = routerBuilder.createRouter();
-
-                LOGGER.debug("Configuring CORS and error handlers...");
-                configureCorsHandler(router);
-                putCommonResponseHeaders();
-                configureFailureHandler(router);
-                configureErrorHandlers(router);
-
-                LOGGER.debug("Starting HTTP server...");
-                HttpServerOptions serverOptions = new HttpServerOptions();
-
-                /* Documentation routes */
-                router
-                    .get(ROUTE_STATIC_SPEC)
-                    .produces(APPLICATION_JSON)
-                    .handler(ctx -> ctx.response().sendFile(tempFile.toAbsolutePath().toString()));
-
-                router
-                    .get(ROUTE_DOC)
-                    .produces("text/html")
-                    .handler(ctx -> ctx.response().sendFile("docs/apidoc.html"));
-
-                router
-                    .get("/health/live")
-                    .handler(
-                        ctx ->
-                            ctx.response()
-                                .setStatusCode(200)
-                                .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
-                                .end("Alive"));
-
-                setServerOptions(serverOptions);
-                server = vertx.createHttpServer(serverOptions);
-                server
-                    .requestHandler(router)
-                    .listen(
-                        port,
-                        http -> {
-                          if (http.succeeded()) {
-                            printDeployedEndpoints(router);
-                            LOGGER.info("ProxyApiServerVerticle deployed on port: {}", port);
-                          } else {
-                            LOGGER.error(
-                                "HTTP server failed to start: {}",
-                                http.cause().getMessage(),
-                                http.cause());
-                          }
-                        });
-              } catch (Exception e) {
-                LOGGER.error(
-                    "Error during router creation or server startup: {}", e.getMessage(), e);
-              }
-            })
-        .onFailure(
-            failure -> {
-              LOGGER.error(
-                  "Failed to create RouterBuilder from OpenAPI spec: {}",
-                  failure.getMessage(),
-                  failure);
-            });
+  protected int getDefaultPort() {
+    return 8444;
   }
 
-  private void configureCorsHandler(Router router) {
-    CorsHandler corsHandler;
-    if (allowedOrigins.contains("*")) {
-      corsHandler = CorsHandler.create("*").allowCredentials(false);
-    } else {
-      corsHandler = CorsHandler.create();
-      for (String origin : allowedOrigins) {
-        corsHandler.addOrigin(origin);
-      }
-      corsHandler.allowCredentials(true);
-    }
-
-    corsHandler
-        .allowedMethod(HttpMethod.GET)
-        .allowedMethod(HttpMethod.POST)
-        .allowedMethod(HttpMethod.OPTIONS)
-        .allowedMethod(HttpMethod.PUT)
-        .allowedMethod(HttpMethod.DELETE)
-        .allowedMethod(HttpMethod.PATCH)
-        .allowedHeader("Content-Type")
-        .allowedHeader("Authorization")
-        .allowedHeader("Origin");
-
-    router.route().handler(corsHandler);
+  @Override
+  protected String getDefaultUrnPrefix() {
+    return "urn:dx:dataplane:";
   }
 
-  private void putCommonResponseHeaders() {
-    router
-        .route()
-        .handler(
-            ctx -> {
-              ctx.response()
-                  .putHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
-                  .putHeader("Pragma", "no-cache")
-                  .putHeader("Expires", "0")
-                  .putHeader("X-Content-Type-Options", "nosniff");
-              ctx.next();
-            });
+  @Override
+  protected String getBaseUrlConfigKey() {
+    return "gatewayurl";
   }
 
-  private void configureErrorHandlers(Router router) {
-    router.errorHandler(
-        401,
-        ctx -> {
-          HttpServerResponse response = ctx.response();
-          if (response.headWritten()) {
-            try {
-              response.reset();
-            } catch (RuntimeException e) {
-              LOGGER.error(
-                  "Failed to reset response: {}", HelperUtils.convertStackTrace(e).encode());
-            }
-            return;
-          }
-          response
-              .setStatusCode(401)
-              .putHeader(CONTENT_TYPE, APPLICATION_JSON)
-              .end("not implemented");
-        });
+  @Override
+  protected long getDefaultTimeoutMs() {
+    return 1000000;
   }
 
-  private void setServerOptions(HttpServerOptions serverOptions) {
-    boolean isSsl = config().getBoolean("ssl", false);
-    if (isSsl) {
-      LOGGER.info("Info: Starting HTTPs server");
-      String keystore = config().getString("keystore");
-      String keystorePassword = config().getString("keystorePassword");
-      serverOptions
-          .setSsl(true)
-          .setKeyCertOptions(new JksOptions().setPath(keystore).setPassword(keystorePassword));
-    } else {
-      LOGGER.info("Info: Starting HTTP server");
-      serverOptions.setSsl(false);
-    }
+  @Override
+  protected List<ApiController> createControllers(
+      Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
+    String host = config.getString("controlplaneHost", "localhost");
+    int port = config.getInteger("controlplaneGrpcPort", 9090);
+
+    this.appIdClient = new AppIdVerificationClient(host, port);
+    AppIdItemAccessHandler appIdItemAccessHandler =
+        new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
+
+    LOGGER.info("AppId gRPC client configured (proxy): {}:{}", host, port);
+    return ControllerFactoryProxy.createControllers(
+        vertx, config, urnGenerator, appIdItemAccessHandler);
   }
 
-  private void configureFailureHandler(Router router) {
-    router.route().failureHandler(new FailureHandler(this.urnGenerator));
-  }
-
-  private void printDeployedEndpoints(Router router) {
-    for (Route route : router.getRoutes()) {
-      if (route.getPath() != null) {
-        LOGGER.info("Deployed endpoint [{}] {}", route.methods(), route.getPath());
-      }
-    }
+  @Override
+  protected AppIdAuthHandler getAppIdAuthHandler() {
+    return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
   }
 
   @Override
   public void stop() {
-    if (server != null) {
-      server.close();
+    super.stop();
+    if (appIdClient != null) {
+      try {
+        appIdClient.shutdown();
+      } catch (InterruptedException e) {
+        LOGGER.warn(
+            "Interrupted while shutting down AppId gRPC client (proxy): {}", e.getMessage());
+        Thread.currentThread().interrupt();
+      }
     }
   }
 }

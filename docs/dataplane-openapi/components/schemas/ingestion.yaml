@@ -1,0 +1,44 @@
+adapterIngestionEntities:
+  title: ingestion
+  type: object
+  properties:
+    details:
+      description: Item Published
+  example:
+    detail: "Item Published"
+
+ingestionEntityRequest:
+  title: ingestion entity
+  required:
+    - entities
+  type: array
+  properties:
+    entities:
+      type: array
+      items:
+        type: string
+  example:
+    [ {
+      "currentLevel": 1.16,
+      "referenceLevel": 15.9,
+      "measuredDistance": 14.74,
+      "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+      "observationDateTime": "2020-09-22T18:30:00+05:30",
+      "deviceInfo": {
+        "deviceID": "FWR055"
+      }
+    } ]
+
+ingestionEntityRequest2:
+  title: ingestion entity
+  type: array
+  example:
+    [ {
+      "currentLevel": 1.16,
+      "referenceLevel": 15.9,
+      "measuredDistance": 14.74,
+      "observationDateTime": "2020-09-22T18:30:00+05:30",
+      "deviceInfo": {
+        "deviceID": "FWR055"
+      }
+    } ]

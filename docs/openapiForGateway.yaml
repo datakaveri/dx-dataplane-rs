@@ -82,6 +82,7 @@ servers:
     description: Server URL
 security:
   - authorization: [ ]
+  - appIdAuth: [ ]
 paths:
   /ngsi-ld/v1/entities:
     get:
@@ -1229,6 +1230,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    appIdAuth:
+      type: http
+      scheme: basic
+      description: Direct AppId authentication. Credentials as base64(appId:appSecret) in Authorization header.
   schemas:
     postEntitiesSchema:
       type: object

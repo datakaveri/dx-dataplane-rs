@@ -1,0 +1,131 @@
+/ngsi-ld/v2/{id}/download:
+  get:
+    tags:
+      - Download CSV
+    summary: Get Data CSV
+    description: This is used to stream data in csv format for a given resource ID. (Get Search Data). Use same format of request data sample as it is in /entities/{id} API.
+    operationId: downloadIdEntityData
+    security:
+      - authorization: [ ]
+    parameters:
+      - name: did
+        in: header
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+        schema:
+          type: string
+          format: uuid
+
+      - name: sort
+        in: query
+        description: 'This parameter is used to sort the results basis on this property. <br/> The default sortBy property is `observationDateTime:desc` . <br/> The user could provide any property among `observationDateTime` and `itemCreatedAt` of the resource to sort the data. <br/> If the user provides a property which is not part of the resource, the API will throw a `400-Bad Request` error.'
+        required: false
+        schema:
+          type: string
+          enum: [ observationDateTime:desc, itemCreatedAt:desc, observationDateTime:asc, itemCreatedAt:asc ]
+    responses:
+      '200':
+        description: Success
+      '401':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/standardInvalidTokenErrorResponse"
+        description: 'Unauthorized - Invalid/missing token'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ForbiddenResponse'
+
+      '400':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/invalidParamBadRequestErrorResponse"
+        description: 'Bad query - Empty response | Missing/Invalid parameters'
+
+    x-codeSamples:
+      - lang: 'cURL'
+        label: 'get download data'
+        source: |
+          curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z' \
+          --header 'Authorization: Bearer <tokenValue>'
+
+  post:
+    tags:
+      - Download CSV
+    summary: Post Data CSV
+    description: This is used to stream data in csv format for a given resource ID. (Post Search Data). Use same format of request data sample as it is in /search API.
+    operationId: downloadPutSearchData
+    security:
+      - authorization: [ ]
+    parameters:
+      - name: did
+        in: header
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+        schema:
+          type: string
+          format: uuid
+      - name: sort
+        in: query
+        description: >
+          This parameter allows sorting the results by up to 3 fields, separated by a semicolon (;).
+          The format for each field is `fieldName:asc` or `fieldName:desc`.
+          For example: `itemCreatedAt:desc;dataReadiness:asc;name:desc` will sort by creation date (descending),
+          then dataReadiness (ascending), then name (descending).
+        required: false
+        schema:
+          type: string
+    responses:
+      '200':
+        description: Success
+      '401':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/standardInvalidTokenErrorResponse"
+        description: 'Unauthorized - Invalid/missing token'
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ForbiddenResponse'
+      '400':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/invalidParamBadRequestErrorResponse"
+        description: 'Bad query - Empty response | Missing/Invalid parameters'
+
+    x-codeSamples:
+      - lang: 'cURL'
+        label: 'post download data'
+        source: |
+          curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download' \
+          --header 'Authorization: Bearer <tokenValue>' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{
+              "searchCriteria": [
+                  {
+                      "searchType": "beforeTemporal",
+                      "field": "observationDateTime",
+                      "values": ["2025-05-02T09:15:27+0530"]
+                  }
+              ]
+          }'

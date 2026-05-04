@@ -1,0 +1,807 @@
+NgsiLdSubscriptionErrorResponse400:
+  title: NgsiLdSubscriptionErrorResponse400
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+NgsiLdSubscriptionErrorResponse413:
+  title: NgsiLdSubscriptionErrorResponse413
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+NgsiLdSubscriptionErrorResponse404:
+  title: NgsiLdSubscriptionErrorResponse404
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+NgsiLdSubscriptionErrorResponse401:
+  title: NgsiLdSubscriptionErrorResponse401
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+NgsiLdSubscriptionErrorResponse409:
+  title: NgsiLdSubscriptionErrorResponse409
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+NgsiLdSubscriptionErrorResponse500:
+  title: NgsiLdSubscriptionErrorResponse500
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+    instance:
+      type: string
+
+entityresponse:
+  title: entityresponse
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+    paginationInfo:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalCount:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+  example:
+    type: "dx:dataplane:success"
+    title: "Success"
+    results:
+      - trip_direction: "NT"
+        trip_id: "24374871"
+        route_id: "17AD"
+        trip_delay: 948
+        last_stop_arrival_time: "15:09:58"
+        actual_trip_start_time: "2020-11-03T14:22:30+05:30"
+        vehicle_label: "A09"
+        observationDateTime: "2020-11-03T15:12:08+05:30"
+        speed: 25.0
+        license_plate: "GJ05BX1916"
+        last_stop_id: "2028"
+        location:
+          coordinates:
+            - 72.870511
+            - 21.218943
+          type: "Point"
+        id: "UUID"
+    paginationInfo:
+      page: 1
+      size: 100
+      totalCount: 1
+      totalPages: 1
+      hasNext: false
+      hasPrevious: false
+
+registeradapter:
+  title: registeradapter
+  required:
+    - username
+    - apiKey
+    - id
+    - URL
+    - port
+    - vHost
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+
+createstreaming:
+  title: createstreaming
+  required:
+    - username
+    - apiKey
+    - id
+    - URL
+    - port
+    - vHost
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+
+  example:
+    type: dx:dataplane:success,
+    title: success,
+    results: [
+      {
+        "username": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c",
+        "apiKey": "Use the apiKey returned on registration, if lost please use /resetPassword API",
+        "id": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL009",
+        "URL": "databroker.iudx.io",
+        "port": 24567,
+        "vHost": "IUDX"
+      }
+    ]
+
+retrievestreaming:
+  title: retrievestreaming
+  required:
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success,
+    title: success,
+    results: [
+      { "entities": [ "UUID/.*" ]
+      }
+    ]
+
+appendstreaming:
+  title: appendstreaming
+  required:
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success,
+    title: success,
+    results: [
+      { "entities": [ "UUID" ]
+      }
+    ]
+
+updatestreaming:
+  title: updatestreaming
+  required:
+    - entities
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success,
+    title: success,
+    results: [
+      { "entities": [ "UUID" ]
+      }
+    ]
+
+deletestreaming:
+  title: deletestreaming
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:success
+    title: success
+    detail: Subscription deleted Successfully
+
+resetpassword:
+  title: resetpassword
+  required:
+    - apiKey
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success
+    title: successful
+    results: [
+      { "username": "asasdasd-asdasd-aada-d23342",
+        "apiKey": "asass8a7s"
+      }
+    ]
+
+asyncsearchResponse:
+  title: asyncsearch
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success
+    title: query submitted successfully
+    results: [
+      { "searchId": "asasdasd-asdasd-a353f-dasdas5"
+      }
+    ]
+
+asyncsearchStatusComplete:
+  title: complete
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success
+    title: success
+    results: [
+      { "status": "COMPLETE",
+        "progress": 100.00,
+        "file-download-url": "https://example.com/filename",
+        "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+        "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+      }
+    ]
+
+asyncsearchStatusInprogress:
+  title: inprogress
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      description: An array of objects
+      type: array
+      items:
+        type: object
+  example:
+    type: dx:dataplane:success
+    title: success
+    results: [
+      { "status": "IN_PROGRESS",
+        "progress": 70.00,
+        "searchId": "asasdasd-asdasd-aasasd-dasdasd",
+        "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
+      }
+    ]
+
+revokeToken:
+  title: revoke-token
+  required:
+    - sub
+  type: object
+  properties:
+    sub:
+      type: string
+  example:
+    sub: ase2132-2342323-2423
+
+standardSuccessResponse:
+  title: standardSuccessResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:success
+    title: Success
+    detail: Success
+
+invalidParamBadRequestErrorResponse:
+  title: invalidParamBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:badrequest
+    title: Bad Request
+    detail: Bad Request
+
+subscriptionInvalidParamBadRequestErrorResponse:
+  title: subscriptionInvalidParamBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidParameter
+    title: Bad Request
+    detail: Invalid Name
+
+entitiesInvalidParamBadRequestErrorResponse:
+  title: entitiesInvalidParamBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidParameterValue
+    title: Bad Request
+    detail: Bad query
+
+asyncSearchStatusInvalidParamResponse:
+  title: asyncSearchStatusInvalidParamResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidParameterValue
+    title: Bad Request
+    detail: Bad Request
+
+asyncSearchStatusIncorrectSearchIdResponse:
+  title: asyncSearchStatusIncorrectSearchIdResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:general
+    title: Bad Request
+    detail: "Fail: Incorrect search ID"
+
+invalidPayloadFormatErrorResponse:
+  title: invalidPayloadFormatErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidPayloadFormat
+    title: Bad Request
+    detail: Bad Request
+
+invalidParamsErrorResponse:
+  title: invalidParamsErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidTemporalRelationParam
+    title: Bad Request
+    detail: Bad Request
+
+invalidDateFormatErrorResponse:
+  title: invalidDateFormatErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidAttributeValue
+    title: Bad Request
+    detail: Bad Request
+
+asyncBadRequestErrorResponse:
+  title: asyncBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:badRequest
+    title: Bad Request
+    detail: Bad Request
+
+standardBadRequestErrorResponse:
+  title: standardBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:badRequest
+    title: Bad Request Data
+    detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering
+
+standardInvalidTokenErrorResponse:
+  title: standardInvalidTokenErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:notAuthorized
+    title: Not Authorized
+    detail: Not Authorized / Invalid token / missing Bearer token
+
+generalResourceNotFoundErrorResponse:
+  title: generalResourceNotFoundErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:general
+    title: Not Found
+    detail: Not Found
+
+standardResourceNotFoundErrorResponse:
+  title: standardResourceNotFoundErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:resourceNotFound
+    title: Not Found
+    detail: Not Found
+
+resourceNotFoundErrorResponse:
+  title: resourceNotFoundErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:resourceNotFound
+    title: Not Found
+    detail: Resource Not Found
+
+generalResourceAlreadyExistErrorResponse:
+  title: generalResourceAlreadyExistErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:general
+    title: Conflict
+    detail: Conflict
+
+standardResourceAlreadyExistErrorResponse:
+  title: standardResourceAlreadyExistErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:resourceAlreadyExist
+    title: Conflict
+    detail: Conflict
+
+allqueue:
+  title: Response
+  required:
+    - type
+    - title
+    - details
+  type: object
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    results:
+      type: object
+      properties:
+        Subscription:
+          type: object
+  example:
+    type: dx:dataplane:success
+    title: success
+    results: [
+      {
+        "queuename": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL",
+        "entity": "UUID",
+        "catitem": {
+          "name": "surat-itms-live-eta",
+          "provider": "UUID",
+          "type": [
+            "iudx:Resource",
+            "iudx:TransitManagement"
+          ],
+          "description": "Realtime bus position information from Surat city public transit buses.",
+          "label": "Surat Transit Realtime Position-UUID",
+          "accessPolicy": "SECURE",
+          "resourceGroup": "UUID",
+          "id": "UUID",
+          "instance": "surat"
+        }
+      }
+    ]
+
+standardInvalidTokenErrorResponseAllQueueAndExcahnge:
+  title: standardInvalidTokenErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:invalidAuthorizationToken
+    title: Not Authorized
+    detail: Not Authorized
+
+adapterBadRequestErrorResponse:
+  title: adapterBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:badRequest
+    title: Bad Request Data
+    detail: Missing/Invalid parameters
+
+summaryBadRequestErrorResponse:
+  title: adapterBadRequestErrorResponse
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:backend
+    title: bad request
+    detail: bad request
+
+ForbiddenResponse:
+  type: object
+  properties:
+    type:
+      type: string
+      example: dx:dataplane:no-access
+    title:
+      type: string
+      example: No-access
+    detail:
+      type: string
+      example: Access check failed doc doesn't exist
+
+payloadTooLarge:
+  title: payloadtoolarge
+  properties:
+    type:
+      type: string
+    title:
+      type: string
+    detail:
+      type: string
+  example:
+    type: dx:dataplane:payloadTooLarge
+    title: Payload Too Large
+    detail: Response size exceeds limit use filters to get value within limit or use download api
+
+createastreamingsubscriptionrequest:
+  title: createastreamingsubscriptionrequest
+  required:
+    - name
+    - type
+    - entities
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 512
+    type:
+      type: string
+      enum: [ subscription ]
+
+    entities:
+      type: array
+      minItems: 1
+      maxItems: 5
+      items:
+        type: string
+        format: uuid
+        maxLength: 36
+        pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      description: ''
+  example:
+    name: alias-name-of-application
+    type: subscription
+    entities:
+      - UUID
+
+appendstreamingsubscriptionrequest:
+  title: appendstreamingsubscriptionrequest
+  required:
+    - name
+    - type
+    - entities
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 512
+
+    type:
+      type: string
+      enum: [ subscription ]
+
+    entities:
+      type: array
+      minItems: 1
+      maxItems: 5
+
+      items:
+        type: string
+      description: ''
+  example:
+    name: alias-name-of-application
+    type: subscription
+    entities:
+      - UUID
+
+updatestreamingsubscriptionrequest:
+  title: updatestreamingsubscriptionrequest
+  required:
+    - name
+    - type
+    - entities
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 512
+
+    type:
+      type: string
+      enum: [ subscription ]
+
+    entities:
+      type: array
+      minItems: 1
+      maxItems: 5
+
+      items:
+        type: string
+      description: ''
+  example:
+    name: alias-name-of-application
+    type: subscription
+    entities:
+      - UUID

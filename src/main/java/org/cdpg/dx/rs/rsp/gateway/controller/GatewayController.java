@@ -44,8 +44,9 @@ import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
 import org.cdpg.dx.rs.rsp.gateway.util.QueryMapper2;
-import org.cdpg.dx.validations.idhandler.GetIdFromBodyHandler;
-import org.cdpg.dx.validations.idhandler.GetIdFromParams;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
@@ -56,6 +57,7 @@ public class GatewayController implements ApiController {
   private final URNGenerator urnGenerator;
   private final GetIdFromParams getIdFromParams = new GetIdFromParams();
   private final GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
@@ -67,10 +69,12 @@ public class GatewayController implements ApiController {
       GatewayParamValidator gatewayParamValidator,
       URNGenerator urnGenerator,
       String controlPlaneDomain,
-      AuditingHandler auditingHandler /*,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
     this.gatewayParamValidator = gatewayParamValidator;
     this.urnGenerator = urnGenerator;
     this.itemAccessApplicableFilterHandlerGateway =
@@ -87,6 +91,7 @@ public class GatewayController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -96,6 +101,7 @@ public class GatewayController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -107,6 +113,7 @@ public class GatewayController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
@@ -116,6 +123,7 @@ public class GatewayController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
         .handler(idValidation)
