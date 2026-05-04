@@ -70,11 +70,11 @@
             <version>${vertx.version}</version>
         </dependency>
         <!--  https://mvnrepository.com/artifact/org.postgresql/postgresql  -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.ongres.scram</groupId>
             <artifactId>client</artifactId>
@@ -294,11 +294,11 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-jwt</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
             <version>${elasticsearch-rest-client.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
@@ -323,11 +323,11 @@
             <version>1.12.778</version>
         </dependency>
         <!-- HLC transition dependency  -->
-        <dependency>
+        <!--<dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
             <version>${elasticsearch-rest-client.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -441,14 +441,14 @@
                         <!--  class present in generated-sources  -->
                         <exclude>**/JwtDataConverter.class</exclude>
                         <!--  classes to be tested using Postman.  -->
-                        <exclude>iudx/resource/server/apiserver/ManagementRestApi.class</exclude>
+                        <!--<exclude>iudx/resource/server/apiserver/ManagementRestApi.class</exclude>
                         <exclude>iudx/resource/server/apiserver/AdminRestApi.class</exclude>
-                        <exclude>iudx/resource/server/apiserver/AsyncRestApi.class</exclude>
+                        <exclude>iudx/resource/server/apiserver/AsyncRestApi.class</exclude>-->
                         <!--  service proxy interfaces  -->
-                        <exclude>iudx/resource/server/database/archives/DatabaseService.class</exclude>
+                        <!--<exclude>iudx/resource/server/database/archives/DatabaseService.class</exclude>
                         <exclude>iudx/resource/server/database/latest/LatestDataService.class</exclude>
                         <exclude>iudx/resource/server/encryption/EncryptionService.class</exclude>
-                        <exclude>iudx/resource/server/database/elastic/EsResponseFormatter.class</exclude>
+                        <exclude>iudx/resource/server/database/elastic/EsResponseFormatter.class</exclude>-->
                         <!--  deployment helper classes  -->
                         <exclude>org/cdpg/dx/deploy/*.class</exclude>
                     </excludes>
