@@ -47,8 +47,8 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
   @Override
   protected List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
-    String host = config.getString("controlplaneHost", "localhost");
-    int port = config.getInteger("controlplaneGrpcPort", 9090);
+    String host = config.getString("controlplaneHost");
+    int port = config.getInteger("controlplaneGrpcPort");
 
     this.appIdClient = new AppIdVerificationClient(host, port);
     AppIdItemAccessHandler appIdItemAccessHandler =
