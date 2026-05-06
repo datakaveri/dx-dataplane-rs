@@ -560,6 +560,7 @@
                                     <resource>META-INF/services/io.vertx.core.spi.VerticleFactory </resource>
                                     <resource>META-INF/services/io.vertx.core.spi.VertxServiceProvider </resource>
                                 </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <artifactSet/>
                             <outputFile>${project.build.directory}/${project.artifactId}-dev-${project.version}-fat.jar </outputFile>
@@ -593,6 +594,7 @@
                                     <resource>META-INF/services/io.vertx.core.spi.VerticleFactory </resource>
                                     <resource>META-INF/services/io.vertx.core.spi.VertxServiceProvider </resource>
                                 </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <artifactSet/>
                             <outputFile> ${project.build.directory}/${project.artifactId}-cluster-${project.version}-fat.jar </outputFile>
