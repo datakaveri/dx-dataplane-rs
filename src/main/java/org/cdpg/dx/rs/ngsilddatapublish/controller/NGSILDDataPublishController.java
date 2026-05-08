@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
 import org.cdpg.dx.auth.authorization.model.DxRole;
 import org.cdpg.dx.common.URNGenerator;
@@ -42,6 +43,7 @@ public class NGSILDDataPublishController implements ApiController {
   private final GetIdFromPathHandler getIdFromPathHandler;
   private final ItemAccessDataPublishHandler itemAccessDataPublishHandler;
   private final ProviderDelegateValidationHandler providerDelegateValidationHandler;
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
   private NGSILDDataPublishService ngsildDataPublishService;
   private URNGenerator urnGenerator;
   private AuditingHandler auditingHandler;
@@ -51,6 +53,7 @@ public class NGSILDDataPublishController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler,
       int chunkMaxItems,
       int chunkMaxBytes) {
     this.auditingHandler = auditingHandler;
@@ -63,6 +66,7 @@ public class NGSILDDataPublishController implements ApiController {
     this.getIdForIngestionEntityHandler = new GetIdForIngestionEntityHandler();
     this.getIdFromPathHandler = new GetIdFromPathHandler();
     this.providerDelegateValidationHandler = new ProviderDelegateValidationHandler();
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
   }
 
   @Override
@@ -72,6 +76,7 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdForIngestionEntityHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)
@@ -81,6 +86,7 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)
@@ -91,6 +97,7 @@ public class NGSILDDataPublishController implements ApiController {
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
         .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
         .handler(idValidation)

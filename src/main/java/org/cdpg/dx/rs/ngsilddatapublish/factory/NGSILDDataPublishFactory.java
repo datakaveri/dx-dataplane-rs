@@ -1,6 +1,7 @@
 package org.cdpg.dx.rs.ngsilddatapublish.factory;
 
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
 import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.common.URNGenerator;
@@ -18,6 +19,7 @@ public class NGSILDDataPublishFactory {
       DataBrokerService dataBrokerService,
       ElasticsearchService elasticsearchService,
       MinioService minioService,
+      AppIdItemAccessHandler appIdItemAccessHandler,
       int chunkMaxItems,
       int chunkMaxBytes,
       S3FileService s3FileService) {
@@ -29,6 +31,7 @@ public class NGSILDDataPublishFactory {
         controlPlaneDomain,
         urnGenerator,
         auditingHandler,
+        appIdItemAccessHandler,
         chunkMaxItems,
         chunkMaxBytes);
   }

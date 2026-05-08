@@ -53,7 +53,8 @@ public class PublishedApiServerVerticle extends AbstractApiServerVerticle {
         new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
 
     LOGGER.info("AppId gRPC client configured: {}:{}", host, port);
-    return PublishedControllerFactory.createControllers(vertx, config, urnGenerator);
+    return PublishedControllerFactory.createControllers(
+        vertx, config, urnGenerator, appIdItemAccessHandler);
   }
 
   @Override
