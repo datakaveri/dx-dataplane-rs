@@ -123,7 +123,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
                                 .map(
                                     bucketName -> {
                                       LOGGER.info(
-                                          "Uploaded on-seek batch for id {} to MinIO bucket {} at {} and published metadata. Presigned URL: {}",
+                                          "Uploaded on-seek batch for id {} to bucket {} at {} and published metadata. Presigned URL: {}",
                                           id,
                                           bucketName,
                                           objectName,
@@ -152,7 +152,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   }
 
   @Override
-  public Future<String> uploadFileToMinioAndPublishMetadata(
+  public Future<String> uploadFileToCloudAndPublishMetadata(
       Buffer data, String id, String contentType) {
     String objectName = buildObjectName(id, ".bin");
 
@@ -169,7 +169,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
   }
 
   @Override
-  public Future<String> uploadFileToMinioAndPublishMetadata(
+  public Future<String> uploadFileToCloudAndPublishMetadata(
       Path filePath, String id, String contentType) {
     String objectName = buildObjectName(id, ".bin");
 
@@ -320,7 +320,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
                     .map(
                         bucketName -> {
                           LOGGER.info(
-                              "Uploaded on-seek file for id {} to MinIO bucket {} at {} and published metadata. Presigned URL: {}",
+                              "Uploaded on-seek file for id {} to bucket {} at {} and published metadata. Presigned URL: {}",
                               id,
                               bucketName,
                               objectName,

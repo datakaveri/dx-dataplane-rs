@@ -191,7 +191,7 @@ public class NGSILDDataPublishController implements ApiController {
     Buffer data = payload.copy();
     LOGGER.info("On-seek payload ready for upload id {} sizeBytes={}", id, data.length());
     ngsildDataPublishService
-        .uploadFileToMinioAndPublishMetadata(data, id, contentType)
+        .uploadFileToCloudAndPublishMetadata(data, id, contentType)
         .map(
             ignored -> {
               LOGGER.info("On-seek raw upload complete for id {}", id);
@@ -211,7 +211,7 @@ public class NGSILDDataPublishController implements ApiController {
       RoutingContext context, String id, Path filePath, String contentType) {
     LOGGER.info("On-seek file ready for upload id {} sizeBytes={}", id, filePath.toFile().length());
     ngsildDataPublishService
-        .uploadFileToMinioAndPublishMetadata(filePath, id, contentType)
+        .uploadFileToCloudAndPublishMetadata(filePath, id, contentType)
         .map(
             ignored -> {
               LOGGER.info("On-seek raw upload complete for id {}", id);

@@ -121,21 +121,6 @@
       "urnPrefix": "dx:dataplaneProxy:",
       "maxDaysSync": 10,
       "maxDaysAsync": 365
-    },
-    {
-      "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "ssl": true,
-      "production": false,
-      "httpPort": 8445,
-      "isAdexInstance": false,
-      "keystore": "configs/keystore.jks",
-      "keystorePassword": "password",
-      "urnPrefix": "dx:dataplanePublished:",
-      "chunkMaxItems" : 200,
-      "chunkMaxBytes" : 3,
-      "timeout": 500000
     }
   ]
 }
