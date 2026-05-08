@@ -79,7 +79,7 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
                     .map(
                         bucketName -> {
                           LOGGER.info(
-                              "Uploaded on-seek batch for id {} to MinIO bucket {} at {}. Presigned URL: {}",
+                              "Uploaded on-seek batch for id {} to bucket {} at {}. Presigned URL: {}",
                               id,
                               bucketName,
                               objectName,
@@ -312,15 +312,21 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     JsonArray msg = new JsonArray().add(metadata);
     return dataBrokerService
         .publishMessageExternal(id, id, msg)
-        .map(
-            v -> {
-              LOGGER.info(
-                  "Uploaded on-seek file for id {} to {} and published metadata. Presigned URL: {}",
-                  id,
-                  objectName,
-                  presignedUrl);
-              return presignedUrl;
-            });
+        .compose(
+            v ->
+                minioService
+                    .getBucketName()
+                    .recover(err -> Future.succeededFuture("unknown"))
+                    .map(
+                        bucketName -> {
+                          LOGGER.info(
+                              "Uploaded on-seek file for id {} to MinIO bucket {} at {} and published metadata. Presigned URL: {}",
+                              id,
+                              bucketName,
+                              objectName,
+                              presignedUrl);
+                          return presignedUrl;
+                        }));
   }
 
   private String buildObjectName(String id, String extension) {

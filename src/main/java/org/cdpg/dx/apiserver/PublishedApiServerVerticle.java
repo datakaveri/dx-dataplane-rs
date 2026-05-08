@@ -1,20 +1,24 @@
-/*
 package org.cdpg.dx.apiserver;
 
-import static org.cdpg.dx.apiserver.config.ApiConstants.*;
-
 import io.vertx.core.Vertx;
-import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
-import java.util.List;
-
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.openapi.RouterBuilder;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
+import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
+import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
 import org.cdpg.dx.common.URNGenerator;
 
 public class PublishedApiServerVerticle extends AbstractApiServerVerticle {
+  private static final Logger LOGGER = LogManager.getLogger(PublishedApiServerVerticle.class);
+  private AppIdVerificationClient appIdClient;
+
   @Override
-  protected String getOpenApiSpecPath(JsonObject config) {
+  protected String getOpenApiSpecPath(JsonObject jsonObject) {
     return "docs/openapiforpublish.yaml";
   }
 
@@ -35,28 +39,49 @@ public class PublishedApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected long getDefaultTimeoutMs() {
-    return 1000000; // 1000s — higher timeout for publish
+    return 600_000L;
   }
 
   @Override
   protected List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
-    return PublishedControllerFactory.createControllers(vertx, config(), urnGenerator);
-  }
-  @Override
-  protected void configureAdditionalRoutes(Router router, JsonObject config) {
-    FileUploadController fileUploadController = new FileUploadController();
+    String host = config.getString("controlplaneHost");
+    int port = config.getInteger("controlplaneGrpcPort");
 
-    router.post("/ngsi-ld/v1/upload")
-            .handler(BodyHandler.create().setBodyLimit(Long.MAX_VALUE))
-            .handler(fileUploadController::handleUpload);
+    this.appIdClient = new AppIdVerificationClient(host, port);
+    AppIdItemAccessHandler appIdItemAccessHandler =
+        new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
 
-    router.delete("/ngsi-ld/v1/upload/:fileId")
-            .handler(fileUploadController::handleDelete);
+    LOGGER.info("AppId gRPC client configured: {}:{}", host, port);
+    return PublishedControllerFactory.createControllers(vertx, config, urnGenerator);
   }
+
   @Override
-  protected long getBodyLimit() {
-    return -1; // unlimited body size for data ingestion
+  protected AppIdAuthHandler getAppIdAuthHandler() {
+    return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    if (appIdClient != null) {
+      try {
+        appIdClient.shutdown();
+      } catch (InterruptedException e) {
+        LOGGER.warn("Interrupted while shutting down AppId gRPC client: {}", e.getMessage());
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  @Override
+  protected RouterBuilder configureRootHandlerBuilder(
+      RouterBuilder routerBuilder, BodyHandler jsonBodyHandler) {
+    routerBuilder.rootHandler(
+        ctx -> {
+          ctx.request().pause();
+          ctx.next();
+        });
+    return routerBuilder;
   }
 }
-*/
