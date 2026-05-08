@@ -12,9 +12,11 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
@@ -140,13 +142,24 @@ public class NGSILDDataPublishController implements ApiController {
 
     try {
       Path tempFile = Files.createTempFile("onseek-upload-", ".tmp");
+      OutputStream out =
+          new BufferedOutputStream(new FileOutputStream(tempFile.toFile()), 1024 * 1024);
       context
           .request()
           .handler(
               buffer -> {
                 try {
-                  Files.write(tempFile, buffer.getBytes(), StandardOpenOption.APPEND);
+                  out.write(buffer.getBytes());
                 } catch (Exception e) {
+                  try {
+                    out.close();
+                  } catch (Exception ignored) {
+                  }
+                  try {
+                    Files.deleteIfExists(tempFile);
+                  } catch (Exception ex) {
+                    LOGGER.warn("Failed to delete temp file: {}", ex.getMessage());
+                  }
                   context.fail(e);
                 }
               });
@@ -155,6 +168,7 @@ public class NGSILDDataPublishController implements ApiController {
           .endHandler(
               ignored -> {
                 try {
+                  out.close();
                   long fileSize = Files.size(tempFile);
                   if (fileSize == 0) {
                     Files.deleteIfExists(tempFile);
@@ -173,6 +187,11 @@ public class NGSILDDataPublishController implements ApiController {
               })
           .exceptionHandler(
               err -> {
+                try {
+                  out.close();
+                } catch (Exception ex) {
+                  LOGGER.warn("Failed to close temp stream: {}", ex.getMessage());
+                }
                 try {
                   Files.deleteIfExists(tempFile);
                 } catch (Exception ex) {
