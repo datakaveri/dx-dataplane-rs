@@ -78,9 +78,7 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected boolean isStreamingRoute(String path) {
-    return path != null
-        && path.contains("/ngsi-ld/v1/ingestion/")
-        && !path.endsWith("/on-seek");
+    return path != null && path.contains("/ngsi-ld/v1/ingestion/");
   }
 
   @Override

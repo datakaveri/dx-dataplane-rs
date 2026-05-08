@@ -312,21 +312,15 @@ public class NGSILDDataPublishServiceImpl implements NGSILDDataPublishService {
     JsonArray msg = new JsonArray().add(metadata);
     return dataBrokerService
         .publishMessageExternal(id, id, msg)
-        .compose(
-            v ->
-                minioService
-                    .getBucketName()
-                    .recover(err -> Future.succeededFuture("unknown"))
-                    .map(
-                        bucketName -> {
-                          LOGGER.info(
-                              "Uploaded on-seek file for id {} to bucket {} at {} and published metadata. Presigned URL: {}",
-                              id,
-                              bucketName,
-                              objectName,
-                              presignedUrl);
-                          return presignedUrl;
-                        }));
+        .map(
+            v -> {
+              LOGGER.info(
+                  "Uploaded on-seek file for id {} to {} and published metadata. Presigned URL: {}",
+                  id,
+                  objectName,
+                  presignedUrl);
+              return presignedUrl;
+            });
   }
 
   private String buildObjectName(String id, String extension) {
