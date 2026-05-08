@@ -64,6 +64,11 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
   }
 
   @Override
+  protected String getNgsildPathPattern() {
+    return "/ngsi-ld/v1.*";
+  }
+
+  @Override
   public void stop() {
     super.stop();
     if (appIdClient != null) {

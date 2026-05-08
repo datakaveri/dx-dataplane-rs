@@ -77,6 +77,16 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
   }
 
   @Override
+  protected boolean isStreamingRoute(String path) {
+    return path != null && path.contains("/ngsi-ld/v1/ingestion/");
+  }
+
+  @Override
+  protected String getNgsildPathPattern() {
+    return "/ngsi-ld/v1.*";
+  }
+
+  @Override
   protected void configureAdditionalRoutes(Router router, JsonObject config) {
     FileUploadController fileUploadController = new FileUploadController();
 
@@ -86,10 +96,5 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
         .handler(fileUploadController::handleUpload);
 
     router.delete("/ngsi-ld/v1/upload/:fileId").handler(fileUploadController::handleDelete);
-  }
-
-  @Override
-  protected long getBodyLimit() {
-    return -1;
   }
 }
