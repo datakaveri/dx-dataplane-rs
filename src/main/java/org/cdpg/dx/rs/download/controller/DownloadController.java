@@ -17,8 +17,8 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
-import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.v2.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
@@ -40,6 +40,7 @@ public class DownloadController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
+  private final AuthorizationHandler authorizationV2;
 
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
@@ -48,7 +49,8 @@ public class DownloadController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      AuthorizationHandler authorizationV2 /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.downloadService = downloadService;
@@ -58,6 +60,7 @@ public class DownloadController implements ApiController {
         new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    this.authorizationV2 = authorizationV2;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -67,7 +70,7 @@ public class DownloadController implements ApiController {
         .operation(DOWNLOAD_ID_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -77,7 +80,7 @@ public class DownloadController implements ApiController {
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -120,35 +123,12 @@ public class DownloadController implements ApiController {
                     .handler(buffer -> response.write(buffer))
                     .endHandler(
                         v -> {
-                          JsonArray userRoles =
-                              routingContext
-                                  .user()
-                                  .principal()
-                                  .getJsonObject("realm_access")
-                                  .getJsonArray("roles");
-                          String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                          String delegatorId;
-                          if (role.equalsIgnoreCase("delegate")) {
-                            delegatorId = routingContext.request().getHeader("did");
-                          } else {
-                            delegatorId = routingContext.user().subject();
-                          }
                           response.end();
                           long bytesWritten = response.bytesWritten();
                           RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                           AuditLog auditLog =
                               DataplaneAuditHelper.createAuditingLogs(
-                                  RoutingContextHelper.getItemMetaData(routingContext),
-                                  id,
-                                  RoutingContextHelper.getRequestPath(routingContext),
-                                  "POST",
-                                  routingContext.user().subject(),
-                                  NGSILD,
-                                  role,
-                                  DOWNLOAD,
-                                  routingContext.user().principal().getString("iss"),
-                                  delegatorId,
-                                  bytesWritten);
+                                  routingContext, id, "POST", NGSILD, DOWNLOAD, bytesWritten);
                           RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                         });
               })
@@ -214,35 +194,12 @@ public class DownloadController implements ApiController {
                   .handler(buffer -> response.write(buffer))
                   .endHandler(
                       v -> {
-                        JsonArray userRoles =
-                            routingContext
-                                .user()
-                                .principal()
-                                .getJsonObject("realm_access")
-                                .getJsonArray("roles");
-                        String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                        String delegatorId;
-                        if (role.equalsIgnoreCase("delegate")) {
-                          delegatorId = routingContext.request().getHeader("did");
-                        } else {
-                          delegatorId = routingContext.user().subject();
-                        }
                         response.end();
                         long bytesWritten = response.bytesWritten();
                         RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                         AuditLog auditLog =
                             DataplaneAuditHelper.createAuditingLogs(
-                                RoutingContextHelper.getItemMetaData(routingContext),
-                                id,
-                                RoutingContextHelper.getRequestPath(routingContext),
-                                "GET",
-                                routingContext.user().subject(),
-                                NGSILD,
-                                role,
-                                DOWNLOAD,
-                                routingContext.user().principal().getString("iss"),
-                                delegatorId,
-                                bytesWritten);
+                                routingContext, id, "GET", NGSILD, DOWNLOAD, bytesWritten);
                         RoutingContextHelper.setAuditingLog(routingContext, auditLog);
                       });
             })

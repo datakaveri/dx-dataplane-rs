@@ -9,6 +9,7 @@ import java.util.List;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.rsp.gateway.controller.GatewayControllerFactory;
@@ -17,12 +18,10 @@ public class ControllerFactoryProxy {
 
   public static List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler) {
+      AppIdItemAccessHandler appIdItemAccessHandler, AuthHandlersV2 authV2) {
 
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-    /*RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
-    String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");*/
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -35,14 +34,16 @@ public class ControllerFactoryProxy {
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler /*, redisService, redisKeyPrefix*/);
+            appIdItemAccessHandler,
+            authV2);
     ApiController gatewayController =
         GatewayControllerFactory.createGatewayController(
             dataBrokerService,
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler /*, redisService, redisKeyPrefix*/);
+            appIdItemAccessHandler,
+            authV2);
 
     return List.of(entitiesController, gatewayController);
   }

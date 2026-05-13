@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
@@ -33,7 +34,8 @@ public class ControllerFactory {
       Vertx vertx,
       JsonObject config,
       URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler) {
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      AuthHandlersV2 authV2) {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
@@ -58,6 +60,7 @@ public class ControllerFactory {
             dataBrokerService,
             config.getString("auditingExchange", DEFAULT_AUDITING_EXCHANGE),
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
+
     ApiController latestController =
         LatestControllerFactory.create(
             searchService,
@@ -65,9 +68,8 @@ public class ControllerFactory {
             controlPlaneDomain,
             urnGenerator,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler,
+            authV2);
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit,
@@ -75,9 +77,8 @@ public class ControllerFactory {
             urnGenerator,
             elasticsearchService,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler,
+            authV2);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -87,9 +88,8 @@ public class ControllerFactory {
             maxDaysSync,
             maxDaysAsync,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler,
+            authV2);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, ngsildController);

@@ -1,14 +1,27 @@
 package org.cdpg.dx.apiserver;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
+import org.cdpg.dx.auth.appid.lookup.GrpcAppCredentialLookup;
+import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
+import org.cdpg.dx.auth.v2.handler.AuthenticationHandlerV2;
+import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.v2.lookup.UserLookup;
+import org.cdpg.dx.auth.v2.model.DxRole;
+import org.cdpg.dx.auth.v2.model.UserSnapshot;
+import org.cdpg.dx.auth.v2.registry.InMemoryRoleScopeRegistry;
+import org.cdpg.dx.auth.v2.resolver.AppCredentialsResolver;
+import org.cdpg.dx.auth.v2.resolver.DelegationResolver;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.rs.rsp.entities.controller.ControllerFactoryProxy;
 
@@ -53,14 +66,33 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
     AppIdItemAccessHandler appIdItemAccessHandler =
         new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
 
+    AuthHandlersV2 authV2 = new AuthHandlersV2(new AuthorizationHandler(new InMemoryRoleScopeRegistry()));
+
     LOGGER.info("AppId gRPC client configured (proxy): {}:{}", host, port);
     return ControllerFactoryProxy.createControllers(
-        vertx, config, urnGenerator, appIdItemAccessHandler);
+        vertx, config, urnGenerator, appIdItemAccessHandler, authV2);
   }
 
   @Override
   protected AppIdAuthHandler getAppIdAuthHandler() {
     return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
+  }
+
+  @Override
+  protected AuthenticationHandlerV2 getAuthV2Handler() {
+    DelegationResolver stubDelegationResolver =
+        new DelegationResolver(
+            (delegatorSub, delegateeSub) ->
+                Future.failedFuture("Delegation via header not yet supported in dataplane"),
+            (sub) -> Future.failedFuture("User lookup not yet supported in dataplane"));
+    UserLookup passThroughUserLookup =
+        sub ->
+            Future.succeededFuture(
+                Optional.of(new UserSnapshot(sub, null, Set.of(DxRole.values()), false)));
+    return new AuthenticationHandlerV2(
+        jwksResolver,
+        stubDelegationResolver,
+        new AppCredentialsResolver(new GrpcAppCredentialLookup(appIdClient), passThroughUserLookup));
   }
 
   @Override

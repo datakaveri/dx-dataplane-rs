@@ -2,8 +2,8 @@ package org.cdpg.dx.rs.latest.factory;
 
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.latest.controller.LatestController;
 import org.cdpg.dx.rs.latest.service.LatestService;
@@ -17,9 +17,8 @@ public class LatestControllerFactory {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler/*,
-      RedisService redisService,
-      String redisKeyPrefix*/) {
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      AuthHandlersV2 authV2) {
 
     LatestService latestService = new LatestServiceImpl(searchService, timeLimit);
 
@@ -28,8 +27,7 @@ public class LatestControllerFactory {
         controlPlaneDomain,
         urnGenerator,
         auditingHandler,
-        appIdItemAccessHandler/*,
-        redisService,
-        redisKeyPrefix*/);
+        appIdItemAccessHandler,
+        authV2.authorization());
   }
 }

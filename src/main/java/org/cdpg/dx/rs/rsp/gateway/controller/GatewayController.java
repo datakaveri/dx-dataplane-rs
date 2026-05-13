@@ -31,8 +31,8 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.apiserver.config.ApiConstants;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
-import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.v2.model.Scopes;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
@@ -61,6 +61,7 @@ public class GatewayController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
+  private final AuthorizationHandler authorizationV2;
 
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
@@ -70,7 +71,8 @@ public class GatewayController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      AuthorizationHandler authorizationV2 /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
@@ -81,6 +83,7 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    this.authorizationV2 = authorizationV2;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -90,7 +93,7 @@ public class GatewayController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -100,7 +103,7 @@ public class GatewayController implements ApiController {
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -112,7 +115,7 @@ public class GatewayController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -122,7 +125,7 @@ public class GatewayController implements ApiController {
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -223,15 +226,6 @@ public class GatewayController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
-                JsonArray userRoles =
-                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                String delegatorId;
-                if (role.equalsIgnoreCase("delegate")) {
-                  delegatorId = ctx.request().getHeader("did");
-                } else {
-                  delegatorId = ctx.user().subject();
-                }
                 // success
                 response
                     .putHeader("Content-Type", headersAcceptType)
@@ -250,17 +244,7 @@ public class GatewayController implements ApiController {
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        RoutingContextHelper.getId(ctx),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "POST",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        role,
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId,
-                        bytesWritten);
+                        ctx, RoutingContextHelper.getId(ctx), "POST", GATEWAY, DOWNLOAD, bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure
@@ -342,15 +326,6 @@ public class GatewayController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
-                JsonArray userRoles =
-                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                String delegatorId;
-                if (role.equalsIgnoreCase("delegate")) {
-                  delegatorId = ctx.request().getHeader("did");
-                } else {
-                  delegatorId = ctx.user().subject();
-                }
                 // success
                 response
                     .putHeader("Content-Type", headersAcceptType)
@@ -369,17 +344,7 @@ public class GatewayController implements ApiController {
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        params.get(ID),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "GET",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        role,
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId,
-                        bytesWritten);
+                        ctx, params.get(ID), "GET", GATEWAY, DOWNLOAD, bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure

@@ -4,15 +4,54 @@ import static org.cdpg.dx.rs.audit.util.Constants.ITEM_TYPES;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.rs.audit.model.DataPlaneAuditLog;
 
 public class DataplaneAuditHelper {
+
+  public static AuditLog createAuditingLogs(
+      RoutingContext ctx,
+      String assetId,
+      String method,
+      String serverName,
+      String operation,
+      long byteWritten) {
+    JsonObject principal = ctx.user().principal();
+    String userId = principal.getString("sub");
+    String iss = principal.getString("iss");
+    String role = resolveRole(principal);
+    String delegatorId = "delegate".equals(role) ? ctx.request().getHeader("did") : userId;
+    return createAuditingLogs(
+        RoutingContextHelper.getItemMetaData(ctx),
+        assetId,
+        RoutingContextHelper.getRequestPath(ctx),
+        method,
+        userId,
+        serverName,
+        role,
+        operation,
+        iss,
+        delegatorId,
+        byteWritten);
+  }
+
+  private static String resolveRole(JsonObject principal) {
+    if (principal.getString("app_id") != null) return "consumer";
+    JsonArray roles = principal
+        .getJsonObject("realm_access", new JsonObject())
+        .getJsonArray("roles", new JsonArray());
+    if (roles.contains("delegate")) return "delegate";
+    if (roles.contains("provider")) return "provider";
+    return "consumer";
+  }
+
   public static AuditLog createAuditingLogs(
       JsonObject itemMetaData,
       String assetId,
