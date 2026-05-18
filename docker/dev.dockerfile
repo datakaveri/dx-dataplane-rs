@@ -24,15 +24,9 @@ COPY src src
 RUN mvn clean package -Dmaven.test.skip=true
 
 # Java Runtime as the base for final image
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-noble
 
-RUN apt-get update && \
-    apt-get install --only-upgrade -y \
-    gnupg dirmngr gnupg-l10n gnupg-utils \
-    gpg gpg-agent gpg-wks-client gpg-wks-server \
-    gpgconf gpgsm gpgv && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ARG VERSION
 ENV JAR="dx.resource.server-dev-${VERSION}-fat.jar"
