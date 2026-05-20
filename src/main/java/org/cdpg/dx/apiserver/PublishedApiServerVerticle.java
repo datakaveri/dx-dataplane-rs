@@ -11,9 +11,9 @@ import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
-import org.cdpg.dx.auth.appid.lookup.GrpcAppCredentialLookup;
 import org.cdpg.dx.auth.authentication.handler.AuthenticationHandler;
-import org.cdpg.dx.auth.authentication.resolver.DelegationResolver;
+import org.cdpg.dx.auth.authentication.resolver.GrpcAppCredentialsResolver;
+import org.cdpg.dx.auth.authentication.resolver.GrpcDelegationResolver;
 import org.cdpg.dx.auth.authentication.resolver.JwtResolverImpl;
 import org.cdpg.dx.common.URNGenerator;
 
@@ -68,13 +68,10 @@ public class PublishedApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected AuthenticationHandler getAuthV2Handler() {
-    DelegationResolver stubDelegation =
-        (delegatorSub, delegateeSub) ->
-            io.vertx.core.Future.failedFuture("Delegation via header not yet supported in dataplane");
     return new AuthenticationHandler(
         new JwtResolverImpl(jwksResolver),
-        stubDelegation,
-        new GrpcAppCredentialLookup(appIdClient));
+        new GrpcDelegationResolver(appIdClient),
+        new GrpcAppCredentialsResolver(appIdClient));
   }
 
   @Override
