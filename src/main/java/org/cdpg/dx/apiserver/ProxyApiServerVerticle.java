@@ -9,6 +9,10 @@ import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
+import org.cdpg.dx.auth.authentication.handler.AuthenticationHandler;
+import org.cdpg.dx.auth.authentication.resolver.GrpcAppCredentialsResolver;
+import org.cdpg.dx.auth.authentication.resolver.GrpcDelegationResolver;
+import org.cdpg.dx.auth.authentication.resolver.JwtResolverImpl;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.rs.rsp.entities.controller.ControllerFactoryProxy;
 
@@ -61,6 +65,14 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
   @Override
   protected AppIdAuthHandler getAppIdAuthHandler() {
     return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
+  }
+
+  @Override
+  protected AuthenticationHandler getAuthV2Handler() {
+    return new AuthenticationHandler(
+        new JwtResolverImpl(jwksResolver),
+        new GrpcDelegationResolver(appIdClient),
+        new GrpcAppCredentialsResolver(appIdClient));
   }
 
   @Override

@@ -16,7 +16,7 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
@@ -57,7 +57,7 @@ public class EntitiesController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler/*,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
@@ -78,7 +78,7 @@ public class EntitiesController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -88,7 +88,7 @@ public class EntitiesController implements ApiController {
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -100,7 +100,7 @@ public class EntitiesController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -110,7 +110,7 @@ public class EntitiesController implements ApiController {
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -171,32 +171,13 @@ public class EntitiesController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
-                JsonArray userRoles =
-                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                String delegatorId;
-                if (role.equalsIgnoreCase("delegate")) {
-                  delegatorId = ctx.request().getHeader("did");
-                } else {
-                  delegatorId = ctx.user().subject();
-                }
                 // success
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
                 long bytesWritten = ctx.response().bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        params.get(ID),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "GET",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        "consumer",
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId,
-                        bytesWritten);
+                        ctx, params.get(ID), "GET", GATEWAY, DOWNLOAD, bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure
@@ -273,32 +254,13 @@ public class EntitiesController implements ApiController {
               int statusCode = rpcResponse.getInteger("statusCode", 200);
 
               if (statusCode >= 200 && statusCode < 300) {
-                JsonArray userRoles =
-                    ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                String delegatorId;
-                if (role.equalsIgnoreCase("delegate")) {
-                  delegatorId = ctx.request().getHeader("did");
-                } else {
-                  delegatorId = ctx.user().subject();
-                }
                 // success
                 ResponseBuilder.sendSuccess(ctx, rpcResponse.getJsonArray("results"), urnGenerator);
                 long bytesWritten = ctx.response().bytesWritten();
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(ctx),
-                        RoutingContextHelper.getId(ctx),
-                        RoutingContextHelper.getRequestPath(ctx),
-                        "POST",
-                        ctx.user().subject(),
-                        GATEWAY,
-                        role,
-                        DOWNLOAD,
-                        ctx.user().principal().getString("iss"),
-                        delegatorId,
-                        bytesWritten);
+                        ctx, RoutingContextHelper.getId(ctx), "POST", GATEWAY, DOWNLOAD, bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());

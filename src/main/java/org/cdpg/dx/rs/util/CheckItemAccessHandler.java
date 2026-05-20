@@ -3,7 +3,6 @@ package org.cdpg.dx.rs.util;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
@@ -18,18 +17,20 @@ import org.cdpg.dx.common.util.RoutingContextHelper;
 public class CheckItemAccessHandler implements Handler<RoutingContext> {
 
     private static final Logger LOGGER = LogManager.getLogger(CheckItemAccessHandler.class);
-    private final WebClient webClient;
+    private WebClient webClient;
     private final String checkAccessRequestUrl;
     private final String checkItemUrl;
 
     public CheckItemAccessHandler(String controlPlaneDomain) {
-        this.webClient = WebClient.create(Vertx.vertx(), new WebClientOptions().setTrustAll(true));
         this.checkAccessRequestUrl = controlPlaneDomain + "/iudx/acl/apd/v2/access_request/has_access";
         this.checkItemUrl= controlPlaneDomain + "/iudx/v2/cat/item";
     }
 
     @Override
     public void handle(RoutingContext context) {
+        if (this.webClient == null) {
+            this.webClient = WebClient.create(context.vertx(), new WebClientOptions().setTrustAll(true));
+        }
         LOGGER.debug("Starting access verification process");
         String itemId;
         String bearerToken;

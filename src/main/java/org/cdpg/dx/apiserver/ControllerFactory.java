@@ -58,6 +58,7 @@ public class ControllerFactory {
             dataBrokerService,
             config.getString("auditingExchange", DEFAULT_AUDITING_EXCHANGE),
             config.getString("auditingRoutingKey", DEFAULT_AUDITING_ROUTING_KEY));
+
     ApiController latestController =
         LatestControllerFactory.create(
             searchService,
@@ -65,9 +66,7 @@ public class ControllerFactory {
             controlPlaneDomain,
             urnGenerator,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler);
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit,
@@ -75,9 +74,7 @@ public class ControllerFactory {
             urnGenerator,
             elasticsearchService,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -87,9 +84,7 @@ public class ControllerFactory {
             maxDaysSync,
             maxDaysAsync,
             auditingHandler,
-            appIdItemAccessHandler /*,
-                                   redisService,
-                                   redisKeyPrefix*/);
+            appIdItemAccessHandler);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, ngsildController);

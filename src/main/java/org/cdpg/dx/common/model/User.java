@@ -1,7 +1,7 @@
 package org.cdpg.dx.common.model;
 
 import io.vertx.core.json.JsonObject;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.model.DxRole;
 
 public record User(String userId, DxRole userRole, String emailId,
                    String firstName, String lastName, String resourceServerUrl) {

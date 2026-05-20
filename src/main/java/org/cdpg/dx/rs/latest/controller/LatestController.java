@@ -16,7 +16,7 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
@@ -51,7 +51,7 @@ public class LatestController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler/*,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.latestService = latestService;
@@ -70,7 +70,7 @@ public class LatestController implements ApiController {
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -80,7 +80,7 @@ public class LatestController implements ApiController {
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.CONSUMER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -103,19 +103,6 @@ public class LatestController implements ApiController {
           .postSearch(searchQuery, id)
           .onSuccess(
               searchService -> {
-                JsonArray userRoles =
-                    routingContext
-                        .user()
-                        .principal()
-                        .getJsonObject("realm_access")
-                        .getJsonArray("roles");
-                String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-                String delegatorId;
-                if (role.equalsIgnoreCase("delegate")) {
-                  delegatorId = routingContext.request().getHeader("did");
-                } else {
-                  delegatorId = routingContext.user().subject();
-                }
                 ResponseBuilder.sendSuccess(
                     routingContext,
                     searchService.getElasticsearchResponses(),
@@ -125,17 +112,7 @@ public class LatestController implements ApiController {
                 RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        RoutingContextHelper.getItemMetaData(routingContext),
-                        id,
-                        RoutingContextHelper.getRequestPath(routingContext),
-                        "POST",
-                        routingContext.user().subject(),
-                        NGSILD,
-                        role,
-                        DOWNLOAD,
-                        routingContext.user().principal().getString("iss"),
-                        delegatorId,
-                        bytesWritten);
+                        routingContext, id, "POST", NGSILD, DOWNLOAD, bytesWritten);
                 RoutingContextHelper.setAuditingLog(routingContext, auditLog);
               })
           .onFailure(
@@ -178,31 +155,12 @@ public class LatestController implements ApiController {
         .getSearch(getRequestModel)
         .onSuccess(
             result -> {
-              JsonArray userRoles =
-                  ctx.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-              String role = userRoles.contains("delegate") ? "delegate" : "consumer";
-              String delegatorId;
-              if (role.equalsIgnoreCase("delegate")) {
-                delegatorId = ctx.request().getHeader("did");
-              } else {
-                delegatorId = ctx.user().subject();
-              }
               sendResponse(ctx, result);
               long bytesWritten = ctx.response().bytesWritten();
               RoutingContextHelper.setResponseSize(ctx, bytesWritten);
               AuditLog auditLog =
                   DataplaneAuditHelper.createAuditingLogs(
-                      RoutingContextHelper.getItemMetaData(ctx),
-                      id,
-                      RoutingContextHelper.getRequestPath(ctx),
-                      "GET",
-                      ctx.user().subject(),
-                      NGSILD,
-                      role,
-                      DOWNLOAD,
-                      ctx.user().principal().getString("iss"),
-                      delegatorId,
-                      bytesWritten);
+                      ctx, id, "GET", NGSILD, DOWNLOAD, bytesWritten);
               RoutingContextHelper.setAuditingLog(ctx, auditLog);
             })
         .onFailure(

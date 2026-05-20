@@ -21,8 +21,6 @@ public class ControllerFactoryProxy {
 
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
-    /*RedisService redisService = RedisService.createProxy(vertx, REDIS_SERVICE_ADDRESS);
-    String redisKeyPrefix = config.getString("redisKeyPrefix", "dx");*/
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
@@ -35,14 +33,14 @@ public class ControllerFactoryProxy {
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler /*, redisService, redisKeyPrefix*/);
+            appIdItemAccessHandler);
     ApiController gatewayController =
         GatewayControllerFactory.createGatewayController(
             dataBrokerService,
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler /*, redisService, redisKeyPrefix*/);
+            appIdItemAccessHandler);
 
     return List.of(entitiesController, gatewayController);
   }

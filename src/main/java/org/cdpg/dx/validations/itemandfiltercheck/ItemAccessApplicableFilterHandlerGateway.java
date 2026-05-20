@@ -3,7 +3,6 @@ package org.cdpg.dx.validations.itemandfiltercheck;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -23,16 +22,18 @@ public class ItemAccessApplicableFilterHandlerGateway implements Handler<Routing
 
   private static final Logger LOGGER =
       LogManager.getLogger(ItemAccessApplicableFilterHandlerGateway.class);
-  private final WebClient webClient;
+  private WebClient webClient;
   private final String checkItemAndFilterUrl;
 
   public ItemAccessApplicableFilterHandlerGateway(String controlPlaneDomain) {
-    this.webClient = WebClient.create(Vertx.vertx(), new WebClientOptions().setTrustAll(true));
     this.checkItemAndFilterUrl = controlPlaneDomain + "/iudx/v2/cat/item/access";
   }
 
   @Override
   public void handle(RoutingContext context) {
+    if (this.webClient == null) {
+      this.webClient = WebClient.create(context.vertx(), new WebClientOptions().setTrustAll(true));
+    }
     LOGGER.info("Starting ItemAccessApplicableFilterHandlerGateway");
 
     if (hasAccessPayload(context.user().principal())) {

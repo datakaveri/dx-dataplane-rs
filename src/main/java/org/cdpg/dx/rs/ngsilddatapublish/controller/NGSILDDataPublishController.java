@@ -22,7 +22,7 @@ import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.authorization.model.DxRole;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
@@ -75,7 +75,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdForIngestionEntityHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -85,7 +85,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH_ONSEEK)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -96,7 +96,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH_ALIAS)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(AuthorizationHandler.forRoles(DxRole.PROVIDER, DxRole.DELEGATE))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -351,28 +351,8 @@ public class NGSILDDataPublishController implements ApiController {
   private void respondSuccess(RoutingContext context, HttpServerResponse response, String id) {
     JsonObject finalResponse = new JsonObject();
     finalResponse.put(DETAIL, "Item Published");
-    JsonArray userRoles =
-        context.user().principal().getJsonObject("realm_access").getJsonArray("roles");
-    String role = userRoles.contains("provider") ? "provider" : "delegate";
-    String delegatorId;
-    if (role.equalsIgnoreCase("delegate")) {
-      delegatorId = context.request().getHeader("did");
-    } else {
-      delegatorId = context.user().subject();
-    }
     AuditLog auditLog =
-        DataplaneAuditHelper.createAuditingLogs(
-            RoutingContextHelper.getItemMetaData(context),
-            id,
-            RoutingContextHelper.getRequestPath(context),
-            "POST",
-            context.user().subject(),
-            NGSILD,
-            role,
-            CREATE,
-            context.user().principal().getString("iss"),
-            delegatorId,
-            0L);
+        DataplaneAuditHelper.createAuditingLogs(context, id, "POST", NGSILD, CREATE, 0L);
     RoutingContextHelper.setAuditingLog(context, auditLog);
     response
         .putHeader("Content-Type", "application/json")

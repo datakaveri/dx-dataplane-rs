@@ -14,9 +14,7 @@ public class GatewayControllerFactory {
       URNGenerator urnGenerator,
       JsonObject config,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler /*,
-      RedisService redisService,
-      String redisKeyPrefix*/) {
+      AppIdItemAccessHandler appIdItemAccessHandler) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 365);
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
@@ -28,8 +26,6 @@ public class GatewayControllerFactory {
         urnGenerator,
         config.getString("controlPlaneDomain"),
         auditingHandler,
-        appIdItemAccessHandler /*,
-                        redisService,
-                        redisKeyPrefix*/);
+        appIdItemAccessHandler);
   }
 }

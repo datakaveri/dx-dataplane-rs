@@ -11,6 +11,10 @@ import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
+import org.cdpg.dx.auth.authentication.handler.AuthenticationHandler;
+import org.cdpg.dx.auth.authentication.resolver.GrpcAppCredentialsResolver;
+import org.cdpg.dx.auth.authentication.resolver.GrpcDelegationResolver;
+import org.cdpg.dx.auth.authentication.resolver.JwtResolverImpl;
 import org.cdpg.dx.common.URNGenerator;
 
 public class ApiServerVerticle extends AbstractApiServerVerticle {
@@ -56,6 +60,14 @@ public class ApiServerVerticle extends AbstractApiServerVerticle {
 
     LOGGER.info("AppId gRPC client configured: {}:{}", host, port);
     return ControllerFactory.createControllers(vertx, config, urnGenerator, appIdItemAccessHandler);
+  }
+
+  @Override
+  protected AuthenticationHandler getAuthV2Handler() {
+    return new AuthenticationHandler(
+        new JwtResolverImpl(jwksResolver),
+        new GrpcDelegationResolver(appIdClient),
+        new GrpcAppCredentialsResolver(appIdClient));
   }
 
   @Override

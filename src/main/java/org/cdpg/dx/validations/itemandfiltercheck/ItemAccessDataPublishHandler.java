@@ -3,7 +3,6 @@ package org.cdpg.dx.validations.itemandfiltercheck;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -19,16 +18,18 @@ import org.cdpg.dx.common.util.RoutingContextHelper;
 
 public class ItemAccessDataPublishHandler implements Handler<RoutingContext> {
   private static final Logger LOGGER = LogManager.getLogger(ItemAccessDataPublishHandler.class);
-  private final WebClient webClient;
+  private WebClient webClient;
   private final String checkItemAndFilterUrl;
 
   public ItemAccessDataPublishHandler(String checkItemAndFilterUrl) {
-    this.webClient = WebClient.create(Vertx.vertx(), new WebClientOptions().setTrustAll(true));
     this.checkItemAndFilterUrl = checkItemAndFilterUrl + "/iudx/v2/cat/item/access";
   }
 
   @Override
   public void handle(RoutingContext context) {
+    if (this.webClient == null) {
+      this.webClient = WebClient.create(context.vertx(), new WebClientOptions().setTrustAll(true));
+    }
     LOGGER.info("Handling Item Access Data Publish Request");
     String itemId;
     String bearerToken;
