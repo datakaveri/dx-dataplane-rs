@@ -31,8 +31,8 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.apiserver.config.ApiConstants;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
-import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.v2.model.Scopes;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.HttpStatusCode;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
@@ -61,7 +61,6 @@ public class GatewayController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
-  private final AuthorizationHandler authorizationV2;
 
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
@@ -71,8 +70,7 @@ public class GatewayController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthorizationHandler authorizationV2 /*,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
@@ -83,7 +81,6 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.authorizationV2 = authorizationV2;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -93,7 +90,7 @@ public class GatewayController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -103,7 +100,7 @@ public class GatewayController implements ApiController {
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -115,7 +112,7 @@ public class GatewayController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/
@@ -125,7 +122,7 @@ public class GatewayController implements ApiController {
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerGateway)
         /*.handler(redisAccessLimitHandler)*/

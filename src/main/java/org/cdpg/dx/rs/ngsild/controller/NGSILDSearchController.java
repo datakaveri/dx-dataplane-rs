@@ -16,8 +16,8 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
-import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.v2.model.Scopes;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
@@ -40,7 +40,6 @@ public class NGSILDSearchController implements ApiController {
   private final URNGenerator urnGenerator;
   private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
-  private final AuthorizationHandler authorizationV2;
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
   GetIdFromParams getIdFromParams = new GetIdFromParams();
   GetIdFromBodyHandler getIdFromBodyHandler = new GetIdFromBodyHandler();
@@ -54,8 +53,7 @@ public class NGSILDSearchController implements ApiController {
       int maxDaysSync,
       int maxDaysAsync,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthorizationHandler authorizationV2 /*,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.ngsildService = ngsildService;
@@ -66,7 +64,6 @@ public class NGSILDSearchController implements ApiController {
     this.ngsildParamsValidator = new NGSILDParamsValidator(maxDaysSync, maxDaysAsync);
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
-    this.authorizationV2 = authorizationV2;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -76,7 +73,7 @@ public class NGSILDSearchController implements ApiController {
         .operation(GET_TEMPORAL_ENTITY_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -86,7 +83,7 @@ public class NGSILDSearchController implements ApiController {
         .operation(POST_SPATIAL_TEMPORAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -96,7 +93,7 @@ public class NGSILDSearchController implements ApiController {
         .operation(GET_SPATIAL_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromParams)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -106,7 +103,7 @@ public class NGSILDSearchController implements ApiController {
         .operation(POST_SPATIAL_COMPLEX_QUERY)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromBodyHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/

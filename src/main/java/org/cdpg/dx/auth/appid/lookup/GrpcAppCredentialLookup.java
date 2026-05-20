@@ -1,23 +1,21 @@
 package org.cdpg.dx.auth.appid.lookup;
 
 import io.vertx.core.Future;
+import io.vertx.core.json.JsonArray;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.v1.AppIdPrincipalProto;
 import org.cdpg.dx.auth.appid.v1.VerifyAppIdResponse;
-import org.cdpg.dx.auth.v2.lookup.AppCredentialLookup;
-import org.cdpg.dx.auth.v2.model.AppPrincipal;
+import org.cdpg.dx.auth.authentication.resolver.AppCredentialsResolver;
+import org.cdpg.dx.common.exception.DxUnauthorizedException;
+import org.cdpg.dx.common.model.DxUser;
 
-/**
- * gRPC-backed {@link AppCredentialLookup} for the dataplane. Delegates to the existing
- * {@link AppIdVerificationClient#verify} call and maps the proto response to {@link AppPrincipal}.
- */
-public final class GrpcAppCredentialLookup implements AppCredentialLookup {
+public final class GrpcAppCredentialLookup implements AppCredentialsResolver {
 
   private static final Logger LOGGER = LogManager.getLogger(GrpcAppCredentialLookup.class);
 
@@ -28,10 +26,17 @@ public final class GrpcAppCredentialLookup implements AppCredentialLookup {
   }
 
   @Override
-  public Future<Optional<AppPrincipal>> verify(String appId, String appSecret) {
+  public Future<DxUser> resolve(String appId, String secret) {
     return client
-        .verify(appId, appSecret)
-        .map(this::toAppPrincipal)
+        .verify(appId, secret)
+        .compose(
+            response -> {
+              if (!response.getSuccess()) {
+                LOGGER.debug("VerifyAppId rejected for appId={}: {}", appId, response.getErrorCode());
+                return Future.failedFuture(new DxUnauthorizedException("Invalid app credentials"));
+              }
+              return Future.succeededFuture(toDxUser(response));
+            })
         .recover(
             err -> {
               LOGGER.error("gRPC VerifyAppId transport error for appId={}: {}", appId, err.getMessage());
@@ -39,25 +44,29 @@ public final class GrpcAppCredentialLookup implements AppCredentialLookup {
             });
   }
 
-  private Optional<AppPrincipal> toAppPrincipal(VerifyAppIdResponse response) {
-    if (!response.getSuccess()) {
-      LOGGER.debug("VerifyAppId rejected: {}", response.getErrorCode());
-      return Optional.empty();
-    }
+  private DxUser toDxUser(VerifyAppIdResponse response) {
     AppIdPrincipalProto proto = response.getPrincipal();
     // Proto uses underscore format (e.g. "data_access"); internal scope constants use hyphens.
-    List<String> scopes = proto.getScopesList().stream()
-        .map(s -> s.replace('_', '-'))
-        .collect(Collectors.toList());
-    LOGGER.info("VerifyAppId success appId={} rawScopes={} normalizedScopes={}",
-        proto.getAppId(), proto.getScopesList(), scopes);
-    return Optional.of(
-        new AppPrincipal(
-            proto.getAppId(),
-            proto.getUserId(),
-            proto.getOrganisationId().isBlank() ? null : proto.getOrganisationId(),
-            scopes,
-            proto.getExpiresAtEpoch(),
-            true));
+    List<String> scopes =
+        proto.getScopesList().stream()
+            .map(s -> s.replace('_', '-'))
+            .collect(Collectors.toList());
+    LOGGER.info(
+        "VerifyAppId success appId={} rawScopes={} normalizedScopes={}",
+        proto.getAppId(),
+        proto.getScopesList(),
+        scopes);
+    UUID sub = null;
+    try {
+      sub = UUID.fromString(proto.getUserId());
+    } catch (IllegalArgumentException e) {
+      LOGGER.warn("VerifyAppId returned non-UUID userId={}", proto.getUserId());
+    }
+    String orgId = proto.getOrganisationId().isBlank() ? null : proto.getOrganisationId();
+    return new DxUser(
+        List.of("consumer"), orgId, null, sub,
+        false, false, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null,
+        new JsonArray(scopes), null, proto.getAppId());
   }
 }

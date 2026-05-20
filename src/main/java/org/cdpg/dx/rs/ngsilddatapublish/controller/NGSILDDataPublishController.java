@@ -21,8 +21,8 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
-import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.v2.model.Scopes;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
@@ -44,7 +44,6 @@ public class NGSILDDataPublishController implements ApiController {
   private final ItemAccessDataPublishHandler itemAccessDataPublishHandler;
   private final ProviderDelegateValidationHandler providerDelegateValidationHandler;
   private final AppIdItemAccessHandler appIdItemAccessHandler;
-  private final AuthorizationHandler authorizationV2;
   private NGSILDDataPublishService ngsildDataPublishService;
   private URNGenerator urnGenerator;
   private AuditingHandler auditingHandler;
@@ -55,7 +54,6 @@ public class NGSILDDataPublishController implements ApiController {
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
       AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthorizationHandler authorizationV2,
       int chunkMaxItems,
       int chunkMaxBytes) {
     this.auditingHandler = auditingHandler;
@@ -69,7 +67,6 @@ public class NGSILDDataPublishController implements ApiController {
     this.getIdFromPathHandler = new GetIdFromPathHandler();
     this.providerDelegateValidationHandler = new ProviderDelegateValidationHandler();
     this.appIdItemAccessHandler = appIdItemAccessHandler;
-    this.authorizationV2 = authorizationV2;
   }
 
   @Override
@@ -78,7 +75,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdForIngestionEntityHandler)
-        .handler(authorizationV2.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -88,7 +85,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH_ONSEEK)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(authorizationV2.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)
@@ -99,7 +96,7 @@ public class NGSILDDataPublishController implements ApiController {
         .operation(POST_NGSILD_ENTITY_PUBLISH_ALIAS)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(authorizationV2.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
+        .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
         .handler(providerDelegateValidationHandler)

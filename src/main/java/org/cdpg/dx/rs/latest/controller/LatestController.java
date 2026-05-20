@@ -15,8 +15,8 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
-import org.cdpg.dx.auth.v2.handler.AuthorizationHandler;
-import org.cdpg.dx.auth.v2.model.Scopes;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
@@ -43,7 +43,6 @@ public class LatestController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
-  private final AuthorizationHandler authorizationV2;
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   /** Initializes the latest controller with required services and config. */
@@ -52,8 +51,7 @@ public class LatestController implements ApiController {
       String controlPlaneDomain,
       URNGenerator urnGenerator,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthorizationHandler authorizationV2 /*,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.latestService = latestService;
@@ -63,7 +61,6 @@ public class LatestController implements ApiController {
     this.urnGenerator = urnGenerator;
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
-    this.authorizationV2 = authorizationV2;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -73,7 +70,7 @@ public class LatestController implements ApiController {
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/
@@ -83,7 +80,7 @@ public class LatestController implements ApiController {
         .operation(GET_LATEST_ENTITY_DATA)
         .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(authorizationV2.forScopes(Scopes.DATA_ACCESS))
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessApplicableFilterHandlerNgsild)
         /*.handler(redisAccessLimitHandler)*/

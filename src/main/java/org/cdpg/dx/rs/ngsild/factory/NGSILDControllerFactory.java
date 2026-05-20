@@ -2,7 +2,6 @@ package org.cdpg.dx.rs.ngsild.factory;
 
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
-import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.essearch.service.SearchService;
 import org.cdpg.dx.rs.ngsild.controller.NGSILDSearchController;
@@ -17,8 +16,7 @@ public class NGSILDControllerFactory {
       int maxDaysSync,
       int maxDaysAsync,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthHandlersV2 authV2) {
+      AppIdItemAccessHandler appIdItemAccessHandler) {
     NGSILDService ngsildService = new NGSILDServiceImpl(searchService);
     return new NGSILDSearchController(
         ngsildService,
@@ -27,7 +25,6 @@ public class NGSILDControllerFactory {
         maxDaysSync,
         maxDaysAsync,
         auditingHandler,
-        appIdItemAccessHandler,
-        authV2.authorization());
+        appIdItemAccessHandler);
   }
 }

@@ -12,7 +12,6 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
-import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.cloudstorage.minio.service.MinioService;
 import org.cdpg.dx.cloudstorage.s3.service.S3FileService;
 import org.cdpg.dx.common.URNGenerator;
@@ -28,8 +27,7 @@ public class PublishedControllerFactory {
       Vertx vertx,
       JsonObject config,
       URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthHandlersV2 authV2) {
+      AppIdItemAccessHandler appIdItemAccessHandler) {
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
     ElasticsearchService elasticsearchService =
@@ -57,7 +55,6 @@ public class PublishedControllerFactory {
             elasticsearchService,
             minioService,
             appIdItemAccessHandler,
-            authV2,
             chunkMaxItems,
             chunkMaxBytes,
             s3FileService);

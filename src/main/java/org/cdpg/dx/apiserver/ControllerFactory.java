@@ -11,7 +11,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
-import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.database.elastic.service.ElasticsearchService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
@@ -34,8 +33,7 @@ public class ControllerFactory {
       Vertx vertx,
       JsonObject config,
       URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler,
-      AuthHandlersV2 authV2) {
+      AppIdItemAccessHandler appIdItemAccessHandler) {
 
     ElasticsearchService elasticsearchService =
         ElasticsearchService.createProxy(vertx, ELASTIC_SERVICE_ADDRESS);
@@ -68,8 +66,7 @@ public class ControllerFactory {
             controlPlaneDomain,
             urnGenerator,
             auditingHandler,
-            appIdItemAccessHandler,
-            authV2);
+            appIdItemAccessHandler);
     ApiController downloadController =
         DownloadControllerFactory.create(
             timeLimit,
@@ -77,8 +74,7 @@ public class ControllerFactory {
             urnGenerator,
             elasticsearchService,
             auditingHandler,
-            appIdItemAccessHandler,
-            authV2);
+            appIdItemAccessHandler);
 
     ApiController ngsildController =
         NGSILDControllerFactory.create(
@@ -88,8 +84,7 @@ public class ControllerFactory {
             maxDaysSync,
             maxDaysAsync,
             auditingHandler,
-            appIdItemAccessHandler,
-            authV2);
+            appIdItemAccessHandler);
     // TODO create other controllers
 
     return List.of(latestController, downloadController, onboardingController, ngsildController);

@@ -9,7 +9,6 @@ import java.util.List;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
-import org.cdpg.dx.auth.v2.factory.AuthHandlersV2;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.rsp.gateway.controller.GatewayControllerFactory;
@@ -18,7 +17,7 @@ public class ControllerFactoryProxy {
 
   public static List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler, AuthHandlersV2 authV2) {
+      AppIdItemAccessHandler appIdItemAccessHandler) {
 
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
@@ -34,16 +33,14 @@ public class ControllerFactoryProxy {
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler,
-            authV2);
+            appIdItemAccessHandler);
     ApiController gatewayController =
         GatewayControllerFactory.createGatewayController(
             dataBrokerService,
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler,
-            authV2);
+            appIdItemAccessHandler);
 
     return List.of(entitiesController, gatewayController);
   }
