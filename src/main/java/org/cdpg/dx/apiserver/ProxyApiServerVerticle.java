@@ -77,10 +77,13 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected AuthenticationHandler getAuthV2Handler() {
+    GrpcAppCredentialsResolver credentialsResolver =
+        new GrpcAppCredentialsResolver(appIdClient, tokenProvider);
+    AppIdCacheHolder.addCredentialsInvalidator(credentialsResolver::invalidate);
     return new AuthenticationHandler(
         new JwtResolverImpl(jwksResolver),
         new GrpcDelegationResolver(appIdClient, tokenProvider),
-        new GrpcAppCredentialsResolver(appIdClient, tokenProvider));
+        credentialsResolver);
   }
 
   @Override

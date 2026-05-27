@@ -10,6 +10,7 @@ import org.cdpg.dx.auth.appid.cache.AppIdItemAccessCacheService;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
 import org.cdpg.dx.auth.appid.client.KeycloakServiceTokenProvider;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
+import org.cdpg.dx.keycloak.config.KeycloakConstants;
 import org.cdpg.dx.auth.appid.model.AppIdItemAccessResult;
 import org.cdpg.dx.common.exception.DxForbiddenNoAccessException;
 import org.cdpg.dx.common.exception.DxInternalServerErrorException;
@@ -68,13 +69,12 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
     String did = ctx.request().getHeader("did");
     boolean hasDid = did != null && !did.isBlank();
 
-    // userId from principal's sub — sent to gRPC so controlplane skips redundant getAppById() DB
-    // call.
-    // appId is kept separately as the cache key (matches revocation events which carry appId).
-    String userId = ctx.user().principal().getString("sub");
+    // After delegation resolution, ctx.user().sub = delegator; delegatee_sub = app owner.
+    // CheckItemAccess needs the app owner's sub (who holds the AppId), not the delegator's.
+    // Without delegation, sub is the app owner directly.
+    String delegateeSub = ctx.user().principal().getString(KeycloakConstants.CLAIM_DELEGATEE_SUB);
+    String userId = delegateeSub != null ? delegateeSub : ctx.user().principal().getString("sub");
 
-    // Skip cache when delegation is involved: delegation grants can be revoked independently
-    // of the appId, so a cached success result may no longer be valid.
     if (!hasDid) {
       cacheService
           .get(appId, entityId)
@@ -88,7 +88,15 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
       return;
     }
 
-    checkWithControlplane(ctx, appId, userId, entityId, did);
+    cacheService
+        .get(appId, entityId, did)
+        .ifPresentOrElse(
+            result -> {
+              LOGGER.debug("AppId delegation access cache hit appId={} entityId={} did={}", appId, entityId, did);
+              mergeMetadata(ctx, result);
+              ctx.next();
+            },
+            () -> checkWithControlplane(ctx, appId, userId, entityId, did));
   }
 
   private void checkWithControlplane(
@@ -120,9 +128,10 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
                   response.getResourceServerJson(),
                   response.getPoliciesJson());
               AppIdItemAccessResult result = AppIdItemAccessResult.fromProto(response);
-              // Only cache direct-access results; delegation results are always re-checked
               if (did.isEmpty()) {
                 cacheService.put(appId, entityId, result);
+              } else {
+                cacheService.put(appId, entityId, did, result);
               }
               mergeMetadata(ctx, result);
               ctx.next();
@@ -150,13 +159,17 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
     try {
       principal.put("resourceServer", new JsonArray(result.resourceServerJson()));
     } catch (Exception e) {
-      LOGGER.warn("Could not parse resourceServerJson, using empty array");
+      LOGGER.warn(
+          "Could not parse resourceServerJson, using empty array. value={}",
+          result.resourceServerJson());
       principal.put("resourceServer", new JsonArray());
     }
     try {
       principal.put("policies", new JsonArray(result.policiesJson()));
     } catch (Exception e) {
-      LOGGER.warn("Could not parse policiesJson, using empty array");
+      LOGGER.warn(
+          "Could not parse policiesJson, using empty array. value={}",
+          result.policiesJson());
       principal.put("policies", new JsonArray());
     }
   }
