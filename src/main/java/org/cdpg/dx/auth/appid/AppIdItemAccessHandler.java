@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auth.appid.cache.AppIdItemAccessCacheService;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
+import org.cdpg.dx.auth.appid.client.KeycloakServiceTokenProvider;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
 import org.cdpg.dx.auth.appid.model.AppIdItemAccessResult;
 import org.cdpg.dx.common.exception.DxForbiddenNoAccessException;
@@ -36,11 +37,15 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
 
   private final AppIdItemAccessCacheService cacheService;
   private final AppIdVerificationClient client;
+  private final KeycloakServiceTokenProvider tokenProvider;
 
   public AppIdItemAccessHandler(
-      AppIdItemAccessCacheService cacheService, AppIdVerificationClient client) {
+      AppIdItemAccessCacheService cacheService,
+      AppIdVerificationClient client,
+      KeycloakServiceTokenProvider tokenProvider) {
     this.cacheService = cacheService;
     this.client = client;
+    this.tokenProvider = tokenProvider;
   }
 
   @Override
@@ -88,8 +93,9 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
 
   private void checkWithControlplane(
       RoutingContext ctx, String appId, String userId, String entityId, String did) {
-    client
-        .checkItemAccess(userId, entityId, did)
+    tokenProvider
+        .getServiceToken()
+        .compose(token -> client.checkItemAccess(userId, entityId, did, token))
         .onSuccess(
             response -> {
               if (!response.getSuccess()) {
