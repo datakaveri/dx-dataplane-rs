@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.appid.cache.AppIdCacheHolder;
 import org.cdpg.dx.auth.appid.client.AppIdVerificationClient;
+import org.cdpg.dx.auth.appid.client.KeycloakServiceTokenProvider;
 import org.cdpg.dx.auth.appid.handler.AppIdAuthHandler;
 import org.cdpg.dx.auth.authentication.handler.AuthenticationHandler;
 import org.cdpg.dx.auth.authentication.resolver.GrpcAppCredentialsResolver;
@@ -21,6 +22,7 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
   private static final Logger LOGGER = LogManager.getLogger(ProxyApiServerVerticle.class);
 
   private AppIdVerificationClient appIdClient;
+  private KeycloakServiceTokenProvider tokenProvider;
 
   @Override
   protected String getOpenApiSpecPath(JsonObject config) {
@@ -52,10 +54,16 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
       Vertx vertx, JsonObject config, URNGenerator urnGenerator) {
     String host = config.getString("controlplaneHost");
     int port = config.getInteger("controlplaneGrpcPort");
+    String keycloakTokenUrl = config.getString("keycloakTokenUrl");
+    String grpcClientId = config.getString("grpcClientId");
+    String grpcClientSecret = config.getString("grpcClientSecret");
 
     this.appIdClient = new AppIdVerificationClient(host, port);
+    this.tokenProvider =
+        new KeycloakServiceTokenProvider(vertx, keycloakTokenUrl, grpcClientId, grpcClientSecret);
+
     AppIdItemAccessHandler appIdItemAccessHandler =
-        new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient);
+        new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient, tokenProvider);
 
     LOGGER.info("AppId gRPC client configured (proxy): {}:{}", host, port);
     return ControllerFactoryProxy.createControllers(
@@ -64,15 +72,18 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
 
   @Override
   protected AppIdAuthHandler getAppIdAuthHandler() {
-    return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient);
+    return new AppIdAuthHandler(AppIdCacheHolder.getAppIdCache(), appIdClient, tokenProvider);
   }
 
   @Override
   protected AuthenticationHandler getAuthV2Handler() {
+    GrpcAppCredentialsResolver credentialsResolver =
+        new GrpcAppCredentialsResolver(appIdClient, tokenProvider);
+    AppIdCacheHolder.addCredentialsInvalidator(credentialsResolver::invalidate);
     return new AuthenticationHandler(
         new JwtResolverImpl(jwksResolver),
-        new GrpcDelegationResolver(appIdClient),
-        new GrpcAppCredentialsResolver(appIdClient));
+        new GrpcDelegationResolver(appIdClient, tokenProvider),
+        credentialsResolver);
   }
 
   @Override
