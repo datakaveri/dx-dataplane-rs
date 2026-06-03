@@ -76,11 +76,6 @@ tags:
     description: |
       A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) controlplane server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
 
-  - name: Data Ingestion Adaptor
-    x-displayName: "Data Ingestion Adaptor"
-    description: |
-      Data Ingestion Adaptor APIs are used by DX(Data exchange) Data *Providers* for publishing data to the resource server as per the data descriptor. The user could provide a valid access token while using the API.
-
 servers:
   - url: 'https://${HOSTNAME}'
     description: 'Server URL'
