@@ -156,6 +156,8 @@ public class AppIdItemAccessHandler implements Handler<RoutingContext> {
     JsonObject principal = ctx.user().principal();
     principal.put("iid", result.iid());
     principal.put("accessPolicy", result.accessPolicy());
+    principal.put("hasOwnerAccess", result.hasOwnerAccess());
+    principal.put("hasAdminAccess", result.hasAdminAccess());
     try {
       principal.put("resourceServer", new JsonArray(result.resourceServerJson()));
     } catch (Exception e) {
