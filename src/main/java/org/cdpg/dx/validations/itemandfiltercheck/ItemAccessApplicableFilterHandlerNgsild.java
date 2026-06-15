@@ -63,7 +63,11 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                 .map(cons -> cons.getJsonArray("allowedAttributes"))
                 .orElse(new JsonArray());
         String accessPolicy = context.user().principal().getString("accessPolicy");
-        validateApiAccessType(context.user().principal(), ngsiLdServer, accessPolicy);
+        if (hasOwnerOrAdminAccess(context.user().principal())) {
+          LOGGER.debug("Owner/Admin access — skipping policy (access) check");
+        } else {
+          validateApiAccessType(context.user().principal(), ngsiLdServer, accessPolicy);
+        }
 
         RoutingContextHelper.setItemMetaData(context, context.user().principal());
         RoutingContextHelper.setApplicableFilter(context, queryTypes);
@@ -130,7 +134,11 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                           .map(cons -> cons.getJsonArray("allowedAttributes"))
                           .orElse(new JsonArray());
                   String accessPolicy = result.getString("accessPolicy");
-                  validateApiAccessType(result, ngsiLdServer, accessPolicy);
+                  if (hasOwnerOrAdminAccess(result)) {
+                    LOGGER.debug("Owner/Admin access — skipping policy (access) check");
+                  } else {
+                    validateApiAccessType(result, ngsiLdServer, accessPolicy);
+                  }
 
                   RoutingContextHelper.setApplicableFilter(context, queryTypes);
                   RoutingContextHelper.setItemMetaData(context, result);
@@ -257,6 +265,16 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
 
   private boolean hasAccessPayload(JsonObject source) {
     return source != null && source.containsKey("policies");
+  }
+
+  /**
+   * Owner and admin of an item have implicit full access — the control plane does not return a
+   * policy for them, so the api accessType / expiry check must be skipped when either flag is true.
+   */
+  private boolean hasOwnerOrAdminAccess(JsonObject source) {
+    return source != null
+        && (Boolean.TRUE.equals(source.getBoolean("hasOwnerAccess"))
+            || Boolean.TRUE.equals(source.getBoolean("hasAdminAccess")));
   }
 
   private JsonObject getCons(JsonObject source) {
