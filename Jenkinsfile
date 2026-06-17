@@ -110,33 +110,18 @@ pipeline {
               }
             }
 
-            stage('Docker Swarm deployment') {
-              steps {
-                script {
-                  sh "ssh azureuser@docker-swarm 'docker service update iudx-v2-rs_dataplane-rs-iudx-v2 --image ghcr.io/datakaveri/dataplane-rs-dev:1.0.0-${env.GIT_HASH}'"
-                  sh 'sleep 15'
-                  sh '''#!/bin/bash
-                  response_code=$(curl -s -o /dev/null -w \'%{http_code}\\n\' --connect-timeout 5 --retry 5 --retry-connrefused -XGET https://v2.dev.rs.iudx.io/apis)
-
-                  if [[ "$response_code" -ne "200" ]]
-                  then
-                    echo "Health check failed"
-                    exit 1
-                  else
-                    echo "Health check complete; Server is up."
-                    exit 0
-                  fi
-                  '''
+                stage('EKS Helm deployment') {
+                  steps {
+                    script {
+                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --atomic --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=1.0.0-${env.GIT_HASH}'"
+                    }
+                  }
+                  post{
+                    failure{
+                      error "Failed to deploy image to EKS via Helm"
+                    }
+                  }
                 }
-              }
-
-              post{
-                failure{
-                  error "Failed to deploy image in Docker Swarm"
-                }
-              }
-
-            }
 
           }
         }
@@ -145,7 +130,6 @@ pipeline {
     }
 
   }
-
   post{
     failure{
       script{
