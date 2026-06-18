@@ -113,7 +113,7 @@ pipeline {
                 stage('EKS Helm deployment') {
                   steps {
                     script {
-                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --atomic --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=1.0.0-${env.GIT_HASH}'"
+                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --rollback-on-failure --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=1.0.0-${env.GIT_HASH}'"
                     }
                   }
                   post{
