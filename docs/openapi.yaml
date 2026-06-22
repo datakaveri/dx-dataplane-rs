@@ -765,10 +765,19 @@ paths:
         - Latest Entity
       summary: Latest Data
       operationId: getLatestEntityData
-      description: |
-        The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
-        By default data is sorted in descending order of the `observationDateTime` property. <br/>
-        Note: time and endTime parameters are only supported if timeRel is given.
+      description:
+        'The <b>Latest Data API</b> returns the latest (last published) data of a resource,
+        identified by its <b>data exchange ID</b> (`id`). A <b>valid data exchange token</b> is mandatory.
+        By default, data is sorted in descending order of `observationDateTime`(TEMPORAL data).
+        <b>Temporal resources</b> support `timeRel`, `time` and `endTime`. Narrow the time window to
+       stay within the 50,000 limit. If total matched records exceed 50,000, the API returns
+       <code>413 Payload Too Large</code> — apply more filters or use the <b>Download API</b>.
+       <b>Non-temporal (attribute / ATTR) resources</b> have no time dimension, so `timeRel`, `time`
+       and `endTime` do not apply and data cannot be narrowed by time. Only the first 50,000 records
+       are reachable via pagination; to retrieve the full dataset use the <b>Download API</b>.
+        <b>Retrieving more than 50,000 records:</b> this endpoint is for paginated browsing and is
+        capped at 50,000 reachable records. To export a complete dataset, use the Download API, which
+        streams all matching data as CSV without the pagination limit.'
       security:
         - authorization: [ ]
         - appIdAuth: [ ]
@@ -789,19 +798,20 @@ paths:
             maxLength: 36
         - name: page
           in: query
-          description: 'The page parameter is used to specify the page number of the result set. <br/> It is an optional parameter. <br/> If not provided, it defaults to 1.'
+          description: 'The page parameter is used to specify the page number of the result set. <br/> It is an optional parameter. <br/> If not provided, it defaults to 1. Constraint: page × size must not exceed 50,000.'
           required: false
           schema:
             type: integer
         - name: size
           in: query
-          description: 'The size parameter is used to specify the number of results per page. <br/> It is an optional parameter. <br/> If not provided, it defaults to 10.'
+          description: 'The size parameter is used to specify the number of results per page. <br/> It is an optional parameter. <br/> If not provided, it defaults to 10. Constraint: page × size must not exceed 50,000.'
           required: false
           schema:
             type: integer
         - name: timeRel
           in: query
-          description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+          description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property. Not applicable to non-temporal 
+          (ATTR) resources.'
           required: false
           schema:
             type: string
@@ -1231,7 +1241,13 @@ paths:
       tags:
         - Download CSV
       summary: Get Data CSV
-      description: This is used to stream data in csv format for a given resource ID. (Get Search Data). Use same format of request data sample as it is in /entities/{id} API.
+      description: 'This is used to stream data in csv format for a given resource ID. (Get Search Data). Use same format of request data sample as it is in /entities/{id} API. Download uses the Elasticsearch <b>Scroll API</b> to
+        stream the <b>entire</b> matching result set in batches — it is <b>not</b> subject to the
+        50,000-record pagination limit. Use this endpoint to export large or full datasets.
+        <b>Temporal resources</b> can be scoped with <code>timeRel</code> + <code>time</code>/<code>endTime</code>.
+        <b>Non-temporal (ATTR) resources</b> have no time dimension; the GET form streams the full
+        attribute dataset (use POST for attribute/range filtering).'
+
       operationId: downloadIdEntityData
       security:
         - authorization: [ ]
@@ -1292,7 +1308,11 @@ paths:
       tags:
         - Download CSV
       summary: Post Data CSV
-      description: This is used to stream data in csv format for a given resource ID. (Post Search Data). Use same format of request data sample as it is in /search API.
+      description: 'Streams a resource data as a <b>CSV file</b> using a request body with the unified
+        <code>searchCriteria</code> format (identical to the <code>/search</code> endpoint). Use this
+        for complex filtering — term, numeric range, temporal, geo, and text — beyond what the GET
+        form expresses.Like the GET form, this uses the Elasticsearch <b>Scroll API</b> and streams the entire
+        matching result set as CSV, with no 50,000-record limit.'
       operationId: downloadPutSearchData
       security:
         - authorization: [ ]
