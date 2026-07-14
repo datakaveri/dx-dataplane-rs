@@ -49,21 +49,13 @@ public class SearchServiceImpl implements SearchService {
               LOGGER.info("Count result: {}", count);
 
               // Check if count exceeds the maximum limit
-              if (count > MAX_SEARCH_RESULT_LIMIT) {
-                LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
-                return Future.failedFuture(
-                    new DxBadRequestException(
-                        "Payload too large: "
-                            + count
-                            + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
-                            + MAX_SEARCH_RESULT_LIMIT));
-              } else if (count == 0) {
+              if (count == 0) {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
               } else {
                 if ((Integer.parseInt(queryModel.getOffset()))
                         + Integer.parseInt(queryModel.getLimit())
-                    > 50000) {
+                    > MAX_SEARCH_RESULT_LIMIT) {
                   return Future.failedFuture(
                       new DxBadRequestException(
                           "Combination of page and size exceeds the maximum limit of 50000"));
@@ -73,9 +65,7 @@ public class SearchServiceImpl implements SearchService {
                     .map(
                         searchResult ->
                             new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations()));
+                                searchResult.getResults(), count, searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -110,7 +100,7 @@ public class SearchServiceImpl implements SearchService {
               } else {
                 if ((Integer.parseInt(queryModel.getOffset()))
                         + Integer.parseInt(queryModel.getLimit())
-                    > 50000) {
+                    > MAX_SEARCH_RESULT_LIMIT) {
                   return Future.failedFuture(
                       new DxBadRequestException(
                           "Combination of page and size exceeds the maximum limit of 50000"));
@@ -120,9 +110,7 @@ public class SearchServiceImpl implements SearchService {
                     .map(
                         searchResult ->
                             new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations()));
+                                searchResult.getResults(), count, searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -161,21 +149,13 @@ public class SearchServiceImpl implements SearchService {
           .compose(
               count -> {
                 LOGGER.info("Count query result: {}", count);
-                if (count > MAX_SEARCH_RESULT_LIMIT) {
-                  LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
-                  return Future.failedFuture(
-                      new DxBadRequestException(
-                          "Payload too large: "
-                              + count
-                              + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
-                              + MAX_SEARCH_RESULT_LIMIT));
-                } else if (count == 0) {
+                if (count == 0) {
                   return Future.failedFuture(
                       new DxBadRequestException("No data found for this index"));
                 } else {
                   if (Integer.parseInt(queryModel.getOffset())
                           + Integer.parseInt(queryModel.getLimit())
-                      > 50000) {
+                      > MAX_SEARCH_RESULT_LIMIT) {
                     return Future.failedFuture(
                         new DxBadRequestException(
                             "Combination of page and size exceeds the maximum limit of 50000"));
@@ -188,9 +168,7 @@ public class SearchServiceImpl implements SearchService {
                                 "Search completed successfully with {} results",
                                 searchResult.getResults().size());
                             return new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations());
+                                searchResult.getResults(), count, searchResult.getAggregations());
                           });
                 }
               })
@@ -222,7 +200,7 @@ public class SearchServiceImpl implements SearchService {
               } else {
                 if ((Integer.parseInt(queryModel.getOffset()))
                         + Integer.parseInt(queryModel.getLimit())
-                    > 50000) {
+                    > MAX_SEARCH_RESULT_LIMIT) {
                   return Future.failedFuture(
                       new DxBadRequestException(
                           "Combination of page and size exceeds the maximum limit of 50000"));
@@ -232,9 +210,7 @@ public class SearchServiceImpl implements SearchService {
                     .map(
                         searchResult ->
                             new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations()));
+                                searchResult.getResults(), count, searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -264,14 +240,12 @@ public class SearchServiceImpl implements SearchService {
         .compose(
             count -> {
               LOGGER.debug("Count for getTemporalEntity: {}", count);
-              if (count > MAX_SEARCH_RESULT_LIMIT) {
-                LOGGER.error("Count {} exceeds maximum limit {}", count, MAX_SEARCH_RESULT_LIMIT);
+              if ((Integer.parseInt(queryModel.getOffset()))
+                      + Integer.parseInt(queryModel.getLimit())
+                  > MAX_SEARCH_RESULT_LIMIT) {
                 return Future.failedFuture(
                     new DxBadRequestException(
-                        "Payload too large: "
-                            + count
-                            + " results found. Use filters to get results within limit or use download API. Maximum allowed: "
-                            + MAX_SEARCH_RESULT_LIMIT));
+                        "Combination of page and size exceeds the maximum limit of 50000"));
               } else if (count == 0) {
                 return Future.failedFuture(
                     new DxBadRequestException("No data found for this index"));
@@ -281,9 +255,7 @@ public class SearchServiceImpl implements SearchService {
                     .map(
                         searchResult ->
                             new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations()));
+                                searchResult.getResults(), count, searchResult.getAggregations()));
               }
             })
         .onSuccess(
@@ -336,7 +308,9 @@ public class SearchServiceImpl implements SearchService {
         .compose(
             count -> {
               LOGGER.debug("Count for getEntities: {}", count);
-              if (count > MAX_SEARCH_RESULT_LIMIT) {
+              if ((Integer.parseInt(queryModel.getLimit())
+                      + Integer.parseInt(queryModel.getOffset()))
+                  > MAX_SEARCH_RESULT_LIMIT) {
                 LOGGER.error("Count {} exceeds maximum limits {}", count, MAX_SEARCH_RESULT_LIMIT);
                 return Future.failedFuture(
                     new DxBadRequestException(
@@ -353,9 +327,7 @@ public class SearchServiceImpl implements SearchService {
                     .map(
                         searchResult ->
                             new SearchResultWithCount(
-                                searchResult.getResults(),
-                                count,
-                                searchResult.getAggregations()));
+                                searchResult.getResults(), count, searchResult.getAggregations()));
               }
             })
         .onSuccess(
