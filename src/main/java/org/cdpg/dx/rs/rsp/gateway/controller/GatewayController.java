@@ -31,6 +31,7 @@ import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.apiserver.config.ApiConstants;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
 import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.HttpStatusCode;
@@ -38,15 +39,14 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsild.queryparams.NGSILDQueryParams;
 import org.cdpg.dx.rs.ngsild.util.Util;
 import org.cdpg.dx.rs.rsp.gateway.util.GatewayParamValidator;
 import org.cdpg.dx.rs.rsp.gateway.util.QueryMapper2;
-import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
-import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
-import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
@@ -181,7 +181,7 @@ public class GatewayController implements ApiController {
           requestConvertedParam.get(NGSILD_OPTIONS),
           requestConvertedParam.get(NGSILDQUERY_AGGR_METHODS));
       if (body.containsKey(NGSILDQUERY_Q)) {
-        gatewayParamValidator.validateQ(body.getString(NGSILDQUERY_Q));
+        gatewayParamValidator.validateQ(body.getString(NGSILDQUERY_Q), isTemporalApi);
       }
       if (body.containsKey(NGSILDQUERY_PICK)) {
         gatewayParamValidator.validatePick(body.getString(NGSILDQUERY_PICK));
@@ -241,7 +241,12 @@ public class GatewayController implements ApiController {
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        ctx, RoutingContextHelper.getId(ctx), "POST", GATEWAY, DOWNLOAD, bytesWritten);
+                        ctx,
+                        RoutingContextHelper.getId(ctx),
+                        "POST",
+                        GATEWAY,
+                        DOWNLOAD,
+                        bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 // remote service failure
@@ -290,7 +295,7 @@ public class GatewayController implements ApiController {
           params.get(NGSILDQUERY_GEOMETRY),
           params.get(NGSILDQUERY_GEOREL),
           params.get(NGSILDQUERY_COORDINATES));
-      gatewayParamValidator.validateQ(params.get(NGSILDQUERY_Q));
+      gatewayParamValidator.validateQ(params.get(NGSILDQUERY_Q), isTemporalApi);
 
       gatewayParamValidator.validatePick(params.get(NGSILDQUERY_PICK));
       gatewayParamValidator.validateOmit(params.get(NGSILDQUERY_OMIT));
