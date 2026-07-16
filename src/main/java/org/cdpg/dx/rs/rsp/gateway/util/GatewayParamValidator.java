@@ -16,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.exception.DxNotAcceptableException;
-import org.cdpg.dx.rs.validation.ParamsValidator;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.wololo.jts2geojson.GeoJSONReader;
@@ -383,7 +382,10 @@ public class GatewayParamValidator {
 
   /* ---- Q-type validation ---- */
 
-  public void validateQ(String q) {
+  public void validateQ(String q, boolean isTemporalApi) {
+    if (!isTemporalApi && q.isBlank()) {
+      throw new DxBadRequestException("Invalid query parameter: q is null or blank in attr search");
+    }
     if (q == null || q.isBlank()) return;
 
     String[] attributes = q.split(";");

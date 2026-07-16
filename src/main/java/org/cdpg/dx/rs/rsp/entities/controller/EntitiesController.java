@@ -22,7 +22,6 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
-import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.query.NGSILDQueryParams;
@@ -35,7 +34,6 @@ import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
 import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
-import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 public class EntitiesController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(EntitiesController.class);
@@ -144,7 +142,7 @@ public class EntitiesController implements ApiController {
           params.get(NGSILDQUERY_COORDINATES));
 
       // Validate Q-type attributes if present
-      paramsValidator.validateQ(params.get(NGSILDQUERY_Q));
+      paramsValidator.validateQ(params.get(NGSILDQUERY_Q), isTemporalApi);
       paramsValidator.validateAttrs(params.get(NGSILDQUERY_ATTRIBUTE));
 
     } catch (DxBadRequestException e) {
@@ -225,7 +223,7 @@ public class EntitiesController implements ApiController {
 
       // Q-type validation
       if (body.containsKey(NGSILDQUERY_Q)) {
-        paramsValidator.validateQ(body.getString(NGSILDQUERY_Q));
+        paramsValidator.validateQ(body.getString(NGSILDQUERY_Q), isTemporalApi);
       }
       // Attrs validation
       if (body.containsKey(NGSILDQUERY_ATTRIBUTE)) {

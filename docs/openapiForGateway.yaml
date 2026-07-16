@@ -98,7 +98,7 @@ paths:
         - $ref: '#/components/parameters/GeometryParam'
         - $ref: '#/components/parameters/CoordinatesParam'
         - $ref: '#/components/parameters/MaxDistanceParam'
-        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/QParam2'
         - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/OptionsParam'
       responses:
@@ -258,7 +258,7 @@ paths:
         - $ref: '#/components/parameters/GeometryParam'
         - $ref: '#/components/parameters/CoordinatesParam'
         - $ref: '#/components/parameters/MaxDistanceParam'
-        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/QParam2'
         - $ref: '#/components/parameters/PickParam'
         - $ref: '#/components/parameters/OmitParam'
         - $ref: '#/components/parameters/AttrsParam'
@@ -1312,8 +1312,7 @@ components:
             \ `<`,`>`,`<=`,`>=`,`!=`, `==` operators. \n For e.g, attribute > value,\
             \ attribute < value, attribute >= value, attribute <= value, attribute\
             \ != value and attribute == value. \n Allowed values for all operators\
-            \ is double. \n For the operator `==` if the query is on `id` then the\
-            \ only value allowed is an `data exchange ID` of a resource."
+            \ is double."
           type: string
           minLength: 1
           maxLength: 512
@@ -1342,12 +1341,14 @@ components:
       required:
         - entities
         - type
+        - q
       additionalProperties: false
     complex-entities-geo:
       title: complex-geo+attribute+filterrequest
       required:
         - type
         - entities
+        - q
       additionalProperties: false
       type: object
       properties:
@@ -1505,8 +1506,7 @@ components:
             \ `<`,`>`,`<=`,`>=`,`!=`, `==` operators. \n For e.g, attribute > value,\
             \ attribute < value, attribute >= value, attribute <= value, attribute\
             \ != value and attribute == value. \n Allowed values for all operators\
-            \ is double. \n For the operator `==` if the query is on `id` then the\
-            \ only value allowed is an `data exchange ID` of a resource."
+            \ is double."
           minLength: 1
           maxLength: 2048
           pattern: ^.*$
@@ -2198,8 +2198,7 @@ components:
             \ `<`,`>`,`<=`,`>=`,`!=`, `==` operators. \n For e.g, attribute > value,\
             \ attribute < value, attribute >= value, attribute <= value, attribute\
             \ != value and attribute == value. \n Allowed values for all operators\
-            \ is double. \n For the operator `==` if the query is on `id` then the\
-            \ only value allowed is an `data exchange ID` of a resource."
+            \ is double."
         attrs:
           type: string
           maxLength: 512
@@ -2592,9 +2591,19 @@ components:
         \ properties. \n Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,\
         \ `==` operators. \n For e.g, attribute > value, attribute < value, attribute\
         \ >= value, attribute <= value, attribute != value and attribute == value.\
-        \ \n Allowed values for all operators is double. \n For the operator `==`\
-        \ if the query is on `id` then the only value allowed is an `data exchange\
-        \ ID` of a resource."
+        \ \n Allowed values for all operators is double."
+      schema:
+        type: string
+        maxLength: 512
+    QParam2:
+      name: q
+      in: query
+      required: true
+      description: "The attribute query is used for querying ** allowed quantitative**\
+        \ properties. \n Used to query on a value of a resource attribute using `<`,`>`,`<=`,`>=`,`!=`,\
+        \ `==` operators. \n For e.g, attribute > value, attribute < value, attribute\
+        \ >= value, attribute <= value, attribute != value and attribute == value.\
+        \ \n Allowed values for all operators is double."
       schema:
         type: string
         maxLength: 512

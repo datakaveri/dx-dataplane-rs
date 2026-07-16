@@ -285,7 +285,10 @@ public class ParamsValidator {
 
   /* ---- Q-type validation ---- */
 
-  public void validateQ(String q) {
+  public void validateQ(String q, boolean isTemporalApi) {
+    if (!isTemporalApi && q.isBlank()) {
+      throw new DxBadRequestException("Invalid query parameter: q is null or blank in attr search");
+    }
     if (q == null || q.isBlank()) return;
 
     String[] attributes = q.split(";");
