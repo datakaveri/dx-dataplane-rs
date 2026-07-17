@@ -162,7 +162,7 @@ public class QueryMapper2 {
     if (isTemporal) {
       searchType.append(JSON_TEMPORAL_SEARCH);
     }
-    if (params.getQ() != null) {
+    if (params.getQ() != null || params.getId() != null) {
       searchType.append(JSON_ATTRIBUTE_SEARCH);
     }
     if (params.getOmit() != null || params.getPick() != null) {
