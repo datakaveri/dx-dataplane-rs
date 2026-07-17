@@ -98,7 +98,7 @@ paths:
         - $ref: '#/components/parameters/GeometryParam'
         - $ref: '#/components/parameters/CoordinatesParam'
         - $ref: '#/components/parameters/MaxDistanceParam'
-        - $ref: '#/components/parameters/QParam2'
+        - $ref: '#/components/parameters/QParam'
         - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/OptionsParam'
       responses:
@@ -258,7 +258,7 @@ paths:
         - $ref: '#/components/parameters/GeometryParam'
         - $ref: '#/components/parameters/CoordinatesParam'
         - $ref: '#/components/parameters/MaxDistanceParam'
-        - $ref: '#/components/parameters/QParam2'
+        - $ref: '#/components/parameters/QParam'
         - $ref: '#/components/parameters/PickParam'
         - $ref: '#/components/parameters/OmitParam'
         - $ref: '#/components/parameters/AttrsParam'
@@ -1341,14 +1341,12 @@ components:
       required:
         - entities
         - type
-        - q
       additionalProperties: false
     complex-entities-geo:
       title: complex-geo+attribute+filterrequest
       required:
         - type
         - entities
-        - q
       additionalProperties: false
       type: object
       properties:

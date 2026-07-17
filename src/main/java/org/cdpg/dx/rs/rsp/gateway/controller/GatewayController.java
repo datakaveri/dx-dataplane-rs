@@ -181,7 +181,7 @@ public class GatewayController implements ApiController {
           requestConvertedParam.get(NGSILD_OPTIONS),
           requestConvertedParam.get(NGSILDQUERY_AGGR_METHODS));
       if (body.containsKey(NGSILDQUERY_Q)) {
-        gatewayParamValidator.validateQ(body.getString(NGSILDQUERY_Q), isTemporalApi);
+        gatewayParamValidator.validateQ(body.getString(NGSILDQUERY_Q));
       }
       if (body.containsKey(NGSILDQUERY_PICK)) {
         gatewayParamValidator.validatePick(body.getString(NGSILDQUERY_PICK));
@@ -295,7 +295,7 @@ public class GatewayController implements ApiController {
           params.get(NGSILDQUERY_GEOMETRY),
           params.get(NGSILDQUERY_GEOREL),
           params.get(NGSILDQUERY_COORDINATES));
-      gatewayParamValidator.validateQ(params.get(NGSILDQUERY_Q), isTemporalApi);
+      gatewayParamValidator.validateQ(params.get(NGSILDQUERY_Q));
 
       gatewayParamValidator.validatePick(params.get(NGSILDQUERY_PICK));
       gatewayParamValidator.validateOmit(params.get(NGSILDQUERY_OMIT));

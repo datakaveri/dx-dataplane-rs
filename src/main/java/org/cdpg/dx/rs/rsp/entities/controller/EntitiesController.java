@@ -142,7 +142,7 @@ public class EntitiesController implements ApiController {
           params.get(NGSILDQUERY_COORDINATES));
 
       // Validate Q-type attributes if present
-      paramsValidator.validateQ(params.get(NGSILDQUERY_Q), isTemporalApi);
+      paramsValidator.validateQ(params.get(NGSILDQUERY_Q));
       paramsValidator.validateAttrs(params.get(NGSILDQUERY_ATTRIBUTE));
 
     } catch (DxBadRequestException e) {
@@ -223,7 +223,7 @@ public class EntitiesController implements ApiController {
 
       // Q-type validation
       if (body.containsKey(NGSILDQUERY_Q)) {
-        paramsValidator.validateQ(body.getString(NGSILDQUERY_Q), isTemporalApi);
+        paramsValidator.validateQ(body.getString(NGSILDQUERY_Q));
       }
       // Attrs validation
       if (body.containsKey(NGSILDQUERY_ATTRIBUTE)) {
