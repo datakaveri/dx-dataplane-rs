@@ -101,6 +101,8 @@ paths:
         - $ref: '#/components/parameters/QParam'
         - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/OptionsParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
       responses:
         200:
           description: Successful query
@@ -434,6 +436,8 @@ paths:
         - $ref: '#/components/parameters/QParam'
         - $ref: '#/components/parameters/AttrsParam'
         - $ref: '#/components/parameters/OptionsParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/OffsetParam'
       responses:
         200:
           description: Successful query
@@ -1326,6 +1330,20 @@ components:
             \ `count` and it is **case sensitive**"
           enum:
             - count
+        limit:
+          type: integer
+          description: "The limit parameter is used to limit the number of results\
+            \ returned by the server. \n It is an optional parameter. \n The default\
+            \ value is 5000."
+          minimum: 1
+          default: 5000
+        offset:
+          type: integer
+          description: "The offset parameter is used to skip the number of results\
+            \ returned by the server. \n It is an optional parameter. \n The default\
+            \ value is 0."
+          minimum: 0
+          default: 0
         attrs:
           type: string
           description: "The attrs parameter is used as an **application filter**.\
@@ -1508,6 +1526,20 @@ components:
           minLength: 1
           maxLength: 2048
           pattern: ^.*$
+        limit:
+          type: integer
+          description: "The limit parameter is used to limit the number of results\
+            \ returned by the server. \n It is an optional parameter. \n The default\
+            \ value is 5000."
+          minimum: 1
+          default: 5000
+        offset:
+          type: integer
+          description: "The offset parameter is used to skip the number of results\   
+            \ returned by the server. \n It is an optional parameter. \n The default\
+            \ value is 0."
+          minimum: 0
+          default: 0
         options:
           type: string
           description: "The **options** parameter is used for obtaining the **number\
@@ -2318,7 +2350,7 @@ components:
       example:
         type: dx:dataplaneProxy:success
         title: Success
-        results:
+        result:
           - trip_direction: NT
             trip_id: '24374871'
             route_id: 17AD
@@ -2336,9 +2368,7 @@ components:
                 - 21.218943
               type: Point
             id: UUID
-        limit: 5000
-        offset: 0
-        totalHits: 9091
+
     standardSuccessResponse:
       title: standardSuccessResponse
       properties:
@@ -2650,7 +2680,7 @@ components:
       schema:
         type: integer
         minimum: 1
-        default: 100
+        default: 5000
     LastNParam:
       name: lastN
       in: query
