@@ -16,14 +16,15 @@ import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.exception.DxForbiddenNoAccessException;
 import org.cdpg.dx.common.exception.DxInternalServerErrorException;
+import org.cdpg.dx.common.exception.DxNotFoundException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
 
 public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingContext> {
 
   private static final Logger LOGGER =
       LogManager.getLogger(ItemAccessApplicableFilterHandlerNgsild.class);
-  private WebClient webClient;
   private final String checkItemAndFilterUrl;
+  private WebClient webClient;
 
   public ItemAccessApplicableFilterHandlerNgsild(String controlPlaneDomain) {
     this.checkItemAndFilterUrl = controlPlaneDomain + "/iudx/v2/cat/item/access";
@@ -193,6 +194,11 @@ public class ItemAccessApplicableFilterHandlerNgsild implements Handler<RoutingC
                   promise.fail(new DxInternalServerErrorException("failed: " + e.getMessage()));
                 }
               } else {
+                if (resp.statusCode() == 404) {
+                  promise.fail(
+                      new DxNotFoundException(resp.bodyAsJsonObject().getString("detail")));
+                  return;
+                }
                 promise.fail(
                     new DxForbiddenNoAccessException(
                         "Access check failed " + resp.bodyAsJsonObject().getString("detail")));

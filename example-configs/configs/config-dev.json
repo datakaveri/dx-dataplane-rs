@@ -7,85 +7,45 @@
   "host": "rs.iudx.io",
   "commonConfig": {
     "dxApiBasePath": "/ngsi-ld/v2",
-    "timeLimit": "test,2020-10-22T00:00:00Z,20",
-    "timeLimitForAsync": 365,
+    "timeLimit": "test,2020-10-22T00:00:00Z,25000",
     "tenantPrefix": "iudx-v2",
-    "redisKeyPrefix": "dx",
     "supportEmail": "support@cdpg.org.in",
     "gatewayurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp",
     "ngsildurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in",
     "publishedurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/published",
+    "chunkMaxItems" : 25000,
+    "chunkMaxBytes" : 8000,
     "corsAllowedOrigin": [
       "*",
       "http://localhost:4001"
     ],
-    "controlPlaneDomain": "https://v2.dev.controlplane.iudx.io",
+    "controlPlaneDomain": "https://v2.dev.iudx.io/controlplane",
     "controlplaneHost": "localhost",
     "controlplaneGrpcPort": 9090,
+    "keycloakTokenUrl": "https://v2.dev.iudx.io/auth/realms/iudx-v2/protocol/openid-connect/token",
+    "grpcClientId": "svc-dx-dataplane",
+    "grpcClientSecret": "",
     "appIdCacheMaxSize": 1000,
     "appIdCacheTtlMinutes": 5,
     "appIdRevokeExchange": "revoked-appid",
     "appIdRevokeQueue": "revoked-appid",
     "issuers": {
       "jwtIgnoreExpiry": true,
-      "leeway": 60,
+      "jwtLeeway": 60,
       "jwksRefreshIntervalMs": 21600000,
-      "v2.dev.controlplane.iudx.io": {
+      "v2.dev.iudx.io/controlplane": {
         "type": "remote",
-        "jwksUrl": "https://v2.dev.controlplane.iudx.io/iudx/v2/auth/jwks",
+        "jwksUrl": "https://v2.dev.iudx.io/controlplane/iudx/v2/auth/jwks",
         "audience": []
       },
-      "https://staging.keycloak.update.iudx.io/auth/realms/tgdex-pilot": {
+      "https://v2.dev.iudx.io/auth/realms/iudx-v2": {
         "type": "remote",
-        "jwksUrl": "https://staging.keycloak.update.iudx.io/auth/realms/tgdex-pilot/protocol/openid-connect/certs",
+        "jwksUrl": "https://v2.dev.iudx.io/auth/realms/iudx-v2/protocol/openid-connect/certs",
         "audience": []
       }
     }
   },
   "modules": [
-    {
-      "id": "org.cdpg.dx.database.postgres.verticle.PostgresVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "databaseIP": "",
-      "databasePort": 5434533,
-      "databaseName": "iudx_rs",
-      "databaseUserName": "",
-      "databasePassword": "",
-      "poolSize": 25,
-      "databaseSchema": "public"
-    },
-    {
-      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "dataBrokerIP": "",
-      "dataBrokerPort": 245345368,
-      "prodVhost": "",
-      "internalVhost": "",
-      "externalVhost": "",
-      "dataBrokerUserName": "",
-      "dataBrokerPassword": "",
-      "dataBrokerManagementPort": 280345342,
-      "connectionTimeout": 6000,
-      "requestedHeartbeat": 60,
-      "handshakeTimeout": 6000,
-      "requestedChannelMax": 5,
-      "networkRecoveryInterval": 500,
-      "automaticRecoveryEnabled": "true",
-      "brokerAmqpIp": "",
-      "brokerAmqpPort": 245673453,
-      "adapterQueryPublishExchange": "rpc-adapter-requests"
-    },
-    {
-      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 2,
-      "databaseIP": "",
-      "databasePort": 24324034,
-      "databaseUser": "",
-      "databasePassword": ""
-    },
     {
       "id": "org.cdpg.dx.cloudstorage.s3.verticle.S3Verticle",
       "isWorkerVerticle": false,
@@ -93,34 +53,69 @@
       "s3AccessKey": "",
       "s3SecretKey": "",
       "s3Bucket": "",
-      "s3Region": "",
+      "s3Region": "ap-south-1",
       "s3ProxyTimeoutMs": 240000
     },
     {
+      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
+      "required": ["commonConfig"],
+      "isWorkerVerticle": false,
+      "verticleInstances": 1,
+      "dataBrokerIP": "",
+      "dataBrokerPort": 24568,
+      "portSsl": true,
+      "prodVhost": "IUDX-V2",
+      "internalVhost": "IUDX-V2-INTERNAL",
+      "externalVhost": "IUDX-V2-EXTERNAL",
+      "dataBrokerUserName": "",
+      "dataBrokerPassword": "",
+      "dataBrokerManagementPort": 443,
+      "connectionTimeout": 6000,
+      "requestedHeartbeat": 60,
+      "handshakeTimeout": 6000,
+      "requestedChannelMax": 5,
+      "networkRecoveryInterval": 500,
+      "automaticRecoveryEnabled": "true",
+      "brokerAmqpIp": "",
+      "brokerAmqpPort": 24567,
+      "adapterQueryPublishExchange": "rpc-adapter-requests"
+    },
+    {
+      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
+      "isWorkerVerticle": false,
+      "verticleInstances": 2,
+      "databaseIP": "",
+      "databasePort": 9200,
+      "databaseUser": "",
+      "databasePassword": ""
+    },
+    {
       "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
+      "required": ["commonConfig"],
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "ssl": true,
-      "production": false,
       "httpPort": 8443,
       "isAdexInstance": false,
       "keystore": "configs/keystore.jks",
       "keystorePassword": "password",
-      "urnPrefix": "dx:dataplane:"
+      "urnPrefix": "dx:dataplane:",
+      "maxDaysSync": 25000
     },
     {
       "id": "org.cdpg.dx.apiserver.ProxyApiServerVerticle",
+      "required": ["commonConfig"],
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "ssl": true,
-      "production": false,
       "httpPort": 8444,
       "isAdexInstance": false,
       "keystore": "configs/keystore.jks",
       "keystorePassword": "password",
       "urnPrefix": "dx:dataplaneProxy:",
-      "maxDaysSync": 10,
-      "maxDaysAsync": 365
+      "maxDaysSync": 365,
+      "maxDaysAsync": 365,
+      "timeout": 500000
     },
     {
       "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",
@@ -128,14 +123,11 @@
       "isWorkerVerticle": false,
       "verticleInstances": 1,
       "ssl": true,
-      "production": false,
       "httpPort": 8445,
       "isAdexInstance": false,
       "keystore": "configs/keystore.jks",
       "keystorePassword": "password",
       "urnPrefix": "dx:dataplanePublish:",
-      "chunkMaxItems" : 2000,
-      "chunkMaxBytes" : 30,
       "timeout": 500000
     }
   ]
