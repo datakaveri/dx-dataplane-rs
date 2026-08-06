@@ -43,6 +43,7 @@ public class LatestController implements ApiController {
   private final URNGenerator urnGenerator;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
+
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   /** Initializes the latest controller with required services and config. */
@@ -123,6 +124,7 @@ public class LatestController implements ApiController {
 
     } catch (Exception e) {
       LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+      routingContext.fail(e);
     }
   }
 
