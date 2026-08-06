@@ -124,6 +124,7 @@ public class LatestController implements ApiController {
 
     } catch (Exception e) {
       LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+      routingContext.fail(e);
     }
   }
 
