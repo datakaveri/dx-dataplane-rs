@@ -25,7 +25,7 @@ pipeline {
             triggeredBy cause: 'UserIdCause'
           }
           expression {
-            return env.BRANCH_NAME == 'dev' || env.BRANCH_NAME.startsWith('PR-');
+            return env.BRANCH_NAME == 'stable/v2.3' || env.BRANCH_NAME.startsWith('PR-');
           }
         }
       }
@@ -45,20 +45,8 @@ pipeline {
         stage('Building images') {
           steps{
             script {
-
               echo 'Pulled - ' + env.GIT_BRANCH
-
-              DX_COMMON_COMMIT = sh(
-                script: "git ls-remote https://github.com/datakaveri/dx-common.git refs/heads/dev | cut -f1",
-                returnStdout: true
-              ).trim()
-
-              echo "DX_COMMON_COMMIT=${DX_COMMON_COMMIT}"
-
-              devImage = docker.build(
-                devRegistry,
-                "--build-arg CACHE_BUST=${DX_COMMON_COMMIT} -f ./docker/dev.dockerfile ."
-              )
+              devImage = docker.build(devRegistry, "-f ./docker/dev.dockerfile .")
             }
           }
         }
@@ -91,38 +79,18 @@ pipeline {
           }
         }
 
-        stage('Continuous Deployment') {
+        stage('Push Images') {
           when {
             expression {
-              return env.BRANCH_NAME == 'dev'
+              return env.BRANCH_NAME == 'stable/v2.3'
             }
           }
-
-          stages {
-
-            stage('Push Images') {
-              steps {
-                script {
-                  docker.withRegistry(registryUri, registryCredential) {
-                    devImage.push("1.0.0-${env.GIT_HASH}")
-                  }
-                }
+          steps {
+            script {
+              docker.withRegistry(registryUri, registryCredential) {
+                devImage.push("v2.3.RC1-${env.GIT_HASH}")
               }
             }
-
-                stage('EKS Helm deployment') {
-                  steps {
-                    script {
-                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --rollback-on-failure --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=1.0.0-${env.GIT_HASH}'"
-                    }
-                  }
-                  post{
-                    failure{
-                      error "Failed to deploy image to EKS via Helm"
-                    }
-                  }
-                }
-
           }
         }
 
@@ -130,10 +98,11 @@ pipeline {
     }
 
   }
+
   post{
     failure{
       script{
-        if (env.BRANCH_NAME == 'dev')
+        if (env.BRANCH_NAME == 'stable/v2.3')
         emailext recipientProviders: [buildUser(), developers()],
         to: '$AAA_RECIPIENTS, $DEFAULT_RECIPIENTS',
         subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
