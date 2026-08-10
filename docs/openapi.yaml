@@ -253,12 +253,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
-        '413':
-          description: Payload Too Large
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
+#        '413':
+#          description: Payload Too Large
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
 
   /ngsi-ld/v1/entities:
     get:
@@ -389,12 +389,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse404'
-        '413':
-          description: Payload Too Large
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
+#        '413':
+#          description: Payload Too Large
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/NgsiLdSubscriptionErrorResponse413'
 
   /ngsi-ld/v1/entityOperations/query:
     post:
@@ -495,12 +495,12 @@ paths:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
           description: Unauthorized
 
-        413:
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
-          description: 'Payload Too Large'
+#        413:
+#          content:
+#            application/json:
+#              schema:
+#                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
+#          description: 'Payload Too Large'
 
         404:
           content:
@@ -675,12 +675,12 @@ paths:
                 "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse401"
           description: Unauthorized
 
-        413:
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
-          description: 'Payload Too Large'
+#        413:
+#          content:
+#            application/json:
+#              schema:
+#                "$ref": "#/components/schemas/NgsiLdSubscriptionErrorResponse413"
+#          description: 'Payload Too Large'
 
         404:
           content:
@@ -770,8 +770,7 @@ paths:
         identified by its <b>data exchange ID</b> (`id`). A <b>valid data exchange token</b> is mandatory.
         By default, data is sorted in descending order of `observationDateTime`(TEMPORAL data).
         <b>Temporal resources</b> support `timeRel`, `time` and `endTime`. Narrow the time window to
-       stay within the 50,000 limit. If total matched records exceed 50,000, the API returns
-       <code>413 Payload Too Large</code> — apply more filters or use the <b>Download API</b>.
+       stay within the 50,000 limit. If total matched records exceed 50,000, apply more filters or use the <b>Download API</b>.
        <b>Non-temporal (attribute / ATTR) resources</b> have no time dimension, so `timeRel`, `time`
        and `endTime` do not apply and data cannot be narrowed by time. Only the first 50,000 records
        are reachable via pagination; to retrieve the full dataset use the <b>Download API</b>.
@@ -872,12 +871,12 @@ paths:
                 "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
           description: 'Resource not found'
 
-        413:
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/payloadTooLarge"
-          description: 'Payload Too Large'
+#        413:
+#          content:
+#            application/json:
+#              schema:
+#                "$ref": "#/components/schemas/payloadTooLarge"
+#          description: 'Payload Too Large'
 
       x-codeSamples:
         - lang: 'cURL'
@@ -1147,12 +1146,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ForbiddenResponse'
-        '413':
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/payloadTooLarge"
-          description: 'Payload Too Large'
+#        '413':
+#          content:
+#            application/json:
+#              schema:
+#                "$ref": "#/components/schemas/payloadTooLarge"
+#          description: 'Payload Too Large'
         '400':
           description: Bad Request
           content:
@@ -1160,6 +1159,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/errorResponseForDiscovery'
               examples:
+                Bad Request:
+                  value:
+                    "type": "dx:dataplane:badrequest"
+                    "title": "Bad Request"
+                    "detail": "Missing or malformed request"
                 Invalid Geo Value:
                   value:
                     type: 'dx:dataplane:InvalidGeoValue'
@@ -1599,7 +1603,7 @@ components:
             - totalPages
             - hasNext
             - hasPrevious
-        results:
+        result:
           type: array
           items:
             type: object
@@ -1613,9 +1617,9 @@ components:
         - type
         - title
         - pagination
-        - results
+        - result
       example:
-        type: "dx:dataplane:Success"
+        type: "dx:dataplane:success"
         title: "Success"
         pagination:
           page: 1
@@ -1624,7 +1628,7 @@ components:
           totalPages: 1
           hasNext: false
           hasPrevious: false
-        results:
+        result:
           - id: "a4e3b98f-d073-4a2f-8587-e8d1718f2a89"
           - id: "d7d34f8d-8cd4-4a68-8a4d-3b7fc5e8bb13"
           - id: "2b1a2e8d-45f4-43a1-9e8e-d1f8ad1002bb"
@@ -1708,7 +1712,7 @@ components:
             - totalPages
             - hasNext
             - hasPrevious
-        results:
+        result:
           type: array
           items:
             type: object
@@ -1740,9 +1744,9 @@ components:
         - type
         - title
         - pagination
-        - results
+        - result
       example:
-        type: "dx:dataplane:Success"
+        type: "dx:dataplane:success"
         title: "Success"
         pagination:
           page: 1
@@ -1751,7 +1755,7 @@ components:
           totalPages: 1
           hasNext: false
           hasPrevious: false
-        results:
+        result:
           - id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
             label: "Satellite-Derived Geospatial Layers"
             name: "satellite-derived-geospatial-layers"
@@ -1852,7 +1856,7 @@ components:
             - totalPages
             - hasNext
             - hasPrevious
-        results:
+        result:
           type: array
           items:
             type: object
@@ -1875,9 +1879,9 @@ components:
         - type
         - title
         - pagination
-        - results
+        - result
       example:
-        type: "dx:dataplane:Success"
+        type: "dx:dataplane:success"
         title: "Success"
         pagination:
           page: 1
@@ -1886,7 +1890,7 @@ components:
           totalPages: 1
           hasNext: false
           hasPrevious: false
-        results:
+        result:
           - id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
             tags:
               - "Satellite"
@@ -1922,7 +1926,7 @@ components:
           description: A human-readable title for the message response
         pagination:
           type: object
-          description: Pagination metadata for the results.
+          description: Pagination metadata for the result.
           properties:
             page:
               type: integer
@@ -1949,7 +1953,7 @@ components:
             - totalPages
             - hasNext
             - hasPrevious
-        results:
+        result:
           type: array
           items:
             type: object
@@ -1974,9 +1978,9 @@ components:
         - type
         - title
         - pagination
-        - results
+        - result
       example:
-        type: "dx:dataplane:Success"
+        type: "dx:dataplane:success"
         title: "Success"
         pagination:
           page: 1
@@ -1985,7 +1989,7 @@ components:
           totalPages: 1
           hasNext: false
           hasPrevious: false
-        results:
+        result:
           - id: "a4e3b98f-d073-4a2f-8587-e8d1718f2a89"
             tags:
               - "ai"
@@ -2058,7 +2062,7 @@ components:
             - totalPages
             - hasNext
             - hasPrevious
-        results:
+        result:
           type: array
           items:
             type: object
@@ -2087,9 +2091,9 @@ components:
         - type
         - title
         - pagination
-        - results
+        - result
       example:
-        type: "dx:dataplane:Success"
+        type: "dx:dataplane:success"
         title: "Success"
         pagination:
           page: 1
@@ -2098,7 +2102,7 @@ components:
           totalPages: 1
           hasNext: false
           hasPrevious: false
-        results:
+        result:
           - type:
               - "adex:DataBank"
             id: "32cf54e7-be31-474c-ae4c-3d41e556dd2d"
@@ -2768,7 +2772,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -2791,7 +2795,7 @@ components:
       example:
         type: "dx:dataplane:success"
         title: "Success"
-        results:
+        result:
           - trip_direction: "NT"
             trip_id: "24374871"
             route_id: "17AD"
@@ -2821,7 +2825,7 @@ components:
       title: temporalentityresponse
       type: object
       properties:
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -2854,7 +2858,7 @@ components:
       title: temporalentityresponse2
       type: object
       properties:
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -2956,7 +2960,7 @@ components:
       title: spatialAttributeEntityresponse
       type: object
       properties:
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -2986,7 +2990,7 @@ components:
       title: spatialAttributeEntityresponse2
       type: object
       properties:
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3016,7 +3020,7 @@ components:
       title: Count response
       type: object
       properties:
-        results:
+        result:
           description: An objects
           type: object
           items:
@@ -3058,7 +3062,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3067,7 +3071,7 @@ components:
       example:
         type: dx:dataplane:success,
         title: success,
-        results: [
+        result: [
           {
             "username": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c",
             "apiKey": "Use the apiKey returned on registration, if lost please use /resetPassword API",
@@ -3090,7 +3094,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3098,7 +3102,7 @@ components:
       example:
         type: dx:dataplane:success,
         title: success,
-        results: [
+        result: [
           { "entities": [ "UUID/.*" ]
           }
         ]
@@ -3113,7 +3117,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3121,7 +3125,7 @@ components:
       example:
         type: dx:dataplane:success,
         title: success,
-        results: [
+        result: [
           { "entities": [ "UUID" ]
           }
         ]
@@ -3136,7 +3140,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3144,7 +3148,7 @@ components:
       example:
         type: dx:dataplane:success,
         title: success,
-        results: [
+        result: [
           { "entities": [ "UUID" ]
           }
         ]
@@ -3174,7 +3178,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3182,7 +3186,7 @@ components:
       example:
         type: dx:dataplane:success
         title: successful
-        results: [
+        result: [
           { "username": "asasdasd-asdasd-aada-d23342",
             "apiKey": "asass8a7s"
           }
@@ -3196,7 +3200,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3204,7 +3208,7 @@ components:
       example:
         type: dx:dataplane:success
         title: query submitted successfully
-        results: [
+        result: [
           { "searchId": "asasdasd-asdasd-a353f-dasdas5"
           }
         ]
@@ -3217,7 +3221,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3225,7 +3229,7 @@ components:
       example:
         type: dx:dataplane:success
         title: success
-        results: [
+        result: [
           { "status": "COMPLETE",
             "progress": 100.00,
             "file-download-url": "https://example.com/filename",
@@ -3242,7 +3246,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           description: An array of objects
           type: array
           items:
@@ -3250,7 +3254,7 @@ components:
       example:
         type: dx:dataplane:success
         title: success
-        results: [
+        result: [
           { "status": "IN_PROGRESS",
             "progress": 70.00,
             "searchId": "asasdasd-asdasd-aasasd-dasdasd",
@@ -3407,7 +3411,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badRequest
+        type: dx:dataplane:badrequest
         title: Bad Request
         detail: Bad Request
 
@@ -3421,7 +3425,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badRequest
+        type: dx:dataplane:badrequest
         title: Bad Request Data
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering
 
@@ -3437,7 +3441,7 @@ components:
       example:
         type: dx:dataplane:notAuthorized
         title: Not Authorized
-        detail: Not Authorized / Invalid token / missing Bearer token
+        detail: Not Authorized / Invalid token / missing Bearer token / Missing credentials
 
     generalResourceNotFoundErrorResponse:
       title: generalResourceNotFoundErrorResponse
@@ -3521,7 +3525,7 @@ components:
           type: string
         title:
           type: string
-        results:
+        result:
           type: object
           properties:
             Subscription:
@@ -3529,7 +3533,7 @@ components:
       example:
         type: dx:dataplane:success
         title: success
-        results: [
+        result: [
           {
             "queuename": "fd47486b-XXXX-XXXX-ac1e-082e4d37a66c/RS-integration-test-alias-RL",
             "entity": "UUID",
@@ -3575,7 +3579,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badRequest
+        type: dx:dataplane:badrequest
         title: Bad Request Data
         detail: Missing/Invalid parameters
 
@@ -3601,10 +3605,10 @@ components:
           example: dx:dataplane:no-access
         title:
           type: string
-          example: No-access
+          example: No-access / Forbidden
         detail:
           type: string
-          example: Access check failed doc doesn't exist
+          example: Access check failed doc doesn't exist / Access check failed Access denied for restricted item
 
     payloadTooLarge:
       title: payloadtoolarge
