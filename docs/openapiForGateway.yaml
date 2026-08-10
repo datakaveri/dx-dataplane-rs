@@ -2393,7 +2393,7 @@ components:
           type: string
       example:
         type: dx:dataplaneProxy:badRequest
-        title: Bad Request Data
+        title: Bad Request
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid
           geo parameters
     standardInvalidTokenErrorResponse:
@@ -2419,9 +2419,9 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplaneProxy:resourceNotFound
+        type: dx:dataplaneProxy:notFound
         title: Not Found
-        detail: Resource Not Found
+        detail: Resource Not Found / doc doesn't exist
     adapterBadRequestErrorResponse:
       title: adapterBadRequestErrorResponse
       properties:
@@ -2433,7 +2433,7 @@ components:
           type: string
       example:
         type: dx:dataplaneProxy:badRequest
-        title: Bad Request Data
+        title: Bad Request
         detail: Missing/Invalid parameters
     asyncsearchResponse:
       title: asyncsearch
