@@ -115,7 +115,8 @@
       "urnPrefix": "dx:dataplaneProxy:",
       "maxDaysSync": 365,
       "maxDaysAsync": 365,
-      "timeout": 500000
+      "timeout": 500000,
+      "isEmailRequiredInRequest": false
     },
     {
       "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",

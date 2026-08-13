@@ -57,6 +57,7 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
     String keycloakTokenUrl = config.getString("keycloakTokenUrl");
     String grpcClientId = config.getString("grpcClientId");
     String grpcClientSecret = config.getString("grpcClientSecret");
+    boolean isEmailRequiredInRequest = config.getBoolean("isEmailRequiredInRequest", false);
 
     this.appIdClient = new AppIdVerificationClient(host, port);
     this.tokenProvider =
@@ -66,8 +67,9 @@ public class ProxyApiServerVerticle extends AbstractApiServerVerticle {
         new AppIdItemAccessHandler(AppIdCacheHolder.getItemAccessCache(), appIdClient, tokenProvider);
 
     LOGGER.info("AppId gRPC client configured (proxy): {}:{}", host, port);
+    LOGGER.info("Email enrichment in downstream request (proxy): {}", isEmailRequiredInRequest);
     return ControllerFactoryProxy.createControllers(
-        vertx, config, urnGenerator, appIdItemAccessHandler);
+        vertx, config, urnGenerator, appIdItemAccessHandler, isEmailRequiredInRequest);
   }
 
   @Override
