@@ -14,7 +14,8 @@ public class EntityControllerfactory {
       URNGenerator urnGenerator,
       JsonObject config,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler) {
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      boolean isEmailRequiredInRequest) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 10);
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
@@ -26,6 +27,7 @@ public class EntityControllerfactory {
         urnGenerator,
         config.getString("controlPlaneDomain"),
         auditingHandler,
-        appIdItemAccessHandler);
+        appIdItemAccessHandler,
+        isEmailRequiredInRequest);
   }
 }

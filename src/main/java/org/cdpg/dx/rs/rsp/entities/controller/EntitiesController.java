@@ -13,8 +13,10 @@ import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.apiserver.util.UserEmailUtil;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
 import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
 import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.HttpStatusCode;
@@ -22,6 +24,8 @@ import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.databroker.service.DataBrokerService;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.query.NGSILDQueryParams;
@@ -29,9 +33,6 @@ import org.cdpg.dx.rs.query.QueryMapper;
 import org.cdpg.dx.rs.query.QueryRequest;
 import org.cdpg.dx.rs.query.Util;
 import org.cdpg.dx.rs.validation.ParamsValidator;
-import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
-import org.cdpg.dx.common.validations.idhandler.GetIdFromBodyHandler;
-import org.cdpg.dx.common.validations.idhandler.GetIdFromParams;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerGateway;
 
@@ -47,6 +48,8 @@ public class EntitiesController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final IdValidation idValidation;
   private final AuditingHandler auditingHandler;
+  private final boolean isEmailRequiredInRequest;
+
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   public EntitiesController(
@@ -55,7 +58,8 @@ public class EntitiesController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      boolean isEmailRequiredInRequest /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
@@ -66,6 +70,7 @@ public class EntitiesController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.idValidation = new IdValidation();
     this.auditingHandler = auditingHandler;
+    this.isEmailRequiredInRequest = isEmailRequiredInRequest;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -160,6 +165,7 @@ public class EntitiesController implements ApiController {
     String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
+    UserEmailUtil.addEmailIfEnabled(ctx, jsonQuery, isEmailRequiredInRequest);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
         .executeAdapterQueryRPC(jsonQuery)
@@ -244,6 +250,7 @@ public class EntitiesController implements ApiController {
     String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     paramsValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
+    UserEmailUtil.addEmailIfEnabled(ctx, jsonQuery, isEmailRequiredInRequest);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
         .executeAdapterQueryRPC(jsonQuery)
@@ -258,7 +265,12 @@ public class EntitiesController implements ApiController {
                 RoutingContextHelper.setResponseSize(ctx, bytesWritten);
                 AuditLog auditLog =
                     DataplaneAuditHelper.createAuditingLogs(
-                        ctx, RoutingContextHelper.getId(ctx), "POST", GATEWAY, DOWNLOAD, bytesWritten);
+                        ctx,
+                        RoutingContextHelper.getId(ctx),
+                        "POST",
+                        GATEWAY,
+                        DOWNLOAD,
+                        bytesWritten);
                 RoutingContextHelper.setAuditingLog(ctx, auditLog);
               } else {
                 LOGGER.error("Received RPC response: {}", rpcResponse.encodePrettily());

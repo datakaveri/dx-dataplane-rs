@@ -29,6 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
 import org.cdpg.dx.apiserver.config.ApiConstants;
+import org.cdpg.dx.apiserver.util.UserEmailUtil;
 import org.cdpg.dx.auditing.handler.AuditingHandler;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
@@ -61,6 +62,7 @@ public class GatewayController implements ApiController {
   private final ItemAccessApplicableFilterHandlerGateway itemAccessApplicableFilterHandlerGateway;
   private final AuditingHandler auditingHandler;
   private final IdValidation idValidation;
+  private final boolean isEmailRequiredInRequest;
 
   /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
@@ -70,7 +72,8 @@ public class GatewayController implements ApiController {
       URNGenerator urnGenerator,
       String controlPlaneDomain,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      boolean isEmailRequiredInRequest /*,
       RedisService redisService,
       String redisKeyPrefix*/) {
     this.dataBrokerService = dataBrokerService;
@@ -81,6 +84,7 @@ public class GatewayController implements ApiController {
         new ItemAccessApplicableFilterHandlerGateway(controlPlaneDomain);
     this.auditingHandler = auditingHandler;
     this.idValidation = new IdValidation();
+    this.isEmailRequiredInRequest = isEmailRequiredInRequest;
     /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
@@ -214,6 +218,7 @@ public class GatewayController implements ApiController {
     String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     gatewayParamValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
+    UserEmailUtil.addEmailIfEnabled(ctx, jsonQuery, isEmailRequiredInRequest);
     LOGGER.debug("Constructed post json query for data broker RMQ: {}", jsonQuery.encodePrettily());
     dataBrokerService
         .executeAdapterQueryRPC(jsonQuery)
@@ -318,6 +323,7 @@ public class GatewayController implements ApiController {
     String searchType = jsonQuery.getString(IUDX_SEARCH_TYPE);
     gatewayParamValidator.isValidQueryWithFilters(searchType, applicableFilter);
     jsonQuery.put("applicableFilters", applicableFilter);
+    UserEmailUtil.addEmailIfEnabled(ctx, jsonQuery, isEmailRequiredInRequest);
     LOGGER.debug("Constructed JSON query for data broker RMQ: {}", jsonQuery.encodePrettily());
     HttpServerResponse response = ctx.response();
     dataBrokerService

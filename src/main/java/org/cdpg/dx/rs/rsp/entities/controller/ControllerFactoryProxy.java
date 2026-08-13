@@ -17,7 +17,7 @@ public class ControllerFactoryProxy {
 
   public static List<ApiController> createControllers(
       Vertx vertx, JsonObject config, URNGenerator urnGenerator,
-      AppIdItemAccessHandler appIdItemAccessHandler) {
+      AppIdItemAccessHandler appIdItemAccessHandler, boolean isEmailRequiredInRequest) {
 
     DataBrokerService dataBrokerService =
         DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
@@ -33,14 +33,16 @@ public class ControllerFactoryProxy {
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler);
+            appIdItemAccessHandler,
+            isEmailRequiredInRequest);
     ApiController gatewayController =
         GatewayControllerFactory.createGatewayController(
             dataBrokerService,
             urnGenerator,
             config,
             auditingHandler,
-            appIdItemAccessHandler);
+            appIdItemAccessHandler,
+            isEmailRequiredInRequest);
 
     return List.of(entitiesController, gatewayController);
   }
