@@ -847,7 +847,7 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
+                "$ref": "#/components/schemas/invalidParamBadRequestErrorResponseLatestGet"
           description: 'Bad query - Empty response | Missing/Invalid parameters'
 
         401:
@@ -2899,6 +2899,11 @@ components:
           type: string
         instance:
           type: string
+      example:
+        type: "dx:dataplane:badRequest"
+        title: "Bad Request"
+        detail: "string"
+        instance: "string"
     NgsiLdSubscriptionErrorResponse413:
       title: NgsiLdSubscriptionErrorResponse413
       properties:
@@ -2921,6 +2926,11 @@ components:
           type: string
         instance:
           type: string
+      example:
+        type: "dx:dataplane:notFound"
+        title: "Not Found"
+        detail: "doc doesn't exist / Not Found"
+        instance: "string"
     NgsiLdSubscriptionErrorResponse401:
       title: NgsiLdSubscriptionErrorResponse401
       properties:
@@ -2932,6 +2942,11 @@ components:
           type: string
         instance:
           type: string
+      example:
+        type: "dx:dataplane:notAuthorized"
+        title: "Not Authorized"
+        detail: "Not Authorized / Invalid token / missing Bearer token / Missing credentials"
+        instance: "string"
 
     NgsiLdSubscriptionErrorResponse409:
       title: NgsiLdSubscriptionErrorResponse409
@@ -3303,6 +3318,20 @@ components:
         title: Bad Request
         detail: Bad Request
 
+    invalidParamBadRequestErrorResponseLatestGet:
+      title: invalidParamBadRequestErrorResponseLatestGet
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+      example:
+        type: dx:dataplane:badrequest
+        title: Bad Request
+        detail: Bad Request / Missing or malformed request / Invalid path parameter 'id:' does not match the required format
+
     subscriptionInvalidParamBadRequestErrorResponse:
       title: subscriptionInvalidParamBadRequestErrorResponse
       properties:
@@ -3455,7 +3484,7 @@ components:
       example:
         type: dx:dataplane:general
         title: Not Found
-        detail: Not Found
+        detail: Not Found / doc doesn't exist
 
     standardResourceNotFoundErrorResponse:
       title: standardResourceNotFoundErrorResponse
@@ -3469,7 +3498,7 @@ components:
       example:
         type: dx:dataplane:resourceNotFound
         title: Not Found
-        detail: Not Found
+        detail: Not Found / doc doesn't exist
 
     resourceNotFoundErrorResponse:
       title: resourceNotFoundErrorResponse
