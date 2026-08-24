@@ -1300,6 +1300,12 @@ paths:
               schema:
                 "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
           description: 'Bad query - Empty response | Missing/Invalid parameters'
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
 
       x-codeSamples:
         - lang: 'cURL'
@@ -1366,6 +1372,12 @@ paths:
               schema:
                 "$ref": "#/components/schemas/invalidParamBadRequestErrorResponse"
           description: 'Bad query - Empty response | Missing/Invalid parameters'
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/standardResourceNotFoundErrorResponse"
+          description: 'Resource not found'
 
       x-codeSamples:
         - lang: 'cURL'
