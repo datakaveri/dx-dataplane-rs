@@ -7,6 +7,18 @@
     operationId: onboardElasticsearchIndex
     security:
       - authorization: [ ]
+    parameters:
+      - name: dynamic
+        in: query
+        required: false
+        description: >
+          How the new index treats fields the dataDescriptor does not declare.
+          `true` adds them to the mapping with a guessed type; `false` stores them
+          in _source but indexes nothing; `strict` rejects the whole document.
+        schema:
+          type: string
+          enum: [ "true", "false", "strict" ]
+          default: "strict"
     requestBody:
       required: true
       content:
