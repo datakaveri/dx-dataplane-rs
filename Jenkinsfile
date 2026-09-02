@@ -22,6 +22,7 @@ pipeline {
             changeset "docs/**"
             changeset "pom.xml"
             changeset "src/main/**"
+            changeset "example-configs/configs/config-dev.json"
             triggeredBy cause: 'UserIdCause'
           }
           expression {
@@ -91,6 +92,29 @@ pipeline {
           }
         }
 
+        stage('Detect config change') {
+          when {
+            not { changeRequest() }
+          }
+          steps {
+            script {
+              def baseCommit = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+              if (!baseCommit) {
+                baseCommit = sh(script: 'git rev-list --max-parents=0 HEAD | tail -1', returnStdout: true).trim()
+              }
+
+              def changedFiles = sh(
+                script: "git diff --name-only ${baseCommit} HEAD",
+                returnStdout: true
+              ).trim().split('\n') as List
+
+              env.CONFIG_CHANGED = changedFiles.contains('example-configs/configs/config-dev.json') ? 'true' : 'false'
+
+              echo "Diffing against ${baseCommit} (last successful build's commit): config changed=${env.CONFIG_CHANGED}"
+            }
+          }
+        }
+
         stage('Continuous Deployment') {
           when {
             expression {
@@ -103,8 +127,10 @@ pipeline {
             stage('Push Images') {
               steps {
                 script {
+                  def tagSuffix = env.CONFIG_CHANGED == 'true' ? '-C' : ''
+                  env.IMAGE_TAG = "1.0.0-${env.GIT_HASH}${tagSuffix}"
                   docker.withRegistry(registryUri, registryCredential) {
-                    devImage.push("1.0.0-${env.GIT_HASH}")
+                    devImage.push(env.IMAGE_TAG)
                   }
                 }
               }
@@ -113,7 +139,7 @@ pipeline {
                 stage('EKS Helm deployment') {
                   steps {
                     script {
-                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --rollback-on-failure --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=1.0.0-${env.GIT_HASH}'"
+                      sh "ssh ubuntu@dev-eks 'cd v2-deployments/iudx/iudx-installer/K8s-deployment/Charts/dataplane-rs && helm upgrade dataplane-rs . -n dataplane-rs --rollback-on-failure --timeout 5m --reuse-values --set image.repository=${devRegistry} --set image.tag=${env.IMAGE_TAG}'"
                     }
                   }
                   post{
