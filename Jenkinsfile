@@ -22,6 +22,7 @@ pipeline {
             changeset "docs/**"
             changeset "pom.xml"
             changeset "src/main/**"
+            changeset "example-configs/configs/config-dev.json"
             triggeredBy cause: 'UserIdCause'
           }
           expression {
@@ -79,6 +80,29 @@ pipeline {
           }
         }
 
+        stage('Detect config change') {
+          when {
+            not { changeRequest() }
+          }
+          steps {
+            script {
+              def baseCommit = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT
+              if (!baseCommit) {
+                baseCommit = sh(script: 'git rev-list --max-parents=0 HEAD | tail -1', returnStdout: true).trim()
+              }
+
+              def changedFiles = sh(
+                script: "git diff --name-only ${baseCommit} HEAD",
+                returnStdout: true
+              ).trim().split('\n') as List
+
+              env.CONFIG_CHANGED = changedFiles.contains('example-configs/configs/config-dev.json') ? 'true' : 'false'
+
+              echo "Diffing against ${baseCommit} (last successful build's commit): config changed=${env.CONFIG_CHANGED}"
+            }
+          }
+        }
+
         stage('Push Images') {
           when {
             expression {
@@ -87,8 +111,9 @@ pipeline {
           }
           steps {
             script {
+              def tagSuffix = env.CONFIG_CHANGED == 'true' ? '-C' : ''
               docker.withRegistry(registryUri, registryCredential) {
-                devImage.push("v2.3.RC1-${env.GIT_HASH}")
+                devImage.push("v2.3.RC1-${env.GIT_HASH}${tagSuffix}")
               }
             }
           }
