@@ -1161,7 +1161,7 @@ paths:
               examples:
                 Bad Request:
                   value:
-                    "type": "dx:dataplane:badrequest"
+                    "type": "dx:dataplane:badRequest"
                     "title": "Bad Request"
                     "detail": "Missing or malformed request"
                 Invalid Geo Value:
@@ -3338,7 +3338,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badrequest
+        type: dx:dataplane:badRequest
         title: Bad Request
         detail: Bad Request / Invalid path parameter 'id:' does not match the required format
 
@@ -3352,7 +3352,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badrequest
+        type: dx:dataplane:badRequest
         title: Bad Request
         detail: Bad Request / Missing or malformed request / Invalid path parameter 'id:' does not match the required format
 
@@ -3464,7 +3464,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badrequest
+        type: dx:dataplane:badRequest
         title: Bad Request
         detail: Bad Request
 
@@ -3478,7 +3478,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badrequest
+        type: dx:dataplane:badRequest
         title: Bad Request Data
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid geo parameters | Count is not supported with filtering
 
@@ -3632,7 +3632,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:badrequest
+        type: dx:dataplane:badRequest
         title: Bad Request Data
         detail: Missing/Invalid parameters
 
