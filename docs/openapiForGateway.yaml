@@ -2391,11 +2391,14 @@ components:
           type: string
         detail:
           type: string
+        instance:
+          type: string
       example:
         type: dx:dataplaneProxy:badRequest
         title: Bad Request
         detail: Empty response | Missing/Invalid temporal parameters | Missing/Invalid
           geo parameters
+        instance: string
     standardInvalidTokenErrorResponse:
       title: standardInvalidTokenErrorResponse
       properties:
@@ -2405,10 +2408,13 @@ components:
           type: string
         detail:
           type: string
+        instance:
+          type: string
       example:
         type: dx:dataplaneProxy:notAuthorized
         title: Not Authorized
         detail: Not Authorized / Invalid token / missing Bearer token
+        instance: string
     standardResourceNotFoundErrorResponse:
       title: standardResourceNotFoundErrorResponse
       properties:
@@ -2418,10 +2424,13 @@ components:
           type: string
         detail:
           type: string
+        instance:
+          type: string
       example:
         type: dx:dataplaneProxy:notFound
         title: Not Found
         detail: Resource Not Found / doc doesn't exist
+        instance: string
     adapterBadRequestErrorResponse:
       title: adapterBadRequestErrorResponse
       properties:
