@@ -3520,7 +3520,7 @@ components:
         detail:
           type: string
       example:
-        type: dx:dataplane:resourceNotFound
+        type: dx:dataplane:notFound
         title: Not Found
         detail: Not Found / doc doesn't exist
 
