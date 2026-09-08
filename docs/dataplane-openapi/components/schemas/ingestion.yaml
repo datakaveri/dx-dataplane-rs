@@ -7,16 +7,28 @@ adapterIngestionEntities:
   example:
     detail: "Item Published"
 
-ingestionEntityRequest:
+ingestionEntityObject:
   title: ingestion entity
+  type: object
   required:
     - entities
-  type: array
   properties:
     entities:
-      type: array
+      description: id of the resource the record belongs to
+      type: string
+  additionalProperties: true
+
+ingestionEntityRequest:
+  title: ingestion entity
+  description: |
+    A single record, or an array of records. Every record carries the `entities` field and all
+    records in one request must carry the same value.
+  oneOf:
+    - $ref: '#/ingestionEntityObject'
+    - type: array
+      minItems: 1
       items:
-        type: string
+        $ref: '#/ingestionEntityObject'
   example:
     [ {
       "currentLevel": 1.16,

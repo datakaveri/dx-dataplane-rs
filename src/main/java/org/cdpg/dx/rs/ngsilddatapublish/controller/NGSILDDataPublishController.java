@@ -7,9 +7,11 @@ import static org.cdpg.dx.rs.ngsilddatapublish.util.Constants.*;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import java.nio.file.Files;
@@ -26,10 +28,10 @@ import org.cdpg.dx.auth.model.Scopes;
 import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.util.RoutingContextHelper;
-import org.cdpg.dx.common.validations.idhandler.GetIdForIngestionEntityHandler;
 import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
 import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.ngsilddatapublish.service.NGSILDDataPublishService;
+import org.cdpg.dx.validations.idhandler.IngestionEntityIdStreamHandler;
 import org.cdpg.dx.validations.idvalidation.IdValidation;
 import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessDataPublishHandler;
 import org.cdpg.dx.validations.provider.ProviderDelegateValidationHandler;
@@ -39,7 +41,7 @@ public class NGSILDDataPublishController implements ApiController {
   private final int chunkMaxItems;
   private final int chunkMaxBytes;
   private final IdValidation idValidation;
-  private final GetIdForIngestionEntityHandler getIdForIngestionEntityHandler;
+  private final IngestionEntityIdStreamHandler ingestionEntityIdStreamHandler;
   private final GetIdFromPathHandler getIdFromPathHandler;
   private final ItemAccessDataPublishHandler itemAccessDataPublishHandler;
   private final ProviderDelegateValidationHandler providerDelegateValidationHandler;
@@ -63,7 +65,7 @@ public class NGSILDDataPublishController implements ApiController {
     this.urnGenerator = urnGenerator;
     this.ngsildDataPublishService = ngsildDataPublishService;
     this.idValidation = new IdValidation();
-    this.getIdForIngestionEntityHandler = new GetIdForIngestionEntityHandler();
+    this.ingestionEntityIdStreamHandler = new IngestionEntityIdStreamHandler();
     this.getIdFromPathHandler = new GetIdFromPathHandler();
     this.providerDelegateValidationHandler = new ProviderDelegateValidationHandler();
     this.appIdItemAccessHandler = appIdItemAccessHandler;
@@ -74,7 +76,7 @@ public class NGSILDDataPublishController implements ApiController {
     builder
         .operation(POST_NGSILD_ENTITY_PUBLISH)
         .handler(auditingHandler::handleApiAudit)
-        .handler(getIdForIngestionEntityHandler)
+        .handler(ingestionEntityIdStreamHandler)
         .handler(AuthorizationHandler.forScopes(Scopes.OWN_ASSET_MANAGEMENT))
         .handler(appIdItemAccessHandler)
         .handler(itemAccessDataPublishHandler)
@@ -249,8 +251,14 @@ public class NGSILDDataPublishController implements ApiController {
   }
 
   private void streamWithVertxParser(RoutingContext context, String id, boolean onSeek) {
-    io.vertx.core.parsetools.JsonParser parser =
-        io.vertx.core.parsetools.JsonParser.newParser(context.request());
+    HttpServerRequest request = context.request();
+    // Bytes already read off the request by IngestionEntityIdStreamHandler while resolving the id.
+    // Present only on POST /ingestion/entities; the alias and on-seek routes take the id from the
+    // path and hand us an untouched request.
+    Buffer replayBody = context.get(IngestionEntityIdStreamHandler.CONSUMED_BODY_KEY);
+    boolean replay = replayBody != null;
+
+    JsonParser parser = replay ? JsonParser.newParser() : JsonParser.newParser(request);
     parser.objectValueMode();
     parser.pause();
 
@@ -258,7 +266,19 @@ public class NGSILDDataPublishController implements ApiController {
     int[] batchBytes = {0};
     long[] totalCount = {0};
     boolean[] failed = {false};
+    boolean[] flushing = {false};
+    boolean[] replayDone = {false};
     String[] idRef = {id};
+
+    // In replay mode the parser is fed by hand, so request-level flow control is ours to manage:
+    // hold the request back while a chunk is in flight instead of queueing events in memory.
+    Runnable resumeFlow =
+        () -> {
+          parser.resume();
+          if (replay && replayDone[0] && !flushing[0] && !failed[0] && !request.isEnded()) {
+            request.resume();
+          }
+        };
 
     parser.handler(
         event -> {
@@ -269,15 +289,21 @@ public class NGSILDDataPublishController implements ApiController {
           JsonObject obj = event.objectValue();
           if (obj == null) {
             // Skip non-object tokens (e.g., start/end array) in stream.
-            parser.resume();
+            resumeFlow.run();
             return;
           }
+          String entityId = IngestionEntityIdStreamHandler.extractEntityId(obj);
           if (idRef[0] == null) {
-            idRef[0] = obj.getString("entities");
+            idRef[0] = entityId;
           }
           if (idRef[0] == null || idRef[0].isBlank()) {
             failed[0] = true;
             context.fail(new DxBadRequestException("Missing id in payload"));
+            return;
+          }
+          if (replay && entityId != null && !entityId.equals(idRef[0])) {
+            failed[0] = true;
+            context.fail(new DxBadRequestException("All 'entities' values must be the same"));
             return;
           }
           batch.add(obj);
@@ -285,11 +311,23 @@ public class NGSILDDataPublishController implements ApiController {
           totalCount[0]++;
 
           if (batch.size() >= chunkMaxItems || batchBytes[0] >= chunkMaxBytes) {
+            flushing[0] = true;
+            if (replay) {
+              request.pause();
+            }
             flushBatch(context, batch.copy(), idRef[0], batchBytes, batch, failed, onSeek)
-                .onSuccess(v -> parser.resume())
-                .onFailure(err -> failed[0] = true);
+                .onSuccess(
+                    v -> {
+                      flushing[0] = false;
+                      resumeFlow.run();
+                    })
+                .onFailure(
+                    err -> {
+                      flushing[0] = false;
+                      failed[0] = true;
+                    });
           } else {
-            parser.resume();
+            resumeFlow.run();
           }
         });
 
@@ -325,6 +363,32 @@ public class NGSILDDataPublishController implements ApiController {
         });
 
     parser.resume();
+
+    if (!replay) {
+      return;
+    }
+
+    if (request.isEnded()) {
+      parser.handle(replayBody);
+      parser.end();
+      return;
+    }
+
+    request.exceptionHandler(
+        err -> {
+          if (!failed[0]) {
+            failed[0] = true;
+            context.fail(err);
+          }
+        });
+    request.handler(parser::handle);
+    request.endHandler(ignored -> parser.end());
+
+    parser.handle(replayBody);
+    replayDone[0] = true;
+    if (!failed[0] && !flushing[0]) {
+      request.resume();
+    }
   }
 
   private Future<String> flushBatch(
