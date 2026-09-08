@@ -9,19 +9,82 @@
 
     x-codeSamples:
       - lang: 'cURL'
-        label: 'ingestion'
+        label: 'single record'
         source: |
           curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
-          --header 'token: <tokenValue>'
+          --header 'Authorization: Bearer <tokenValue>' \
           --header 'Content-Type: application/json' \
-          --data-raw '<payload>'
+          --data-raw '{
+            "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+            "observationDateTime": "2020-09-22T18:30:00+05:30",
+            "currentLevel": 1.16,
+            "referenceLevel": 15.9,
+            "measuredDistance": 14.74,
+            "deviceInfo": {
+              "deviceID": "FWR055"
+            }
+          }'
+      - lang: 'cURL'
+        label: 'multiple records'
+        source: |
+          curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
+          --header 'Authorization: Bearer <tokenValue>' \
+          --header 'Content-Type: application/json' \
+          --data-raw '[
+            {
+              "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+              "observationDateTime": "2020-09-22T18:30:00+05:30",
+              "currentLevel": 1.16,
+              "measuredDistance": 14.74,
+              "deviceInfo": {
+                "deviceID": "FWR055"
+              }
+            },
+            {
+              "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+              "observationDateTime": "2020-09-22T18:35:00+05:30",
+              "currentLevel": 1.21,
+              "measuredDistance": 14.69,
+              "deviceInfo": {
+                "deviceID": "FWR055"
+              }
+            }
+          ]'
 
     requestBody:
-      description: entities is must in all the request
+      description: |
+        A single record or an array of records. `entities` is mandatory in every record and must
+        hold the same resource id across the whole request.
       content:
         application/json:
           schema:
             $ref: '../components/schemas/ingestion.yaml#/ingestionEntityRequest'
+          examples:
+            singleRecord:
+              summary: one record
+              value:
+                entities: "695e222b-3fae-4325-8db0-3e29d01c4fc0"
+                observationDateTime: "2020-09-22T18:30:00+05:30"
+                currentLevel: 1.16
+                referenceLevel: 15.9
+                measuredDistance: 14.74
+                deviceInfo:
+                  deviceID: "FWR055"
+            multipleRecords:
+              summary: many records for the same resource
+              value:
+                - entities: "695e222b-3fae-4325-8db0-3e29d01c4fc0"
+                  observationDateTime: "2020-09-22T18:30:00+05:30"
+                  currentLevel: 1.16
+                  measuredDistance: 14.74
+                  deviceInfo:
+                    deviceID: "FWR055"
+                - entities: "695e222b-3fae-4325-8db0-3e29d01c4fc0"
+                  observationDateTime: "2020-09-22T18:35:00+05:30"
+                  currentLevel: 1.21
+                  measuredDistance: 14.69
+                  deviceInfo:
+                    deviceID: "FWR055"
       required: true
     responses:
       200:
@@ -56,6 +119,10 @@
 
     description: |
       Post Ingestion Entities API allows a publish data into DX(Data exchange) Dataplane Server. Based on the input provided, the API validates the access control of the user with DX(Data exchange) Auth server to allow or deny access to the API.
+
+      The body may be a single record or an array of records. `entities` carries the id of the
+      resource the record belongs to and must be identical in every record of one request. Records
+      are forwarded to the broker in chunks, so large arrays need not be split by the client.
 
     deprecated: false
 
