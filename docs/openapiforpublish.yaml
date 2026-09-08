@@ -34,14 +34,59 @@ paths:
       operationId: postIngestionAdaptorEntities
       security:
         - authorization: [ ]
+      description: |
+        Publishes data for one resource. The body is streamed, so it is not validated against a
+        schema by the server - it may be either a single record or an array of records:
+
+          * single record  - `{ "entities": "<resource-id>", ... }`
+          * multiple records - `[ { "entities": "<resource-id>", ... }, { ... } ]`
+
+        `entities` carries the id of the resource the record belongs to and must be the same in
+        every record of one request. Records are forwarded to the broker in chunks, so a very large
+        array does not need to be split by the client.
       x-codeSamples:
         - lang: 'cURL'
-          label: 'ingestion'
+          label: 'single record'
           source: |
             curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
-            --header 'token: <tokenValue>'
+            --header 'Authorization: Bearer <tokenValue>' \
             --header 'Content-Type: application/json' \
-            --data-raw '<payload>'
+            --data-raw '{
+              "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+              "observationDateTime": "2020-09-22T18:30:00+05:30",
+              "currentLevel": 1.16,
+              "referenceLevel": 15.9,
+              "measuredDistance": 14.74,
+              "deviceInfo": {
+                "deviceID": "FWR055"
+              }
+            }'
+        - lang: 'cURL'
+          label: 'multiple records'
+          source: |
+            curl --location --request POST 'https://example.com/ngsi-ld/v1/ingestion/entities' \
+            --header 'Authorization: Bearer <tokenValue>' \
+            --header 'Content-Type: application/json' \
+            --data-raw '[
+              {
+                "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+                "observationDateTime": "2020-09-22T18:30:00+05:30",
+                "currentLevel": 1.16,
+                "measuredDistance": 14.74,
+                "deviceInfo": {
+                  "deviceID": "FWR055"
+                }
+              },
+              {
+                "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+                "observationDateTime": "2020-09-22T18:35:00+05:30",
+                "currentLevel": 1.21,
+                "measuredDistance": 14.69,
+                "deviceInfo": {
+                  "deviceID": "FWR055"
+                }
+              }
+            ]'
       responses:
         '200':
           description: Successful pushed the data
@@ -178,19 +223,47 @@ components:
           description: Item Published
       example:
         detail: "Item Published"
-    ingestionEntityRequest:
+    ingestionEntityObject:
       title: ingestion entity
+      type: object
       required:
         - entities
-      type: array
-      items:
-        type: object
+      properties:
+        entities:
+          description: id of the resource this record belongs to
+          type: string
+      additionalProperties: true
       example:
-        - currentLevel: 1.16
+        entities: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+        observationDateTime: "2020-09-22T18:30:00+05:30"
+        currentLevel: 1.16
+        referenceLevel: 15.9
+        measuredDistance: 14.74
+        deviceInfo:
+          deviceID: FWR055
+    ingestionEntityRequest:
+      title: ingestion entity
+      description: |
+        A single record, or an array of records. Every record carries `entities` and all records in
+        one request must carry the same value.
+      oneOf:
+        - $ref: '#/components/schemas/ingestionEntityObject'
+        - type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ingestionEntityObject'
+      example:
+        - entities: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+          observationDateTime: "2020-09-22T18:30:00+05:30"
+          currentLevel: 1.16
           referenceLevel: 15.9
           measuredDistance: 14.74
-          entities: 695e222b-3fae-4325-8db0-3e29d01c4fc0
-          observationDateTime: "2020-09-22T18:30:00+05:30"
+          deviceInfo:
+            deviceID: FWR055
+        - entities: 695e222b-3fae-4325-8db0-3e29d01c4fc0
+          observationDateTime: "2020-09-22T18:35:00+05:30"
+          currentLevel: 1.21
+          measuredDistance: 14.69
           deviceInfo:
             deviceID: FWR055
     ingestionEntityRequest2:
