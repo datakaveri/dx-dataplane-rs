@@ -767,16 +767,16 @@ paths:
       operationId: getLatestEntityData
       description:
         'The <b>Latest Data API</b> returns the latest (last published) data of a resource,
-        identified by its <b>data exchange ID</b> (`id`). A <b>valid data exchange token</b> is mandatory.
-        By default, data is sorted in descending order of `observationDateTime`(TEMPORAL data).
-        <b>Temporal resources</b> support `timeRel`, `time` and `endTime`. Narrow the time window to
-       stay within the 50,000 limit. If total matched records exceed 50,000, apply more filters or use the <b>Download API</b>.
-       <b>Non-temporal (attribute / ATTR) resources</b> have no time dimension, so `timeRel`, `time`
-       and `endTime` do not apply and data cannot be narrowed by time. Only the first 50,000 records
-       are reachable via pagination; to retrieve the full dataset use the <b>Download API</b>.
-        <b>Retrieving more than 50,000 records:</b> this endpoint is for paginated browsing and is
-        capped at 50,000 reachable records. To export a complete dataset, use the Download API, which
-        streams all matching data as CSV without the pagination limit.'
+          identified by its <b>data exchange ID</b> (`id`). A <b>valid data exchange token</b> is mandatory.
+          By default, data is sorted in descending order of `observationDateTime`(TEMPORAL data).
+          <b>Temporal resources</b> support `timeRel`, `time` and `endTime`. Narrow the time window to
+          stay within the 50,000 limit. If total matched records exceed 50,000, apply more filters or use the <b>Download API</b>.
+          <b>Non-temporal (attribute / ATTR) resources</b> have no time dimension, so `timeRel`, `time`
+          and `endTime` do not apply and data cannot be narrowed by time. Only the first 50,000 records
+          are reachable via pagination; to retrieve the full dataset use the <b>Download API</b>.
+          <b>Retrieving more than 50,000 records:</b> this endpoint is for paginated browsing and is
+          capped at 50,000 reachable records. To export a complete dataset, use the Download API, which
+          streams all matching data as CSV without the pagination limit.'
       security:
         - authorization: [ ]
         - appIdAuth: [ ]
@@ -810,7 +810,7 @@ paths:
         - name: timeRel
           in: query
           description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property. Not applicable to non-temporal 
-          (ATTR) resources.'
+            (ATTR) resources.'
           required: false
           schema:
             type: string
@@ -3119,7 +3119,7 @@ components:
             "port": 24567,
             "vHost": "IUDX"
           }
-        ]
+          ]
 
 
 
@@ -3144,7 +3144,7 @@ components:
         result: [
           { "entities": [ "UUID/.*" ]
           }
-        ]
+          ]
 
     appendstreaming:
       title: appendstreaming
@@ -3167,7 +3167,7 @@ components:
         result: [
           { "entities": [ "UUID" ]
           }
-        ]
+          ]
 
     updatestreaming:
       title: updatestreaming
@@ -3190,7 +3190,7 @@ components:
         result: [
           { "entities": [ "UUID" ]
           }
-        ]
+          ]
 
     deletestreaming:
       title: deletestreaming
@@ -3229,7 +3229,7 @@ components:
           { "username": "asasdasd-asdasd-aada-d23342",
             "apiKey": "asass8a7s"
           }
-        ]
+          ]
 
     asyncsearchResponse:
       title: asyncsearch
@@ -3250,7 +3250,7 @@ components:
         result: [
           { "searchId": "asasdasd-asdasd-a353f-dasdas5"
           }
-        ]
+          ]
 
     asyncsearchStatusComplete:
       title: complete
@@ -3275,7 +3275,7 @@ components:
             "searchId": "asasdasd-asdasd-aasasd-dasdasd",
             "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
           }
-        ]
+          ]
 
     asyncsearchStatusInprogress:
       title: inprogress
@@ -3299,7 +3299,7 @@ components:
             "searchId": "asasdasd-asdasd-aasasd-dasdasd",
             "userId": "aefvsdfsdf-exvsf-cezxcwscs-adasd"
           }
-        ]
+          ]
 
 
     revokeToken:
@@ -3605,7 +3605,7 @@ components:
               "instance": "surat"
             }
           }
-        ]
+          ]
 
 
     standardInvalidTokenErrorResponseAllQueueAndExcahnge:

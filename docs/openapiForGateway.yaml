@@ -50,32 +50,32 @@ tags:
   - name: Spatial Entities
     x-displayName: Spatial Search
     description: "A Spatial Search is used by DX(Data exchange) Data *Consumers* for\
-    \ querying a resource using a **valid data exchange** `id`, `spatial` and `attribute`\
-    \ parameters. \n Information about the data exchange ID of the resource and security\
-    \ scope of the resource can be obtained from the ** DX(Data exchange) controlplane\
-    \ server **. \n You can use this API to make a `spatial` or `attribute` or `complex\
-    \ : spatial+attribute` query.\n"
+      \ querying a resource using a **valid data exchange** `id`, `spatial` and `attribute`\
+      \ parameters. \n Information about the data exchange ID of the resource and security\
+      \ scope of the resource can be obtained from the ** DX(Data exchange) controlplane\
+      \ server **. \n You can use this API to make a `spatial` or `attribute` or `complex\
+      \ : spatial+attribute` query.\n"
   - name: Temporal Entities
     x-displayName: Temporal and Complex Search
     description: "A Temporal Search is used by DX(Data exchange) Data *Consumers* for\
-    \ querying a resource using a **valid data exchange** `id`, `temporal`, `spatial`\
-    \ and `attribute` parameters. \n Information about the data exchange ID of the\
-    \ resource and security scope of the resource can be obtained from the ** DX(Data\
-    \ exchange) catalogue server **. \nIn order to use this API, a `temporal` parameter\
-    \ is **mandatory**. \n You can use this API to make a `temporal` or `complex :\
-    \ temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute`\
-    \ query. \n If you are looking for an `attribute` only query refer the **Spatial\
-    \ Search** `/entities` endpoint.\n"
+      \ querying a resource using a **valid data exchange** `id`, `temporal`, `spatial`\
+      \ and `attribute` parameters. \n Information about the data exchange ID of the\
+      \ resource and security scope of the resource can be obtained from the ** DX(Data\
+      \ exchange) catalogue server **. \nIn order to use this API, a `temporal` parameter\
+      \ is **mandatory**. \n You can use this API to make a `temporal` or `complex :\
+      \ temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute`\
+      \ query. \n If you are looking for an `attribute` only query refer the **Spatial\
+      \ Search** `/entities` endpoint.\n"
   - name: Entities Post Query
     x-displayName: Complex Search (Post Query)
     description: "A Complex Search (Post Query) is an HTTP POST API and is used by DX(Data\
-    \ exchange) Data *Consumers*. \nThis API is used for querying a resource using\
-    \ a **valid data exchange** `id`, `temporal`, `spatial` and `attribute` parameters.\
-    \ \n Information about the data exchange ID of the resource and security scope\
-    \ of the resource can be obtained from the ** DX(Data exchange) controlplane server\
-    \ **. \n You can use this API to make a `temporal` or `spatial` or `attribute`\
-    \ or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex\
-    \ : spatial+attribute` or `complex : temporal+spatial+attribute` query.\n"
+      \ exchange) Data *Consumers*. \nThis API is used for querying a resource using\
+      \ a **valid data exchange** `id`, `temporal`, `spatial` and `attribute` parameters.\
+      \ \n Information about the data exchange ID of the resource and security scope\
+      \ of the resource can be obtained from the ** DX(Data exchange) controlplane server\
+      \ **. \n You can use this API to make a `temporal` or `spatial` or `attribute`\
+      \ or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex\
+      \ : spatial+attribute` or `complex : temporal+spatial+attribute` query.\n"
 
 servers:
   - url: 'https://${HOSTNAME}'
@@ -134,59 +134,59 @@ paths:
         - lang: cURL
           label: search by attribute
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by circle
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by polygon
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by bbox
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by linestring
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by attribute and filter
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: count by circle
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
       deprecated: false
       description: "The `/entities` end point allows a consumer to query on data published\
         \ based on a **spatial** and **attribute** properties. The **spatial** queries\
@@ -307,59 +307,59 @@ paths:
         - lang: cURL
           label: search by attribute
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/entities?id=UUID&q=referenceLevel>15.0''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by circle
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=near;maxdistance=10&geometry=Point&coordinates=[21.178,72.834]&offset=0&limit=10''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by polygon
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=within&geometry=Polygon&coordinates=[[[72.76,21.15],[72.76,21.13],[72.78,21.13],[72.78,21.15],[72.76,21.15]]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by bbox
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=within&geometry=bbox&coordinates=[[72.8296,21.2],[72.8297,21.15]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by linestring
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=intersects&geometry=linestring&coordinates=[[72.84,21.19],[72.84,21.17]]''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by attribute and filter
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&q=referenceLevel>15.0&attrs=id,currentLevel,referenceLevel''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: count by circle
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&options=count''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
       deprecated: false
       description: "The `/entities` end point allows a consumer to query on data published\
         \ based on a **spatial** and **attribute** properties. The **spatial** queries\
@@ -469,56 +469,56 @@ paths:
         - lang: cURL
           label: search by between
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=during&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
 
         - lang: cURL
           label: search by before
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=before&time=2020-10-19T12:00:00Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by after
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by between and filter
           source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=between&time=2020-10-18T14:20:00Z&endtime=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
-          \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
+            \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
         - lang: cURL
           label: count by after
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&timerel=after&time=2020-10-18T14:20:01Z&options=count''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: complex search
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&attrs=id,location,speed''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: complex count
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&time=2020-10-19T14:00:00Z&options=count''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
       deprecated: false
       description: "The `/temporal/entities` end point allows a consumer to query\
         \ on data published based on a **spatial**, **temporal** and **attribute**\
@@ -652,41 +652,41 @@ paths:
         - lang: cURL
           label: search by between
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=during&timeAt=2020-10-18T14:20:00Z&endtimeAt=2020-10-19T14:20:00Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
 
         - lang: cURL
           label: search by before
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=before&timeAt=2020-10-19T12:00:00Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by after
           source: 'curl --location --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=after&timeAt=2020-10-18T14:20:01Z''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
         - lang: cURL
           label: search by between and filter
           source: "curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&timerel=between&timeAt=2020-10-18T14:20:00Z&endtimeAt=2020-10-19T14:20:00Z&attrs=id,currentLevel,referenceLevel'\
-          \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
+            \ \\\n--header 'Authorization: Bearer <tokenValue>'        \n"
 
         - lang: cURL
           label: complex search
           source: 'curl --location -g --request GET ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entities?id=UUID&geoproperty=location&georel=near;maxDistance=10&geometry=Point&coordinates=[21.178,72.834]&timerel=before&timeAt=2020-10-19T14:00:00Z&attrs=id,location,speed''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>''
+            --header ''Authorization: Bearer <tokenValue>''
 
-          '
+            '
       deprecated: false
       description: "The `/temporal/entities` end point allows a consumer to query\
         \ on data published based on a **spatial**, **temporal** and **attribute**\
@@ -765,15 +765,15 @@ paths:
         - lang: cURL
           label: Spatial complex query
           source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/entityOperations/query''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>'' \
+            --header ''Authorization: Bearer <tokenValue>'' \
 
-          --header ''Content-Type: application/json'' \
+            --header ''Content-Type: application/json'' \
 
-          --data-raw ''<payload>''
+            --data-raw ''<payload>''
 
-          '
+            '
       requestBody:
         $ref: '#/components/requestBodies/PostEntitiesRequest'
       responses:
@@ -880,15 +880,15 @@ paths:
         - lang: cURL
           label: Spatial complex query
           source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v2/entityOperations/query''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>'' \
+            --header ''Authorization: Bearer <tokenValue>'' \
 
-          --header ''Content-Type: application/json'' \
+            --header ''Content-Type: application/json'' \
 
-          --data-raw ''<payload>''
+            --data-raw ''<payload>''
 
-          '
+            '
       requestBody:
         $ref: '#/components/requestBodies/PostEntitiesRequest2'
       responses:
@@ -995,15 +995,15 @@ paths:
         - lang: cURL
           label: Spatial + temporal complex query
           source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v1/temporal/entityOperations/query''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>'' \
+            --header ''Authorization: Bearer <tokenValue>'' \
 
-          --header ''Content-Type: application/json'' \
+            --header ''Content-Type: application/json'' \
 
-          --data-raw ''<payload>''
+            --data-raw ''<payload>''
 
-          '
+            '
 
       requestBody:
         $ref: '#/components/requestBodies/PostTemporalRequest'
@@ -1116,15 +1116,15 @@ paths:
         - lang: cURL
           label: Spatial + temporal complex query
           source: 'curl --location --request POST ''https://${HOSTNAME}/ngsi-ld/v2/temporal/entityOperations/query''
-          \
+            \
 
-          --header ''Authorization: Bearer <tokenValue>'' \
+            --header ''Authorization: Bearer <tokenValue>'' \
 
-          --header ''Content-Type: application/json'' \
+            --header ''Content-Type: application/json'' \
 
-          --data-raw ''<payload>''
+            --data-raw ''<payload>''
 
-          '
+            '
 
       requestBody:
         $ref: '#/components/requestBodies/PostTemporalRequest2'
