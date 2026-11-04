@@ -14,7 +14,8 @@ public class GatewayControllerFactory {
       URNGenerator urnGenerator,
       JsonObject config,
       AuditingHandler auditingHandler,
-      AppIdItemAccessHandler appIdItemAccessHandler) {
+      AppIdItemAccessHandler appIdItemAccessHandler,
+      boolean isEmailRequiredInRequest) {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 365);
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
@@ -26,6 +27,7 @@ public class GatewayControllerFactory {
         urnGenerator,
         config.getString("controlPlaneDomain"),
         auditingHandler,
-        appIdItemAccessHandler);
+        appIdItemAccessHandler,
+        isEmailRequiredInRequest);
   }
 }

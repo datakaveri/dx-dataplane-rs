@@ -587,6 +587,27 @@ unboxing `controlplaneGrpcPort`).
 - **Notes / gotchas:** The shipped `ApiServerVerticle` value is `25000` (~68 years) — like the
   `timeLimit` days part, it effectively disables the sync cap for dev. Size it for production.
 
+#### `ProxyApiServerVerticle.isEmailRequiredInRequest`
+
+- **Type / format:** bool — **feature flag**
+- **Required:** no — defaults `false` (read in `ProxyApiServerVerticle`, threaded through
+  `ControllerFactoryProxy` into `EntitiesController` and `GatewayController`)
+- **Purpose:** When `true`, the authenticated user's `email` claim is copied out of the decoded
+  JWT and added as an `email` key on the query JSON published to the adapter over RMQ, next to
+  `instanceId` / `publicKey` / `api` / `applicableFilters`. **This is the email needed for
+  SATA** — SATA identifies the requesting user by email, so the flag must be `true` on
+  SATA-serving deployments and can stay `false` everywhere else.
+- **Example value:** `true`
+- **Failure mode:** none at startup — a missing key is simply `false`. With the flag off, SATA
+  receives queries with no `email` and cannot attribute the request. With it on, requests
+  authenticated by **appId/secret rather than a JWT carry no `email` claim**, so the key is
+  omitted for those (a debug line is logged); only Bearer-token requests are enriched.
+- **Change impact:** proxy server only (8444) — the API and published servers ignore it.
+- **Notes / gotchas:** The value comes straight from the token's `email` claim, so the Keycloak
+  client must request the `email` scope; a token issued without it enriches nothing. Enabling
+  the flag puts a personal identifier on the RMQ payload — keep it off unless the downstream
+  consumer actually needs it.
+
 #### `isAdexInstance` *(on the API-server module entries)*
 
 - **Required:** no — **no consumer found.** See §4. (A `production` boolean that used to sit
@@ -683,6 +704,7 @@ Scheme and slash rules are enforced inconsistently — follow this table literal
 | `portSsl` (databroker) | `false` | HTTPS for the **management API only**, not AMQP |
 | `issuers.jwtIgnoreExpiry` | `false` | **never `true` in production** — shipped example has `true` |
 | `timeLimit` mode word | — | `test` pins search "now" to the anchor date; must be `production` in prod |
+| `isEmailRequiredInRequest` (proxy) | `false` | adds the token's `email` to the RMQ query — **the email SATA needs**; JWT requests only |
 
 ## 4. Findings — fields to resolve
 
