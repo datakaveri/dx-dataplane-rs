@@ -35,6 +35,9 @@ public class ParamsValidator {
       Pattern.compile("^-?\\d{1,3}\\.\\d{1,6}$|^-?\\d{1,3}$");
   private static final Pattern VALIDATION_Q_ATTR_PATTERN = Pattern.compile("^[a-zA-Z0-9_.]+$");
   private static final Pattern VALIDATION_Q_VALUE_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]+$");
+
+  /** SADx mode: the default value characters plus the standard base64 alphabet ('+', '/', '='). */
+  private static final Pattern SADAX_Q_VALUE_PATTERN = Pattern.compile("^[a-zA-Z0-9_.+/=-]+$");
   private static final Pattern VALIDATION_ID_PATTERN =
       Pattern.compile("^urn:ngsi-ld:[a-zA-Z0-9_-]+$");
   private static final String[] VALIDATION_ALLOWED_OPERATORS = {"==", ">", "<", ">=", "<=", "!="};
@@ -75,12 +78,26 @@ public class ParamsValidator {
     validHeaders.add(HEADER_PARQUET);
   }
 
+  private static final int MAX_ECHOED_VALUE_LENGTH = 100;
+
   private final int maxDaysSync;
   private final int maxDaysAsync;
 
+  /**
+   * SADx mode: q may carry binary values (e.g. a face image) as standard base64 (with '+', '/' and
+   * '=' padding) or base64url. Each q term is split at its first operator only and values may use
+   * the base64 alphabet. When false, the existing q validation applies unchanged.
+   */
+  private final boolean isSadax;
+
   public ParamsValidator(int maxDaysSync, int maxDaysAsync) {
+    this(maxDaysSync, maxDaysAsync, false);
+  }
+
+  public ParamsValidator(int maxDaysSync, int maxDaysAsync, boolean isSadax) {
     this.maxDaysSync = maxDaysSync;
     this.maxDaysAsync = maxDaysAsync;
+    this.isSadax = isSadax;
   }
 
   private static double getValue(String[] parts) {
@@ -290,23 +307,65 @@ public class ParamsValidator {
 
     String[] attributes = q.split(";");
     for (String attr : attributes) {
-      String[] terms = attr.split("((?=>)|(?<=>)|(?=<)|(?<=<)|(?<==)|(?=!)|(?<=!)|(?==)|(?===))");
-      if (terms.length < 3 || terms.length > 4)
-        throw new DxBadRequestException("Invalid q parameter format: " + attr);
+      String[] terms;
+      if (isSadax) {
+        // Split only at the first operator so '=' inside a base64 value (padding) survives.
+        terms = splitAtFirstOperator(attr);
+        if (terms == null || terms[0].isEmpty() || terms[2].isEmpty())
+          throw new DxBadRequestException("Invalid q parameter format: " + abbreviate(attr));
+      } else {
+        String[] parts =
+            attr.split("((?=>)|(?<=>)|(?=<)|(?<=<)|(?<==)|(?=!)|(?<=!)|(?==)|(?===))");
+        if (parts.length < 3 || parts.length > 4)
+          throw new DxBadRequestException("Invalid q parameter format: " + abbreviate(attr));
+        terms =
+            parts.length == 3
+                ? parts
+                : new String[] {parts[0], parts[1] + parts[2], parts[3]};
+      }
 
       String jsonAttribute = terms[0];
-      String jsonOperator = terms.length == 3 ? terms[1] : terms[1] + terms[2];
-      String jsonValue = terms.length == 3 ? terms[2] : terms[3];
+      String jsonOperator = terms[1];
+      String jsonValue = terms[2];
 
       boolean isNumeric = isNumericString(jsonValue);
+      Pattern valuePattern = isSadax ? SADAX_Q_VALUE_PATTERN : VALIDATION_Q_VALUE_PATTERN;
 
       if (!isValidOperator(jsonOperator, isNumeric))
         throw new DxBadRequestException("Invalid operator in q: " + jsonOperator);
       if (!VALIDATION_Q_ATTR_PATTERN.matcher(jsonAttribute).matches())
-        throw new DxBadRequestException("Invalid attribute in q: " + jsonAttribute);
-      if (!VALIDATION_Q_VALUE_PATTERN.matcher(jsonValue).matches())
-        throw new DxBadRequestException("Invalid value in q: " + jsonValue);
+        throw new DxBadRequestException("Invalid attribute in q: " + abbreviate(jsonAttribute));
+      if (!valuePattern.matcher(jsonValue).matches())
+        throw new DxBadRequestException("Invalid value in q: " + abbreviate(jsonValue));
     }
+  }
+
+  /**
+   * Splits "attr<op>value" at the first operator character into {attr, op, value}, taking the
+   * two-character operators (==, !=, >=, <=) when present. Returns null when there is no operator.
+   */
+  private static String[] splitAtFirstOperator(String term) {
+    for (int i = 0; i < term.length(); i++) {
+      char c = term.charAt(i);
+      if (c == '=' || c == '!' || c == '<' || c == '>') {
+        String op = String.valueOf(c);
+        if (i + 1 < term.length()) {
+          String two = term.substring(i, i + 2);
+          if (two.equals("==") || two.equals("!=") || two.equals(">=") || two.equals("<=")) {
+            op = two;
+          }
+        }
+        return new String[] {term.substring(0, i), op, term.substring(i + op.length())};
+      }
+    }
+    return null;
+  }
+
+  /** Keeps error messages small when q carries large values such as images. */
+  private static String abbreviate(String s) {
+    return s.length() <= MAX_ECHOED_VALUE_LENGTH
+        ? s
+        : s.substring(0, MAX_ECHOED_VALUE_LENGTH) + "...(" + s.length() + " chars)";
   }
 
   private boolean isValidOperator(String op, boolean isNumeric) {

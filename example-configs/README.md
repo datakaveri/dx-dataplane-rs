@@ -587,6 +587,22 @@ unboxing `controlplaneGrpcPort`).
 - **Notes / gotchas:** The shipped `ApiServerVerticle` value is `25000` (~68 years) — like the
   `timeLimit` days part, it effectively disables the sync cap for dev. Size it for production.
 
+#### `ProxyApiServerVerticle.isSadax`
+
+- **Type / format:** bool — **feature flag**
+- **Required:** no — defaults `false` (read in `EntityControllerfactory`, passed to
+  `rs.validation.ParamsValidator`)
+- **Purpose:** SADx adapters send binary query attributes (e.g. a face image) inside `q` on
+  `POST /ngsi-ld/v1/entityOperations/query`. When `true`, `q` values may use the **standard
+  base64** alphabet (`[a-zA-Z0-9_.+/=-]`, so `+`, `/` and `=` padding are allowed; base64url
+  works too), and each `q` term is split at its first operator only, so padding such as
+  `image==abc==` is not mistaken for an operator. When `false`, the existing `q` validation
+  (`[a-zA-Z0-9_.-]`, split on every operator character) applies unchanged.
+- **Failure mode:** `false` on a SADx deployment → base64 images rejected with
+  `Invalid q parameter format`.
+- **Notes / gotchas:** `q` on the entities POST has no length limit (the former OpenAPI
+  `maxLength: 512` was removed). The `handlePost` debug log prints the full body, image included.
+
 #### `ProxyApiServerVerticle.isEmailRequiredInRequest`
 
 - **Type / format:** bool — **feature flag**

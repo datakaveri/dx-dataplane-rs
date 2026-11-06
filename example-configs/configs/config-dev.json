@@ -116,7 +116,8 @@
       "maxDaysSync": 365,
       "maxDaysAsync": 365,
       "timeout": 500000,
-      "isEmailRequiredInRequest": false
+      "isEmailRequiredInRequest": false,
+      "isSadax": false
     },
     {
       "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",

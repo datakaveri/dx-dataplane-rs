@@ -19,7 +19,8 @@ public class EntityControllerfactory {
 
     int maxDaysSync = config.getInteger("maxDaysSync", 10);
     int maxDaysAsync = config.getInteger("maxDaysAsync", 365);
-    ParamsValidator validator = new ParamsValidator(maxDaysSync, maxDaysAsync);
+    boolean isSadax = config.getBoolean("isSadax", false);
+    ParamsValidator validator = new ParamsValidator(maxDaysSync, maxDaysAsync, isSadax);
 
     return new EntitiesController(
         dataBrokerService,

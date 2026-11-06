@@ -1316,10 +1316,10 @@ components:
             \ `<`,`>`,`<=`,`>=`,`!=`, `==` operators. \n For e.g, attribute > value,\
             \ attribute < value, attribute >= value, attribute <= value, attribute\
             \ != value and attribute == value. \n Allowed values for all operators\
-            \ is double."
+            \ is double.\n When the server runs with `isSadax` enabled, values may also be\
+            \ standard base64 (characters `+`, `/` and `=` padding), e.g. for images."
           type: string
           minLength: 1
-          maxLength: 512
           pattern: ^.*$
         options:
           type: string
