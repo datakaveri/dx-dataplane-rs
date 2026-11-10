@@ -12,9 +12,25 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.cdpg.dx.auditing.model.AuditLog;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.keycloak.config.KeycloakConstants;
 import org.cdpg.dx.rs.audit.model.DataPlaneAuditLog;
 
 public class DataplaneAuditHelper {
+
+  public static final String ACTOR_TYPE_SELF = "SELF";
+  public static final String ACTOR_TYPE_DELEGATE = "DELEGATE";
+  public static final String ACTOR_TYPE_APP = "APP";
+
+  /**
+   * Who actually performed the action. Delegation takes precedence (an AppId request with a did
+   * header resolves to the delegator, and the principal no longer carries app_id), then app
+   * credentials, defaulting to SELF.
+   */
+  private static String resolveActorType(JsonObject principal, String delegateId) {
+    if (delegateId != null) return ACTOR_TYPE_DELEGATE;
+    if (principal.getString(KeycloakConstants.CLAIM_APP_ID) != null) return ACTOR_TYPE_APP;
+    return ACTOR_TYPE_SELF;
+  }
 
   public static AuditLog createAuditingLogs(
       RoutingContext ctx,
@@ -27,7 +43,11 @@ public class DataplaneAuditHelper {
     String userId = principal.getString("sub");
     String iss = principal.getString("iss");
     String role = resolveRole(principal);
-    String delegatorId = "delegate".equals(role) ? ctx.request().getHeader("did") : userId;
+    // After header-based delegation (did), AuthenticationHandler swaps sub to the delegator and
+    // stamps the original caller (token sub) as delegatee_sub. Same contract as controlplane's
+    // AuditContextExtractor.getDelegateId/getActorType.
+    String delegateId = principal.getString(KeycloakConstants.CLAIM_DELEGATEE_SUB);
+    String actorType = resolveActorType(principal, delegateId);
     return createAuditingLogs(
         RoutingContextHelper.getItemMetaData(ctx),
         assetId,
@@ -38,7 +58,8 @@ public class DataplaneAuditHelper {
         role,
         operation,
         iss,
-        delegatorId,
+        delegateId,
+        actorType,
         byteWritten);
   }
 
@@ -63,6 +84,7 @@ public class DataplaneAuditHelper {
       String operation,
       String iss,
       String delegateId,
+      String actorType,
       long byteWritten) {
     UUID id = UUID.randomUUID();
     return new DataPlaneAuditLog(
@@ -80,7 +102,8 @@ public class DataplaneAuditHelper {
         getOrganizationId(itemMetaData),
         getOrganizationName(itemMetaData),
         iss,
-        delegateId);
+        delegateId,
+        actorType);
   }
 
   private static String getItemType(JsonArray itemType) {
