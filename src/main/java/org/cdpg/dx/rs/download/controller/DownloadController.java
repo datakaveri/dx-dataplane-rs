@@ -2,46 +2,86 @@ package org.cdpg.dx.rs.download.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_ID_ENTITY_DATA;
 import static org.cdpg.dx.apiserver.config.ApiConstants.DOWNLOAD_PUT_SEARCH_DATA;
-import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
-import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.download.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
+import org.cdpg.dx.common.util.RoutingContextHelper;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.download.model.GetRequestModel;
 import org.cdpg.dx.rs.download.service.DownloadService;
-import org.cdpg.dx.rs.util.CheckItemAccessHandler;
-import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
 
 public class DownloadController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(DownloadController.class);
   private final DownloadService downloadService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final CheckItemAccessHandler checkItemAccessHandler;
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
+  private final URNGenerator urnGenerator;
+  private final AuditingHandler auditingHandler;
+  private final IdValidation idValidation;
 
-  public DownloadController(DownloadService downloadService, String controlPlaneDomain) {
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
+
+  public DownloadController(
+      DownloadService downloadService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     this.downloadService = downloadService;
-    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
+    this.urnGenerator = urnGenerator;
+    this.itemAccessApplicableFilterHandlerNgsild =
+        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.auditingHandler = auditingHandler;
+    this.idValidation = new IdValidation();
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
         .operation(DOWNLOAD_ID_ENTITY_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
+        .handler(appIdItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
+        .handler(idValidation)
         .handler(this::handleDownloadIdGetData);
     builder
         .operation(DOWNLOAD_PUT_SEARCH_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
+        .handler(appIdItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
+        .handler(idValidation)
         .handler(this::handleDownloadIdPostData);
     LOGGER.debug("Download Controller deployed and route registered.");
   }
@@ -62,8 +102,9 @@ public class DownloadController implements ApiController {
               .setAssetSearch(false)
               .setCountApi(false)
               .build();
+      // Use scroll-based streaming for POST download
       downloadService
-          .streamElasticDataCsvBatched(searchQuery, id)
+          .streamElasticDataCsvScroll(searchQuery, id)
           .onSuccess(
               csvStream -> {
                 if (csvStream == null) {
@@ -77,7 +118,16 @@ public class DownloadController implements ApiController {
                           routingContext.fail(err);
                         })
                     .handler(buffer -> response.write(buffer))
-                    .endHandler(v -> response.end());
+                    .endHandler(
+                        v -> {
+                          response.end();
+                          long bytesWritten = response.bytesWritten();
+                          RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                          AuditLog auditLog =
+                              DataplaneAuditHelper.createAuditingLogs(
+                                  routingContext, id, "POST", NGSILD, DOWNLOAD, bytesWritten);
+                          RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+                        });
               })
           .onFailure(
               err -> {
@@ -86,6 +136,7 @@ public class DownloadController implements ApiController {
               });
     } catch (Exception e) {
       LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+      routingContext.fail(e);
     }
   }
 
@@ -115,11 +166,17 @@ public class DownloadController implements ApiController {
     String sortOrder = sortBy.split(":")[1];
     sortBy = sortBy.split(":")[0];
 
+    JsonArray applicableFilters = RoutingContextHelper.getApplicableFilter(routingContext);
+    boolean attrFilter = false;
+    if (applicableFilters.contains("ATTR") && !applicableFilters.contains("TEMPORAL")) {
+      attrFilter = true;
+    }
     GetRequestModel getRequestModel =
-        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder, attrFilter);
 
+    // Use scroll-based streaming for GET download
     downloadService
-        .streamElasticDataCsvBatched(getRequestModel)
+        .streamElasticDataCsvScroll(getRequestModel)
         .onSuccess(
             csvStream -> {
               if (csvStream == null) {
@@ -133,7 +190,16 @@ public class DownloadController implements ApiController {
                         routingContext.fail(err);
                       })
                   .handler(buffer -> response.write(buffer))
-                  .endHandler(v -> response.end());
+                  .endHandler(
+                      v -> {
+                        response.end();
+                        long bytesWritten = response.bytesWritten();
+                        RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                        AuditLog auditLog =
+                            DataplaneAuditHelper.createAuditingLogs(
+                                routingContext, id, "GET", NGSILD, DOWNLOAD, bytesWritten);
+                        RoutingContextHelper.setAuditingLog(routingContext, auditLog);
+                      });
             })
         .onFailure(
             err -> {

@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.rs.latest.util.dtoUtil;
 import io.vertx.core.json.JsonObject;
 
@@ -49,11 +50,13 @@ public class TemporalQ {
         this.timeProperty = timeProperty;
     }
 
-    /**
+    */
+/**
      * Serializes this TemporalQ instance into a JsonObject.
      *
      * @return a JsonObject representing this TemporalQ
-     */
+     *//*
+
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         if(timerel!=null) json.put("timerel", timerel);
@@ -62,4 +65,4 @@ public class TemporalQ {
         return json;
     }
 
-}
+}*/

@@ -1,7 +1,7 @@
 package org.cdpg.dx.essearch.model;
 
 import static org.cdpg.dx.database.elastic.util.Constants.GEOSEARCH_REGEX;
-import static org.cdpg.dx.essearch.util.Constants.*;
+import static org.cdpg.dx.database.elastic.util.Constants.*;
 
 import java.util.*;
 import org.apache.logging.log4j.LogManager;
@@ -86,6 +86,14 @@ public class QueryDecoder {
     return q;
   }
 
+  public QueryModel getQueryForAttr(int size, int page) {
+    QueryModel q = new QueryModel(QueryType.MATCH_ALL);
+    q.setLimit(String.valueOf(size));
+    int offset = (page - 1) * size;
+    q.setOffset(String.valueOf(offset));
+    return q;
+  }
+
   // Added for temporal query based on observation date time
   public QueryModel getTemporalQueryBasedOnObservationDateTime(
       TemporalQueryRequestModel temporalQueryRequest, String sortBy, String sortOrder) {
@@ -102,14 +110,13 @@ public class QueryDecoder {
         defaultDateLimit = Integer.parseInt(temporalQueryRequest.getTimeLimit().split(",")[2]);
       }
       new TemporalQueryFiltersDecorator(queryMap, temporalQueryRequest, defaultDateLimit).add();
-
       QueryModel q = new QueryModel();
       q.setSortFields(Map.of(sortBy, sortOrder));
       q.setLimit(String.valueOf(temporalQueryRequest.getSize()));
       int offset = (temporalQueryRequest.getPage() - 1) * temporalQueryRequest.getSize();
       q.setOffset(String.valueOf(offset));
       q.setQueries(getBoolQuery(queryMap));
-
+      LOGGER.debug("checking temporal query in query models " + q);
       for (QueryModel qm : queryMap.get(FilterType.FILTER)) {
         if (qm.getIncludeFields() != null) {
           q.setIncludeFields(qm.getIncludeFields());

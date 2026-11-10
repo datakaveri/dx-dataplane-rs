@@ -113,8 +113,8 @@ public class ParamsValidator {
         if (isTemporalQuery(paramsMap)) {
             temporalQ = new JsonObject()
                     .put(NGSILDQUERY_TIMEREL, paramsMap.get(NGSILDQUERY_TIMEREL))
-                    .put(NGSILDQUERY_TIME, paramsMap.get(NGSILDQUERY_TIME))
-                    .put(NGSILDQUERY_ENDTIME, paramsMap.get(NGSILDQUERY_ENDTIME));
+                    .put(NGSILDQUERY_TIMEAT, paramsMap.get(NGSILDQUERY_TIMEAT))
+                    .put(NGSILDQUERY_ENDTIMEAT, paramsMap.get(NGSILDQUERY_ENDTIMEAT));
         }
 
         boolean isValid = true;
@@ -166,8 +166,8 @@ public class ParamsValidator {
 
     private Boolean isTemporalQuery(MultiMap params) {
         return params.contains(NGSILDQUERY_TIMEREL)
-                || params.contains(NGSILDQUERY_TIME)
-                || params.contains(NGSILDQUERY_ENDTIME)
+                || params.contains(NGSILDQUERY_TIMEAT)
+                || params.contains(NGSILDQUERY_ENDTIMEAT)
                 || params.contains(NGSILDQUERY_TIME_PROPERTY);
     }
 

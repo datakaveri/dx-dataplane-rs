@@ -1,0 +1,12 @@
+apis:
+  dataplane:
+    root: openapi.yaml
+
+rules:
+  no-unused-components: warn
+  no-unresolved-refs: error
+  spec: error
+
+theme:
+  openapi:
+    schemaExpansionLevel: 2

@@ -1,0 +1,116 @@
+openapi: 3.0.2
+
+info:
+  title: "Data exchange Resource Server APIs"
+  version: 1.1.0
+  description: |
+    # Introduction
+    The Dataplane Server is DXs'(Data exchange) data store which allows publication and discovery of data.
+    For search and discovery, it allows users to search through temporal, geo-based and attribute queries.
+    It enables *Providers* of datasources to publish data as per the DX(Data exchange) data descriptor.
+    It enables *Consumers* of datasources to search and query for data using HTTPs APIs.
+
+    # Configurations
+    - **Server**:
+      - In the doc, we display the server url to be https://${HOSTNAME} with the hostname as ${HOSTNAME}
+      - This could be configured according to the deployment
+    - **Base path**:
+      - Base path is the path on which API is served, relative to the host
+      - It is the initial part of the API
+      - These base path values could be configured according to the deployment
+      - Currently, the following APIs have `/ngsi-ld/v2` base path
+          -  /entities/{id}
+          -  /entities/{id}/search
+          -  /{id}/download
+      <br>
+    - **Request Samples**:
+      - The `<tokenValue>` in the header of request sample could be replaced with respective token value [Also refer Tokens section [here](#section/Tokens)]
+      - The `<payload>` in the request sample could be replaced with the payload given adjacent to the request sample
+
+
+    # Tokens
+    All the <b>*Search API*</b>  calls to the resource server should now contain a valid data exchange auth token presented in the query header. To search (or) access an *Open* resource, the consumer should present a valid data exchange Auth token. To search (or) access a *Secure / Closed* resource, a consumer must get a token for the *Secure / Closed* resource along with the associated constraints from the DX(Data exchange) Controlplane Server.
+
+    # Pagination
+    Resource server also offers way to paginate the result for queries. If a query returns large number of records then user can use additional parameters in query parameters to limit numbers of records to be returned.
+
+    - <b> Pagination is applicable only for</b>
+       - <b>/entities/{id}</b>
+       - <b>/entities/{id}/search</b>
+       - <b>/{id}/download</b>
+
+    Additional query parameters to be used:
+      - <b>page</b> : The page parameter defines the page from the first result you want to fetch,  ( <i>default : 1</i> ,<i>minValue: 1</i>, <i>maxValue: 49999</i> )
+      - <b>size</b> : The size parameter allows you to configure the maximum results to be returned  ( <i>default: 100</i> ,<i>minValue: 0</i>, <i>maxValue: 49999</i> )
+
+    # API HTTP Responses
+    Apart from the response codes specified in each API, the API server may respond with certain 4xx and 5xx error codes which are related to common API Gateway behaviours.
+    The application should address them accordingly.
+
+  contact:
+    name: For support contact CDPG Team at
+    email: ${SUPPORT_EMAIL}
+    url: https://dataforpublicgood.org.in/
+  license:
+    name: Apache 2.0
+
+tags:
+  - name: Temporal Entities
+    x-displayName: "Temporal and Complex Search"
+    description: |
+      A Temporal Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `temporal`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `temporal` parameter is <b>mandatory</b>. <br/> You can use this API to make a `temporal` or `complex : temporal+spatial` or `complex : temporal+attribute` or `complex : temporal+spatial+attribute` query. <br/> If you are looking for an `attribute` only query refer the <b>Spatial Search</b> `/entities` endpoint.
+  - name: Entities Spatial
+    x-displayName: "Entities Spatial and Complex Search"
+    description: |
+      A Entities Search is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`, `spatial` and `attribute` parameters. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) catalogue server </b>. <br/>In order to use this API, a `id` parameter is <b>mandatory</b>. <br/> You can use this API to make a `entities attributes` or `complex : attribute+spatial` query. <br/> If you are looking for an `temporal`  query refer the <b>Temporal Entities</b> `/temporal/entities` endpoint.
+  - name: Download CSV
+    x-displayName: "Download"
+    description: |
+      Download APIs are used by DX(Data exchange) Data to stream data in csv.
+  - name: Search Entity
+    x-displayName: "Search Data"
+    description: |
+      A Search query is used by DX(Data exchange) Data *Consumers* for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, and temporal-based searches and geo-spatial search using a common `searchCriteria` array format.
+  - name: Latest Entity
+    x-displayName: "Latest Data"
+    description: |
+      A Latest Search query is used by DX(Data exchange) Data *Consumers* for querying a resource using a <b>valid data exchange</b> `id`. Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) controlplane server </b> . Latest APIs get the latest data belonging to the given valid DX `id`. The user could provide a valid access token while using the API.
+
+  - name: Data Ingestion Adaptor
+    x-displayName: "Data Ingestion Adaptor"
+    description: |
+      Data Ingestion Adaptor APIs are used by DX(Data exchange) Data *Providers* for publishing data to the resource server as per the data descriptor. The user could provide a valid access token while using the API.
+
+servers:
+  - url: 'https://${HOSTNAME}'
+    description: 'Server URL'
+
+# Global security definition (applies to all paths unless overridden)
+
+paths:
+  /ngsi-ld/v1/temporal/entities:
+    $ref: 'paths/temporal.yaml#/~1ngsi-ld~1v1~1temporal~1entities'
+  /ngsi-ld/v1/temporal/entityOperations/query:
+    $ref: 'paths/temporal.yaml#/~1ngsi-ld~1v1~1temporal~1entityOperations~1query'
+  /ngsi-ld/v1/entities:
+    $ref: 'paths/entities.yaml#/~1ngsi-ld~1v1~1entities'
+  /ngsi-ld/v1/entityOperations/query:
+    $ref: 'paths/entities.yaml#/~1ngsi-ld~1v1~1entityOperations~1query'
+  /ngsi-ld/v2/entities/{id}:
+    $ref: 'paths/latest.yaml#/~1ngsi-ld~1v2~1entities~1{id}'
+  /ngsi-ld/v2/entities/{id}/search:
+    $ref: 'paths/search.yaml#/~1ngsi-ld~1v2~1entities~1{id}~1search'
+  /ngsi-ld/v2/{id}/download:
+    $ref: 'paths/download.yaml#/~1ngsi-ld~1v2~1{id}~1download'
+  /admin/elasticsearch/createIndex:
+    $ref: 'paths/admin.yaml#/~1admin~1elasticsearch~1createIndex'
+  /ngsi-ld/v1/ingestion/entities:
+    $ref: 'paths/ingestion.yaml#/~1ngsi-ld~1v1~1ingestion~1entities'
+  /ngsi-ld/v1/ingestion/entities/{id}/on-seek:
+    $ref: 'paths/ingestion.yaml#/~1ngsi-ld~1v1~1ingestion~1entities~1{id}~1on-seek'
+  /ngsi-ld/v1/ingestion/entities/{id}:
+    $ref: 'paths/ingestion.yaml#/~1ngsi-ld~1v1~1ingestion~1entities~1{id}'
+
+components:
+  securitySchemes:
+    $ref: 'components/security-schemes.yaml'

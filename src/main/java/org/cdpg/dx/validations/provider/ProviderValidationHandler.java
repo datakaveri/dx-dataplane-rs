@@ -14,6 +14,7 @@ import org.cdpg.dx.catalogue.service.CatalogueService;
 import org.cdpg.dx.common.exception.DxBadRequestException;
 import org.cdpg.dx.common.model.JwtData;
 import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.common.util.RsRoutingContextHelper;
 
 public class ProviderValidationHandler implements Handler<RoutingContext> {
     private static final Logger LOGGER = LogManager.getLogger(ProviderValidationHandler.class);
@@ -27,7 +28,7 @@ public class ProviderValidationHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext routingContext) {
         String id = RoutingContextHelper.getId(routingContext);
         LOGGER.debug("id {} to verify provider check", id);
-        Optional<JwtData> jwtData = RoutingContextHelper.getJwtData(routingContext);
+        Optional<JwtData> jwtData = RsRoutingContextHelper.getJwtData(routingContext);
         roleAccessValidation(jwtData.get())
                 .compose(
                         roleAccessValidationHandler -> catalogueService.getProviderOwnerId(id))
@@ -35,7 +36,7 @@ public class ProviderValidationHandler implements Handler<RoutingContext> {
                         providerIdHandler -> {
                             LOGGER.trace("providerOwnerId {}", providerIdHandler);
                             return validateProviderUser(
-                                    providerIdHandler, RoutingContextHelper.getJwtData(routingContext).get());
+                                    providerIdHandler, RsRoutingContextHelper.getJwtData(routingContext).get());
                         })
                 .onSuccess(
                         validateProviderUserHandler -> {

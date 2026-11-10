@@ -1,3 +1,4 @@
+/*
 package org.cdpg.dx.rs.latest.model;
 
 import io.vertx.core.MultiMap;
@@ -143,9 +144,11 @@ public class RequestDTO {
         return Arrays.asList(input.split(","));
     }
 
-    /**
+    */
+/**
      * Set the appropriate geometry coordinates based on the geometry type.
-     */
+     *//*
+
     private void setGeometryCoordinates(List<List<Double>> coordinatesList, String geometryType) {
         if (geometryType == null || coordinatesList == null) {
             return;
@@ -203,9 +206,11 @@ public class RequestDTO {
                 : searchType.substring(0, searchType.length() - 1);
     }
 
-    /**
+    */
+/**
      * Convert this DTO into a JsonObject.
-     */
+     *//*
+
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
@@ -293,3 +298,4 @@ public class RequestDTO {
         this.timeLimit = timeLimit;
     }
 }
+*/

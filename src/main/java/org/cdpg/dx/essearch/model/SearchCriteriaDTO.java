@@ -1,5 +1,6 @@
 package org.cdpg.dx.essearch.model;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 
@@ -20,7 +21,8 @@ public class SearchCriteriaDTO {
   public static SearchCriteriaDTO fromJson(JsonObject json) {
     String field = json.getString("field");
     String searchType = json.getString("searchType");
-    List<Object> values = json.getJsonArray("values").getList();
+    JsonArray valuesArray = json.getJsonArray("values");
+    List<Object> values = valuesArray == null ? List.of() : valuesArray.getList();
 
     return new SearchCriteriaDTO(field, searchType, values);
   }

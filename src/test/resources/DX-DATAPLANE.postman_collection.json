@@ -1,0 +1,1214 @@
+{
+  "info": {
+    "_postman_id": "f527b643-e8a8-4035-82bf-4fbce9bc4a99",
+    "name": "DX-DATAPLANE",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20457128"
+  },
+  "item": [
+    {
+      "name": "Token",
+      "item": [
+        {
+          "name": "Generate Client id and Client Secret",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTgxMDY0MjAsImlhdCI6MTc1ODEwNTUyMCwianRpIjoib25ydHJvOjBhNmJjMWJmLWFlNWQtNDM5Ni05NjEwLWRhYjcyOGY0NDQ3OCIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiIxZGMyOGNjNi1kNjE0LTQ2MWEtOWI4Zi1kNjExMGZlYjNlMmYiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiJiMmY3ZmE1Yy1lYTRkLTRhZTgtOTI5Ni0wMzJiM2ZlMTU1YWYiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIiwiY29zX2FkbWluIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJBbmFuamF5IEt1bWFyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYW5hbmpheS5rdW1hckBkYXRha2F2ZXJpLm9yZyIsImdpdmVuX25hbWUiOiJBbmFuamF5IiwiZmFtaWx5X25hbWUiOiJLdW1hciIsImVtYWlsIjoiYW5hbmpheS5rdW1hckBkYXRha2F2ZXJpLm9yZyJ9.Coj_m66slP1_yytKvBMGQV6MBohIer3_0jN0oM6CkerkQ6XKSUojYTp0UkNYcYimtzpe0u2DyZ6e6P4g0yPei-8EYFrJBhM36Z_eeqF4n1BpmpyLO2XEKACGQQGcqK2r3KRYPzltL51Y7FqTaKDsRnXW3av6a3xsURIYS3m61vbBuBz119mQDsA2JeLj2FZuulfb4nm3NXhdpbgNMAwKGiAV1NZ7nWey1aT-TB7CB3zXwxDAAIzqsmQNgFrxDkpWwjEMlYXxjNjrJq4QEYT8ulCHXleJ1ak--QU7ig1YXfU9ra4cJAYj5GURXp4A1dtCMF_t9qmnH9nniPhR-1FYGQ"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.controlplane.iudx.io/iudx/v2/auth/client",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "controlplane",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "iudx",
+                "v2",
+                "auth",
+                "client"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "AAA Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "clientId",
+                "value": "7deb800b-075d-4d72-b955-731855deae03"
+              },
+              {
+                "key": "clientSecret",
+                "value": "8ca23689d3ec20e2b399b8f35636e48d020d0ae0"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "https://v2.dev.controlplane.iudx.io/iudx/v2/auth/token",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "controlplane",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "iudx",
+                "v2",
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cos Admin Keycloak Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = JSON.parse(responseBody);",
+                  "postman.setEnvironmentVariable(\"cosAdmin\", jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password",
+                  "type": "text"
+                },
+                {
+                  "key": "client_id",
+                  "value": "frontend-client",
+                  "type": "text"
+                },
+                {
+                  "key": "username",
+                  "value": "{{cos-admin-username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{cos-admin-password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "https://{{keycloak-url}}/auth/realms/tgdex-pilot/protocol/openid-connect/token",
+              "protocol": "https",
+              "host": [
+                "{{keycloak-url}}"
+              ],
+              "path": [
+                "auth",
+                "realms",
+                "tgdex-pilot",
+                "protocol",
+                "openid-connect",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "search",
+      "item": [
+        {
+          "name": "Temporal Search",
+          "item": [
+            {
+              "name": "Before timerel",
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2025-05-02T09:15:27+0530\"]\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": null,
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": null,
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "After timerel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"afterTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2025-03-20T04:00:00+0530\"]\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Between timerel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"betweenTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2025-03-20T04:00:00+0530\", \"2025-08-02T09:15:27+0530\"]\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "fuzzy",
+          "item": [
+            {
+              "name": "200 (suceess) - fuzzy search",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw"
+                  },
+                  {
+                    "key": "content-type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"q\": \"Ranaau\",\n    \"fuzzy\": false,\n    \"autoComplete\": false\n}"
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": null,
+                      "disabled": true
+                    },
+                    {
+                      "key": "size",
+                      "value": null,
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "geo-search",
+          "item": [
+            {
+              "name": "200 (success) Post Geo Data -- point Copy",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"result\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=20\",\n        \"geoproperty\": \"location\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "200 (success) Post Search - BBOX",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"result\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"geoQ\": {\n        \"geometry\": \"bbox\",\n        \"coordinates\": [\n            [\n                72.8296,\n                21.2\n            ],\n            [\n                72.8297,\n                21.15\n            ]\n        ],\n        \"georel\": \"within\",\n        \"geoproperty\": \"location\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "2",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "200 (success) Post Geo Data -- Poly",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"result\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"geoQ\": {\n    \"geometry\": \"Polygon\",\n    \"coordinates\": [\n      [\n        [72.81, 21.18],\n        [72.82, 21.19],\n        [72.84, 21.18],\n        [72.83, 21.16],\n        [72.81, 21.16],\n        [72.81, 21.18]\n      ]\n    ],\n    \"georel\": \"intersects\",\n    \"geoproperty\": \"location\"\n  }\n}\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "2",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "200 (success) Post Geo Data -- line",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"result\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"geoQ\": {\n        \"geometry\": \"linestring\",\n        \"coordinates\": [\n            [\n                72.833994,\n                21.17798\n            ],\n            [\n                72.833978,\n                21.178005\n            ]\n        ],\n        \"georel\": \"intersects\",\n        \"geoproperty\": \"location\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "2",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Complex Search",
+          "item": [
+            {
+              "name": "200 (success) Post Search - fuzzy+ temporal",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"results\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTc1NzI3MjYsImlhdCI6MTc1NzU3MTgyNiwianRpIjoib25ydGFjOjA1Mzk0NDRiLTRkYTItNGNjZC05ZmVhLWIyMDk2ZGUyODUzNSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiI1MGU4MjQ3Yi03YjJiLTQ5NGEtODAwMy03ZmJlZDU1OTk2NWEiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyLWNsaWVudCIsInNpZCI6IjcwNTVhNzA4LTM4Y2MtNDJiZC05YzY4LWQwYzc1NjQyZWIyZCIsImFsbG93ZWQtb3JpZ2lucyI6WyJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8iLCJodHRwczovL2NhdGFsb2d1ZS50Z2RleC5pdWR4LmlvIiwiaHR0cHM6Ly9jYXRhbG9ndWUuZm9yZXN0LXN0YWNrLnRlc3QuaXVkeC5pbyIsImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjQwMDIiLCJodHRwczovL2NhdGFsb2d1ZS5mb3Jlc3Qtc3RhY2sudGVzdC5pdWR4LmlvLyoiLCJodHRwczovL3N0YWdpbmcuY2F0YWxvZ3VlLnRnZGV4Lml1ZHguaW8vKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90IiwiY29uc3VtZXIiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJTdGF0ZSBJbmRpYSIsInByZWZlcnJlZF91c2VybmFtZSI6Im5hdmVlbi52ZWVyYXBhbGxpQGRhdGFrYXZlcmkub3JnIiwiZ2l2ZW5fbmFtZSI6IlN0YXRlIiwiZmFtaWx5X25hbWUiOiJJbmRpYSIsImVtYWlsIjoibmF2ZWVuLnZlZXJhcGFsbGlAZGF0YWthdmVyaS5vcmcifQ.ex-4nTi1ToIfl92QzVai2caB1dtVnh7bfGGpPmVeiIFgTWlIqXcj35KfGfKmu62a--d02kK42IERIs3Dma9uI4rF07TzmCdI5GYjo3ck_0z_ShlTpuiwbxFxi6gyrBDOsxKFpZKLcKof3F5uWWj5cOSCxisCAAZrQogBfmKQ_3gnjejJbDdSIKlZu-W8W3S3sNfb-6P5oVLMcOzS50g1R08nHwNbyYNqSpVbFLpTB2P5IKMydvlTQfn5CyMmKXWXxjWKSR1jKT1KHIrK1yW6sCZAk2YyPDgnpmGM0Dpp4Tm1NpwRZiO4OyDw9Bxt7GQz-l1YMiIJ5wUjk2pBXVWPVw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"q\" : \"Ranaau\",\n    \"fuzzy\" : false,\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2025-05-02T09:15:27+0530\"]\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "10",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "200 (success) Post Search - fuzzy+ temporal + geoq",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Test the response code",
+                      "pm.test(\"response is 200 (OK)\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Test the response header",
+                      "pm.test(\"Check response header\", function () {",
+                      "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                      "});",
+                      "",
+                      "// Test the response",
+                      "pm.test(\"Check response body\", function () {    ",
+                      "    const body = pm.response.json();",
+                      "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                      "    pm.expect(body).to.have.property(\"results\");",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"q\" : \"Ranaau\",\n    \"fuzzy\" : false,\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2025-05-02T09:15:27+0530\"]\n        }\n    ],\n     \"geoQ\": {\n        \"geometry\": \"Point\",\n        \"coordinates\": [21.178,72.834],\n        \"georel\": \"near;maxDistance=20\",\n        \"geoproperty\": \"location\"\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search",
+                  "protocol": "https",
+                  "host": [
+                    "v2",
+                    "dev",
+                    "rs",
+                    "iudx",
+                    "io"
+                  ],
+                  "path": [
+                    "ngsi-ld",
+                    "v2",
+                    "entities",
+                    "f29d4456-b712-4b96-af64-82916bffcb62",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "size",
+                      "value": "10",
+                      "disabled": true
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "disabled": true
+                    },
+                    {
+                      "key": "sort",
+                      "value": null,
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Latest Data",
+      "item": [
+        {
+          "name": "200 (success) Get Latest data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                  "    pm.expect(body).to.have.property(\"result\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxZGMyOGNjNi1kNjE0LTQ2MWEtOWI4Zi1kNjExMGZlYjNlMmYiLCJpc3MiOiJ2Mi5kZXYuY29udHJvbHBsYW5lLml1ZHguaW8iLCJhdWQiOiJDTEFJTV9BVURJRU5DRSIsImV4cCI6MTc1ODI2ODQwNCwiaWF0IjoxNzU4MjY0ODA0LCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiY29uc3VtZXIiLCJjb3NfYWRtaW4iLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90Iiwib2ZmbGluZV9hY2Nlc3MiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbImNvbnN1bWVyIiwiY29zX2FkbWluIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsIm9mZmxpbmVfYWNjZXNzIl19fSwicHJlZmVycmVkX3VzZXJuYW1lIjoiYW5hbmpheS5rdW1hckBkYXRha2F2ZXJpLm9yZyIsIm5hbWUiOiJBbmFuamF5IEt1bWFyIiwiZ2l2ZW5fbmFtZSI6IkFuYW5qYXkiLCJmYW1pbHlfbmFtZSI6Ikt1bWFyIiwiZW1haWwiOiJhbmFuamF5Lmt1bWFyQGRhdGFrYXZlcmkub3JnIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImFjY291bnRfZW5hYmxlZCI6dHJ1ZSwiY3JlYXRlZF9hdCI6IjIwMjUtMDgtMjZUMTc6MzI6MTguMTEyIiwia3ljVmVyaWZpZWQiOmZhbHNlfQ.nhZO32pPCYOJKUvNA5ktBPmveqfTnRYwzbQ9N27ijFFbDKjMVVmHjO9A7BkSi0wHuDx8R1AuO8QWtyCtZ4xOKBjLQfhTXE6EL12l78ztDtHIph6AbqMVZL8O5vzUkbXG",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "ngsi-ld",
+                "v2",
+                "entities",
+                "f29d4456-b712-4b96-af64-82916bffcb62"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "timeRel",
+                  "value": "before",
+                  "disabled": true
+                },
+                {
+                  "key": "time",
+                  "value": "2020-11-15T14:20:00Z",
+                  "disabled": true
+                },
+                {
+                  "key": "endTime",
+                  "value": "2020-12-28T14:20:00Z",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) Get Latest data -  Temporal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"application/json\");",
+                  "});",
+                  "",
+                  "// Test the response",
+                  "pm.test(\"Check response body\", function () {    ",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"title\", \"Success\");",
+                  "    pm.expect(body).to.have.property(\"result\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxZGMyOGNjNi1kNjE0LTQ2MWEtOWI4Zi1kNjExMGZlYjNlMmYiLCJpc3MiOiJ2Mi5kZXYuY29udHJvbHBsYW5lLml1ZHguaW8iLCJhdWQiOiJDTEFJTV9BVURJRU5DRSIsImV4cCI6MTc1ODI2ODQwNCwiaWF0IjoxNzU4MjY0ODA0LCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiY29uc3VtZXIiLCJjb3NfYWRtaW4iLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90Iiwib2ZmbGluZV9hY2Nlc3MiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbImNvbnN1bWVyIiwiY29zX2FkbWluIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsIm9mZmxpbmVfYWNjZXNzIl19fSwicHJlZmVycmVkX3VzZXJuYW1lIjoiYW5hbmpheS5rdW1hckBkYXRha2F2ZXJpLm9yZyIsIm5hbWUiOiJBbmFuamF5IEt1bWFyIiwiZ2l2ZW5fbmFtZSI6IkFuYW5qYXkiLCJmYW1pbHlfbmFtZSI6Ikt1bWFyIiwiZW1haWwiOiJhbmFuamF5Lmt1bWFyQGRhdGFrYXZlcmkub3JnIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImFjY291bnRfZW5hYmxlZCI6dHJ1ZSwiY3JlYXRlZF9hdCI6IjIwMjUtMDgtMjZUMTc6MzI6MTguMTEyIiwia3ljVmVyaWZpZWQiOmZhbHNlfQ.nhZO32pPCYOJKUvNA5ktBPmveqfTnRYwzbQ9N27ijFFbDKjMVVmHjO9A7BkSi0wHuDx8R1AuO8QWtyCtZ4xOKBjLQfhTXE6EL12l78ztDtHIph6AbqMVZL8O5vzUkbXG",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62?timeRel=before&time=2025-01-15T14:20:00Z&endTime=2025-09-28T14:20:00Z",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "ngsi-ld",
+                "v2",
+                "entities",
+                "f29d4456-b712-4b96-af64-82916bffcb62"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "timeRel",
+                  "value": "before"
+                },
+                {
+                  "key": "time",
+                  "value": "2025-01-15T14:20:00Z"
+                },
+                {
+                  "key": "endTime",
+                  "value": "2025-09-28T14:20:00Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Download Data",
+      "item": [
+        {
+          "name": "200 (success) Post Search data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"text/csv\");",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5ajdoMFVkUENrNS1reDRPejhMNGtzeVRSV09vNEFZLUV2ZXhpYl9SRHFnIn0.eyJleHAiOjE3NTM2OTg4MTUsImlhdCI6MTc1MzY5NzkxNSwianRpIjoib25ydHJvOmQyOTdjOWUyLWQ5ZjEtNGY1OS04ZWMyLTc5ODJhMTZlODQ1YSIsImlzcyI6Imh0dHBzOi8vc3RhZ2luZy5rZXljbG9hay51cGRhdGUuaXVkeC5pby9hdXRoL3JlYWxtcy90Z2RleC1waWxvdCIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMDc4MmE0ZS0zYmRiLTQzZTMtYmU4Yy03YmVhZmI4OWVmZDkiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJmcm9udGVuZC1jbGllbnQiLCJzaWQiOiIwYmJkMzhiNi1jMzgwLTRhY2QtODUwMy1mZDE3NGRmMTQ3NzAiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDAwNyIsIioiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9yZ19hZG1pbiIsInByb3ZpZGVyIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsImNvbnN1bWVyIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJwcm9maWxlIGVtYWlsIiwib3JnYW5pc2F0aW9uX2lkIjoiNzI2YjI3OWMtMjAxZS00MDUzLTliYzItYTRiMDZkNTQ4MzllIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImt5Y192ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJPcmcgQWRtaW4iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJvcmdhZG1pbkBnbWFpbC5jb20iLCJvcmdhbmlzYXRpb25fbmFtZSI6IlRlc3QgMTIiLCJnaXZlbl9uYW1lIjoiT3JnIiwiZmFtaWx5X25hbWUiOiJBZG1pbiIsImVtYWlsIjoib3JnYWRtaW5AZ21haWwuY29tIn0.g6MoITGi9GN2Phhw5jTzAomQ2Eh8aMW5b4KndoNuwpBTf7zL-gqPNy_1s-nCKYpgMbGRygHZGJFYuUXwUe7sjYf6CGlztmVChfwmkEt71s9_Y5wZ7OM0RQOXUrIjYgS0OpFvEsQOTYLMPWzhJUE8ydhhM7bnClyUobMQyIqkWHji6CLRRb5lXHjnQSjnA7z6AY227GJdod4Ct-OrWKKsPUazq-KWwJF-IGt-BCvXZ9UeNhzv36ldGwFAIraegWbf7YkoCgSY_kd6awX-rdfd2rA29vsDgPSmCEDPNhh2VjvsVdbUijOZaIuJUimsxcTQCPsVp-faW1ofjnoiRhRHhw",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"searchCriteria\": [\n        {\n            \"searchType\": \"beforeTemporal\",\n            \"field\": \"observationDateTime\",\n            \"values\": [\"2021-05-02T09:15:27+0530\"]\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "ngsi-ld",
+                "v2",
+                "f29d4456-b712-4b96-af64-82916bffcb62",
+                "download"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "2",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "timeRel",
+                  "value": "during",
+                  "disabled": true
+                },
+                {
+                  "key": "time",
+                  "value": "2020-11-18T14:20:00Z",
+                  "disabled": true
+                },
+                {
+                  "key": "endTime",
+                  "value": "2020-12-28T14:20:00Z",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "200 (success) Get Latest data (Secure Resource)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test the response code",
+                  "pm.test(\"response is 200 (OK)\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test the response header",
+                  "pm.test(\"Check response header\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\",\"text/csv\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIxZGMyOGNjNi1kNjE0LTQ2MWEtOWI4Zi1kNjExMGZlYjNlMmYiLCJpc3MiOiJ2Mi5kZXYuY29udHJvbHBsYW5lLml1ZHguaW8iLCJhdWQiOiJDTEFJTV9BVURJRU5DRSIsImV4cCI6MTc1ODI2ODQwNCwiaWF0IjoxNzU4MjY0ODA0LCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiY29uc3VtZXIiLCJjb3NfYWRtaW4iLCJkZWZhdWx0LXJvbGVzLXRnZGV4LXBpbG90Iiwib2ZmbGluZV9hY2Nlc3MiXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbImNvbnN1bWVyIiwiY29zX2FkbWluIiwiZGVmYXVsdC1yb2xlcy10Z2RleC1waWxvdCIsIm9mZmxpbmVfYWNjZXNzIl19fSwicHJlZmVycmVkX3VzZXJuYW1lIjoiYW5hbmpheS5rdW1hckBkYXRha2F2ZXJpLm9yZyIsIm5hbWUiOiJBbmFuamF5IEt1bWFyIiwiZ2l2ZW5fbmFtZSI6IkFuYW5qYXkiLCJmYW1pbHlfbmFtZSI6Ikt1bWFyIiwiZW1haWwiOiJhbmFuamF5Lmt1bWFyQGRhdGFrYXZlcmkub3JnIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImFjY291bnRfZW5hYmxlZCI6dHJ1ZSwiY3JlYXRlZF9hdCI6IjIwMjUtMDgtMjZUMTc6MzI6MTguMTEyIiwia3ljVmVyaWZpZWQiOmZhbHNlfQ.nhZO32pPCYOJKUvNA5ktBPmveqfTnRYwzbQ9N27ijFFbDKjMVVmHjO9A7BkSi0wHuDx8R1AuO8QWtyCtZ4xOKBjLQfhTXE6EL12l78ztDtHIph6AbqMVZL8O5vzUkbXG",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "https://v2.dev.rs.iudx.io/ngsi-ld/v2/f29d4456-b712-4b96-af64-82916bffcb62/download?size=2&page=1&timeRel=during&time=2020-11-18T14:20:00Z&endTime=2020-12-28T14:20:00Z",
+              "protocol": "https",
+              "host": [
+                "v2",
+                "dev",
+                "rs",
+                "iudx",
+                "io"
+              ],
+              "path": [
+                "ngsi-ld",
+                "v2",
+                "f29d4456-b712-4b96-af64-82916bffcb62",
+                "download"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "2"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "timeRel",
+                  "value": "during"
+                },
+                {
+                  "key": "time",
+                  "value": "2020-11-18T14:20:00Z"
+                },
+                {
+                  "key": "endTime",
+                  "value": "2020-12-28T14:20:00Z"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

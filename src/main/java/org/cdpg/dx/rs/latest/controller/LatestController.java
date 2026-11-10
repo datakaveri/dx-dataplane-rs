@@ -1,49 +1,91 @@
 package org.cdpg.dx.rs.latest.controller;
 
 import static org.cdpg.dx.apiserver.config.ApiConstants.*;
-import static org.cdpg.dx.essearch.util.Constants.PAGE_KEY;
-import static org.cdpg.dx.essearch.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.PAGE_KEY;
+import static org.cdpg.dx.database.elastic.util.Constants.SIZE_KEY;
+import static org.cdpg.dx.rs.audit.util.Constants.*;
 import static org.cdpg.dx.rs.latest.util.Constants.ID;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.cdpg.dx.apiserver.ApiController;
+import org.cdpg.dx.auditing.handler.AuditingHandler;
+import org.cdpg.dx.auditing.model.AuditLog;
+import org.cdpg.dx.auth.authorization.handler.AuthorizationHandler;
+import org.cdpg.dx.auth.model.Scopes;
+import org.cdpg.dx.common.URNGenerator;
 import org.cdpg.dx.common.request.PostSearchRequestBuilder;
 import org.cdpg.dx.common.response.ResponseBuilder;
 import org.cdpg.dx.common.response.ResponseModel;
+import org.cdpg.dx.common.util.RoutingContextHelper;
+import org.cdpg.dx.database.redis.service.RedisService;
 import org.cdpg.dx.essearch.model.SearchQuery;
+import org.cdpg.dx.rs.audit.util.DataplaneAuditHelper;
 import org.cdpg.dx.rs.latest.model.GetRequestModel;
 import org.cdpg.dx.rs.latest.service.LatestService;
-import org.cdpg.dx.rs.util.CheckItemAccessHandler;
-import org.cdpg.dx.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.auth.appid.AppIdItemAccessHandler;
+import org.cdpg.dx.common.validations.idhandler.GetIdFromPathHandler;
+import org.cdpg.dx.validations.idvalidation.IdValidation;
+import org.cdpg.dx.validations.itemandfiltercheck.ItemAccessApplicableFilterHandlerNgsild;
+import org.cdpg.dx.validations.ratelimit.RedisAccessLimitHandler;
 
 /** Controller to handle latest entity data retrieval endpoints. */
 public class LatestController implements ApiController {
   private static final Logger LOGGER = LogManager.getLogger(LatestController.class);
   private final LatestService latestService;
   private final GetIdFromPathHandler getIdFromPathHandler = new GetIdFromPathHandler();
-  private final CheckItemAccessHandler checkItemAccessHandler;
+  private final AppIdItemAccessHandler appIdItemAccessHandler;
+  private final ItemAccessApplicableFilterHandlerNgsild itemAccessApplicableFilterHandlerNgsild;
+  private final URNGenerator urnGenerator;
+  private final AuditingHandler auditingHandler;
+  private final IdValidation idValidation;
+
+  /*private final RedisAccessLimitHandler redisAccessLimitHandler;*/
 
   /** Initializes the latest controller with required services and config. */
-  public LatestController(LatestService latestService, String controlPlaneDomain) {
+  public LatestController(
+      LatestService latestService,
+      String controlPlaneDomain,
+      URNGenerator urnGenerator,
+      AuditingHandler auditingHandler,
+      AppIdItemAccessHandler appIdItemAccessHandler /*,
+      RedisService redisService,
+      String redisKeyPrefix*/) {
     this.latestService = latestService;
-    this.checkItemAccessHandler = new CheckItemAccessHandler(controlPlaneDomain);
+    this.appIdItemAccessHandler = appIdItemAccessHandler;
+    this.itemAccessApplicableFilterHandlerNgsild =
+        new ItemAccessApplicableFilterHandlerNgsild(controlPlaneDomain);
+    this.urnGenerator = urnGenerator;
+    this.auditingHandler = auditingHandler;
+    this.idValidation = new IdValidation();
+    /*this.redisAccessLimitHandler = new RedisAccessLimitHandler(redisService, redisKeyPrefix);*/
   }
 
   @Override
   public void register(RouterBuilder builder) {
     builder
         .operation(POST_LATEST_ENTITY_DATA_SEARCH)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
+        .handler(appIdItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
+        .handler(idValidation)
         .handler(this::handlePostEntityDataSearch);
     builder
         .operation(GET_LATEST_ENTITY_DATA)
+        .handler(auditingHandler::handleApiAudit)
         .handler(getIdFromPathHandler)
-        .handler(checkItemAccessHandler)
+        .handler(AuthorizationHandler.forScopes(Scopes.DATA_ACCESS))
+        .handler(appIdItemAccessHandler)
+        .handler(itemAccessApplicableFilterHandlerNgsild)
+        /*.handler(redisAccessLimitHandler)*/
+        .handler(idValidation)
         .handler(this::handleGetSearchQuery);
 
     LOGGER.debug("Latest Controller deployed and route registered.");
@@ -65,7 +107,14 @@ public class LatestController implements ApiController {
                 ResponseBuilder.sendSuccess(
                     routingContext,
                     searchService.getElasticsearchResponses(),
-                    searchService.getPaginationInfo());
+                    searchService.getPaginationInfo(),
+                    urnGenerator);
+                long bytesWritten = routingContext.response().bytesWritten();
+                RoutingContextHelper.setResponseSize(routingContext, bytesWritten);
+                AuditLog auditLog =
+                    DataplaneAuditHelper.createAuditingLogs(
+                        routingContext, id, "POST", NGSILD, DOWNLOAD, bytesWritten);
+                RoutingContextHelper.setAuditingLog(routingContext, auditLog);
               })
           .onFailure(
               err -> {
@@ -75,6 +124,7 @@ public class LatestController implements ApiController {
 
     } catch (Exception e) {
       LOGGER.error("Error processing search request: {}", e.getMessage(), e);
+      routingContext.fail(e);
     }
   }
 
@@ -96,11 +146,25 @@ public class LatestController implements ApiController {
     }
     String sortOrder = sortBy.split(":")[1];
     sortBy = sortBy.split(":")[0];
+    JsonArray applicableFilters = RoutingContextHelper.getApplicableFilter(ctx);
+    boolean attrFilter = false;
+    if (applicableFilters.contains("ATTR") && !applicableFilters.contains("TEMPORAL")) {
+      attrFilter = true;
+    }
     GetRequestModel getRequestModel =
-        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder);
+        new GetRequestModel(id, size, page, time, endTime, timeRel, sortBy, sortOrder, attrFilter);
     latestService
         .getSearch(getRequestModel)
-        .onSuccess(result -> sendResponse(ctx, result))
+        .onSuccess(
+            result -> {
+              sendResponse(ctx, result);
+              long bytesWritten = ctx.response().bytesWritten();
+              RoutingContextHelper.setResponseSize(ctx, bytesWritten);
+              AuditLog auditLog =
+                  DataplaneAuditHelper.createAuditingLogs(
+                      ctx, id, "GET", NGSILD, DOWNLOAD, bytesWritten);
+              RoutingContextHelper.setAuditingLog(ctx, auditLog);
+            })
         .onFailure(
             err -> {
               LOGGER.error("Error processing latest data request for ID: {}", id, err);
@@ -110,7 +174,10 @@ public class LatestController implements ApiController {
 
   private void sendResponse(RoutingContext ctx, ResponseModel responseModel) {
     ResponseBuilder.sendSuccess(
-        ctx, responseModel.getElasticsearchResponses(), responseModel.getPaginationInfo());
+        ctx,
+        responseModel.getElasticsearchResponses(),
+        responseModel.getPaginationInfo(),
+        urnGenerator);
   }
 
   public int getSize(MultiMap params) {

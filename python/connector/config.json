@@ -1,0 +1,11 @@
+{
+  "rabbitmq_host": "",
+  "rabbitmq_port": 24567,
+  "rabbitmq_management_port": 28042,
+  "rabbitmq_user": "",
+  "rabbitmq_password": "",
+  "vhost": "",
+  "publish_exchange": "rpc-adapter-requests",
+  "username": "testuser",
+  "asset_id": "asset123"
+}

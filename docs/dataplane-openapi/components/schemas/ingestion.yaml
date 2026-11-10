@@ -1,0 +1,56 @@
+adapterIngestionEntities:
+  title: ingestion
+  type: object
+  properties:
+    details:
+      description: Item Published
+  example:
+    detail: "Item Published"
+
+ingestionEntityObject:
+  title: ingestion entity
+  type: object
+  required:
+    - entities
+  properties:
+    entities:
+      description: id of the resource the record belongs to
+      type: string
+  additionalProperties: true
+
+ingestionEntityRequest:
+  title: ingestion entity
+  description: |
+    A single record, or an array of records. Every record carries the `entities` field and all
+    records in one request must carry the same value.
+  oneOf:
+    - $ref: '#/ingestionEntityObject'
+    - type: array
+      minItems: 1
+      items:
+        $ref: '#/ingestionEntityObject'
+  example:
+    [ {
+      "currentLevel": 1.16,
+      "referenceLevel": 15.9,
+      "measuredDistance": 14.74,
+      "entities": "695e222b-3fae-4325-8db0-3e29d01c4fc0",
+      "observationDateTime": "2020-09-22T18:30:00+05:30",
+      "deviceInfo": {
+        "deviceID": "FWR055"
+      }
+    } ]
+
+ingestionEntityRequest2:
+  title: ingestion entity
+  type: array
+  example:
+    [ {
+      "currentLevel": 1.16,
+      "referenceLevel": 15.9,
+      "measuredDistance": 14.74,
+      "observationDateTime": "2020-09-22T18:30:00+05:30",
+      "deviceInfo": {
+        "deviceID": "FWR055"
+      }
+    } ]

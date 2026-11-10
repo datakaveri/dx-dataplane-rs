@@ -49,8 +49,8 @@ public class QueryFiltersValidator {
 
   private boolean isTemporalQuery(MultiMap params) {
     return params.contains(NGSILDQUERY_TIMEREL) ||
-            params.contains(NGSILDQUERY_TIME) ||
-            params.contains(NGSILDQUERY_ENDTIME) ||
+            params.contains(NGSILDQUERY_TIMEAT) ||
+            params.contains(NGSILDQUERY_ENDTIMEAT) ||
             params.contains(NGSILDQUERY_TIME_PROPERTY);
   }
 

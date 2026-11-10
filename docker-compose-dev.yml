@@ -1,0 +1,135 @@
+networks:
+  dx-dev-net:
+    driver: bridge
+
+volumes:
+  pg-data:
+  es-data:
+  rmq-data:
+  redis-data:
+  rs-storage:
+
+services:
+
+  # ──────────────────────────────────────────────
+  # PostgreSQL — Application database
+  # ──────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    profiles: [infra, full]
+    env_file: dev/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-iudx_rs}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-iudx_rs}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dx-dev-net
+
+  # ──────────────────────────────────────────────
+  # Elasticsearch — Search & Indexing
+  # ──────────────────────────────────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    profiles: [infra, full]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - "ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:9200/_cluster/health | grep -qE '\"status\":\"(green|yellow)\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - dx-dev-net
+
+  # ──────────────────────────────────────────────
+  # RabbitMQ — Message Broker
+  # ──────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    profiles: [infra, full]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dx-dev-net
+
+  # ──────────────────────────────────────────────
+  # Redis — Caching
+  # ──────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    profiles: [infra, full]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dx-dev-net
+
+  # ──────────────────────────────────────────────
+  # Application (full profile only)
+  # ──────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: docker/dev.dockerfile
+    profiles: [full]
+    env_file: dev/.env
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - RS_JAVA_OPTS=${RS_JAVA_OPTS:--Xmx2048m}
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "9000:9000"
+    volumes:
+      - ./dev/config-docker.json:/usr/share/app/configs/config.json
+      - ./example-configs/configs/keystore.jks:/usr/share/app/configs/keystore.jks
+      - rs-storage:/usr/share/app/storage/temp-dir
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      bash -c "exec java $$RS_JAVA_OPTS
+      -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.Log4j2LogDelegateFactory
+      -jar ./fatjar.jar --host $$(hostname) -c configs/config.json"
+    restart: on-failure
+    networks:
+      - dx-dev-net

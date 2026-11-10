@@ -1,13 +1,11 @@
 package org.cdpg.dx.apiserver.util;
 
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.HelperUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.function.Function;
-import org.cdpg.dx.common.HttpStatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +30,5 @@ public class Util {
     } else {
       return (List<T>) arr.getList();
     }
-  }
-
-  public static String errorResponse(HttpStatusCode code) {
-    return new JsonObject()
-        .put("type", code.getUrn())
-        .put("title", code.getDescription())
-        .put("detail", code.getDescription())
-        .toString();
   }
 }

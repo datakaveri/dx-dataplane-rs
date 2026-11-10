@@ -1,0 +1,343 @@
+/ngsi-ld/v2/entities/{id}/search:
+  post:
+    tags:
+      - Search Entity
+    summary: Data Post Search
+    description: |
+      Unified search query for discovering entities that meet complex criteria. The `/search` endpoint supports a rich combination of property-based (`term`), range-based, temporal-based, and geo-based searches using a common `searchCriteria` array format.
+
+      #### searchCriteria Format (Unified)
+      Each entry in `searchCriteria` must define:
+      - `searchType`: Determines the type of search (e.g., `term`, `betweenRange`, `beforeTemporal`, etc.)
+      - `field`: Field to search on (e.g., `type`, `dataReadiness`, `itemCreatedAt`)
+      - `values`: Array of values (length depends on `searchType`)
+
+      #### Supported `searchType` Values and Value Expectations:
+      | `searchType`         | Description                                 | Expected `values` Length |
+      |----------------------|---------------------------------------------|---------------------------|
+      | `term`               | Property-based (exact/approx match)         | >= 1 values (OR logic)     |
+      | `betweenRange`       | Numeric field in a value range              | 2 values (start, end)     |
+      | `beforeRange`        | Numeric field before a value                | 1 value                   |
+      | `afterRange`         | Numeric field after a value                 | 1 value                   |
+      | `betweenTemporal`    | Timestamp field between two dates           | 2 ISO datetime strings    |
+      | `beforeTemporal`     | Timestamp before a given date               | 1 ISO datetime string     |
+      | `afterTemporal`      | Timestamp after a given date                | 1 ISO datetime string     |
+
+      #### Term Search (Property-based)
+      Property search is allowed only on a predefined set of properties from the DX Schema Vocabulary, applicable to all subClasses of [IUDXEntity](https://voc.iudx.org.in/IUDXEntity).
+
+      - Exact match: Supported for fields like `id`, `type`, `department`, `organizationType`, `modelType`. <br>
+
+      Example:
+      ```json
+      {
+        "searchCriteria": [
+          {
+            "searchType": "term",
+            "field": "type",
+            "values": ["adex:DataBank"]
+          },
+          {
+            "searchType": "term",
+            "field": "department",
+            "values": ["Health", "Environment"]
+          }
+        ]
+      }
+      ```
+
+      #### Range Search (Numeric)
+      Filters based on numeric values and supports various relational conditions.
+      - Supported `searchType` values:
+        - "betweenRange" -> values: [min, max]
+        - "beforeRange" -> values: [value] (less than)
+        - "afterRange" -> values: [value] (greater than)
+      Example:
+      ```json
+      {
+        "searchType": "betweenRange",
+        "field": "dataReadiness",
+        "values": [50, 80]
+      }
+      ```
+
+      #### Temporal Search
+      Filters based on ISO 8601 timestamps for temporal fields.
+      - Supported `searchType` values:
+        - "betweenTemporal" -> values: ["startTime", "endTime"]
+        - "beforeTemporal" -> values: ["timestamp"]
+        - "afterTemporal" -> values: ["timestamp"]
+      Timestamps must be in ISO 8601 format (`YYYY-MM-DDTHH:mm:ss+hhmm`).
+      Example:
+      ```json
+      {
+        "searchType": "beforeTemporal",
+        "field": "observationDateTime",
+        "values": ["2025-04-30T00:00:00+0530"]
+      }
+      ```
+
+      #### Text Search
+      A full-text fuzzy search over indexed fields.
+      - Use the `q` field in the root body.
+      - Optional flags: `autoComplete`, `fuzzy`.
+
+      #### Complex Search
+      Multiple search types--text, property-based (`term`), temporal, and numeric range--can be combined together in a single request using the `searchCriteria` array. Each object in `searchCriteria` must include a `searchType`, the `field` to query, and the appropriate `values` for that type.
+
+      Text-based search can be combined with structured filters. It supports full-text fuzzy matching across indexed fields.
+
+      #### Supported fields for complex search:
+
+      - `q`: A free-form text string to perform full-text search across indexed fields.
+      - `fuzzy`: (Optional, boolean) Enables approximate/fuzzy matching.
+      - `autoComplete`: (Optional, boolean) Enables search-as-you-type behavior.
+
+      #### Spatial (Geo) Search
+      Geo search accepts geojson based queries. The params and their accepted values are briefed below -
+        - <b>geoproperty</b>:
+            - Specifies the name of the <b> geospatial </b> property in the <b> DX(Data exchange) data descriptor </b>.
+            - The current version of the API <b> mandates </b> it to be equal to `location`
+        - <b>georel</b>:
+            - Specifies the spatial relationship to be queried.
+            - The relation type of <b>geoquery</b> can be <b>one of</b> `near;maxdistance=<distance_in_meters>`, `within`, `intersects`.
+            - The relation <b> near </b> should be always accomodated with a <b> maxdistance </b> property.
+            - Apart from <b> maxdistance</b> , all other fields in the Enum list are <b> case sensitive </b> fields.
+            - The relation <b> near;maxdistance </b> is applicable only for a <b> point </b>.
+            - The relation <b> within </b> and  <b> intersects </b> are applicable only for <b> bbox, polygon and linestring</b>.
+
+        - <b>geometry</b>:
+            - Specifies the GeoJson geometries.
+            - Should be One of `Point`(equivalent for a circle), `Polygon`, `LineString`, `bbox`.
+            - <b>Point</b>: Point and radius query
+                - coordinates: Specifies the  center point of the circle, for e.g, `[73,13]`. <br/>Note, format is [longitude, latitude]
+                - maxDistance: Specifies the Radius from the center point in meters, for e.g `100`. `maxValue` : 1000
+                - georel: In this version of DX(Data exchange) API, the allowed relationship search for a circle is `near` with a `maxdistance` in meters specified. This will be equivalent to a `within` query. Format is `near;maxdistance=<distance_in_meters>`
+            - <b>Polygon</b>: Polygon/Multi-Polygon query
+                - coordinates: Specifies the  coordinates of the polygon, for e.g, `[[[73,13],[73,12],[73,13]]]`.  <br/>Note, format is [longitude, latitude] and the first coordinate must be same as last.
+                - `minNumberOfCoOrdinates` : 4 and `maxnNumberOfCoOrdinates` : 10
+                - georel: `within`, `intersects`
+            - <b>LineString</b>: Multi line string
+                - coordinates: Specifies the coordinates of the multi-line, for e.g, `[[73,13],[74,15],[75,16]]`. <br/>Note, format is [longitude, latitude]
+                - `minNumberOfCoOrdinates` : 2 and `maxnNumberOfCoOrdinates` : 10
+                - georel:  `within`, `intersects`
+            - <b>bbox</b>: Bounding box
+                - coordinates: `[[top-left],[bottom-right]]`. e.g, `[[73,13],[74,12]]`. <br/>Note, format is [longitude, latitude].
+                - georel:  `within`, `intersects`
+
+
+      #### Supported `searchType` values in `searchCriteria`:
+
+      - `term`: Property-based filtering using exact or fuzzy match. Accepts one or more
+      values. (OR logic on values.)
+      - `betweenTemporal`: Requires exactly **two** ISO 8601 datetime strings -- interpreted as start and end time.
+      - `beforeTemporal`: Requires exactly **one** ISO 8601 datetime string -- filters entries before the given time.
+      - `afterTemporal`: Requires exactly **one** ISO 8601 datetime string -- filters entries after the given time.
+      - `betweenRange`: Requires exactly **two** numeric values -- interpreted as lower and upper bounds.
+      - `beforeRange`: Requires exactly **one** numeric value -- filters entries below the threshold.
+      - `afterRange`: Requires exactly **one** numeric value -- filters entries above the threshold.
+
+      This unified format supports rich multi-dimensional filtering with both structured and unstructured (text) data.
+
+      #### Example:
+      ```json
+      {
+        "q": "satellite",
+        "fuzzy": true,
+        "autoComplete": true,
+        "searchCriteria": [
+          {
+            "searchType": "term",
+            "field": "type",
+            "values": ["adex:DataBank"]
+          },
+          {
+            "searchType": "betweenTemporal",
+            "field": "itemCreatedAt",
+            "values": ["2024-01-01T00:00:00+0530", "2025-01-01T00:00:00+0530"]
+          },
+          {
+             "searchType": "afterRange",
+             "field": "dataReadiness",
+             "values": [70]
+          }
+        ]
+      }
+      ```
+
+      #### Limits and Filters
+      - Pagination: Use `size` and `page` parameters to paginate results.
+        For example, `size=100&page=2` returns 100 results starting from the 101st record (i.e., page 2).
+        Internally, the offset is calculated as `offset = size * (page - 1)`.
+      - Field Filtering: Use the `filter` parameter to specify a subset of fields to return.
+        For example, `filter=[id]` returns only the `id` field for each result.
+      - Limits: The sum of the internally calculated `offset` and `size` must be less than or equal to `10,000` to prevent overly large queries.
+
+    operationId: postLatestEntityDataSearch
+    security:
+      - authorization: [ ]
+    parameters:
+      - name: did
+        in: header
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        required: true
+        description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page number for pagination
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - name: size
+        in: query
+        description: Page size for pagination
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 100
+      - name: sort
+        in: query
+        description: >
+          This parameter allows sorting the results by up to 3 fields, separated by a semicolon (;).
+          The format for each field is `fieldName:asc` or `fieldName:desc`.
+          For example: `itemCreatedAt:desc;dataReadiness:asc;name:desc` will sort by creation date (descending),
+          then dataReadiness (ascending), then name (descending).
+        required: false
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            anyOf:
+              - $ref: '../components/schemas/search.yaml#/TextSearchRequest'
+              - $ref: '../components/schemas/search.yaml#/SearchCriteriaRequest'
+              - $ref: '../components/schemas/search.yaml#/AutocompleteFuzzyTextSearchRequest'
+              - $ref: '../components/schemas/search.yaml#/ComplexSearchRequest'
+              - $ref: '../components/schemas/search.yaml#/AutocompleteFuzzyTextSearchRequest'
+              - $ref: '../components/schemas/search.yaml#/GeoSearchRequest'
+    responses:
+      '200':
+        description: All the query parameters yielded results.
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '../components/schemas/search.yaml#/successResponseForAutocompleteFuzzyTextSearch'
+                - $ref: '../components/schemas/search.yaml#/successResponseForSearchByItemType'
+                - $ref: '../components/schemas/search.yaml#/successResponseForRangeSearch'
+                - $ref: '../components/schemas/search.yaml#/successResponseForTemporalSearch'
+                - $ref: '../components/schemas/search.yaml#/successResponseForComplexSearch'
+      '401':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/standardInvalidTokenErrorResponse"
+        description: 'Unauthorized - Invalid/missing token'
+
+      '403':
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ForbiddenResponse'
+      '413':
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/payloadTooLarge"
+        description: 'Payload Too Large'
+      '400':
+        description: Bad Request
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/search.yaml#/errorResponseForDiscovery'
+            examples:
+              Invalid Geo Value:
+                value:
+                  type: 'dx:dataplane:InvalidGeoValue'
+                  "title": "Geoquery value error"
+                  "detail": "Invalid value for a query param"
+              Invalid Syntax:
+                value:
+                  "type": "dx:dataplane:InvalidSyntax"
+                  "title": "Invalid Syntax"
+                  "detail": "Invalid value for a query param"
+              Invalid Syntax 1:
+                value:
+                  "type": "dx:dataplane:InvalidSyntax"
+                  "title": "Invalid Syntax"
+                  "detail": "Mandatory field(s) not provided"
+              Precision validation:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "The max point of 'coordinates' precision is 6"
+              Coordinate pair:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "The max number of 'coordinates' value is 10"
+              Max Distance limit:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "The 'maxDistance' should range between 0-10000m"
+              Coordinates value limit:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "Unable to parse 'coordinates'; value is Infinity"
+              Invalid request - Max string size:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "The max string(q) size supported is 100"
+              Bad filter:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:BadFilter"
+                  "detail": "The max number of 'filter' should be 10"
+              Exceed limit|offset value:
+                value:
+                  "title": "failed"
+                  "type": "dx:dataplane:InvalidPropertyValue"
+                  "detail": "The limit + offset should be between 1 to 10000"
+
+    x-codeSamples:
+      - lang: 'cURL'
+        label: 'post search data'
+        source: |
+          curl --location --request POST 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62/search' \
+          --header 'Authorization: Bearer <tokenValue>' \
+          --header 'Content-Type: application/json' \
+          --data-raw '{
+              "q": "Ranaau",
+              "fuzzy": false,
+              "searchCriteria": [
+                  {
+                      "searchType": "beforeTemporal",
+                      "field": "observationDateTime",
+                      "values": ["2025-05-02T09:15:27+0530"]
+                  }
+              ],
+              "geoQ": {
+                  "geometry": "Point",
+                  "coordinates": [21.178, 72.834],
+                  "georel": "near;maxDistance=20",
+                  "geoproperty": "location"
+              }
+          }'

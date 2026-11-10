@@ -1,0 +1,71 @@
+{
+  "url": "localhost:8443",
+  "token": "YOUR_ACCESS_TOKEN_HERE",
+  "payload": {
+    "id": "testid1234",
+    "dataDescriptor": {
+      "@context": "https://voc.forest-stack.iudx.io/",
+      "type": ["iudx:DataDescriptor"],
+      "dataDescriptorLabel": "Data Descriptor for Forest Product Auction",
+      "description": "Details of forest product auctioned lots including product type, depot, quantity, and bidding values.",
+      "refNumber": {
+        "description": "Reference number associated with this auction event.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "circleName": {
+        "description": "Circle name relevant to the auction context.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "divisionName": {
+        "description": "Division name responsible for the auction.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "rangeName": {
+        "description": "Range name associated with the product auction.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "depotName": {
+        "description": "Depot name where the product is stored or auctioned.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "lotNumber": {
+        "description": "Lot number identifying the auction lot.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "productType": {
+        "description": "Type/category of the product.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "productName": {
+        "description": "Name of the product being auctioned.",
+        "dataSchema": "iudx:Text",
+        "type": ["ValueDescriptor"]
+      },
+      "quantity": {
+        "description": "Quantity of the product available for auction.",
+        "unitText": "decitonne or quintal",
+        "unitCode": "DTN",
+        "dataSchema": "iudx:Number",
+        "type": ["ValueDescriptor"]
+      },
+      "biddingAmount": {
+        "description": "Bidding amount for the product auction.",
+        "unitText": "Indian Rupee",
+        "dataSchema": "iudx:Number",
+        "type": ["ValueDescriptor"]
+      },
+      "auctionDate": {
+        "description": "Date and time of the auction event.",
+        "dataSchema": "iudx:DateTime",
+        "type": ["ValueDescriptor"]
+      }
+    }
+  }
+}

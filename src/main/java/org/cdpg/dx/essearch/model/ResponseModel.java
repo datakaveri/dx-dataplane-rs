@@ -1,6 +1,6 @@
 package org.cdpg.dx.essearch.model;
 
-import static org.cdpg.dx.essearch.util.Constants.RESULTS;
+import static org.cdpg.dx.database.elastic.util.Constants.RESULTS;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -14,29 +14,31 @@ public class ResponseModel {
   JsonObject response;
   private List<JsonObject> elasticsearchResponses;
   private int totalHits;
+  private JsonObject aggregations;
   private PaginationInfo paginationInfo;
 
-  public ResponseModel(List<ElasticsearchResponse> elasticsearchResponses, int size, int page) {
+  public ResponseModel(
+      List<ElasticsearchResponse> elasticsearchResponses, int size, int page, int totalHits) {
     this.response = new JsonObject();
     this.response.put(RESULTS, elasticsearchResponses);
-    setTotalHits(ElasticsearchResponse.getTotalHits());
+    setTotalHits(totalHits);
     this.elasticsearchResponses =
         getJsonObjectList(Objects.requireNonNullElse(elasticsearchResponses, List.of()));
     setPaginationInfo(page, size);
     setResponseJson();
   }
 
-  public ResponseModel(List<ElasticsearchResponse> elasticsearchResponses) {
+  public ResponseModel(
+      List<ElasticsearchResponse> elasticsearchResponses, JsonObject aggregations) {
+    this.aggregations = aggregations;
     this.elasticsearchResponses =
         getJsonObjectList(Objects.requireNonNullElse(elasticsearchResponses, List.of()));
     this.response = new JsonObject();
-    this.response.put(RESULTS, setAggregationsList());
+    this.response.put(RESULTS, setAggregationsList(aggregations));
   }
 
-  private JsonArray setAggregationsList() {
+  private JsonArray setAggregationsList(JsonObject aggregations) {
     JsonArray results = new JsonArray();
-    // Fetch all aggregations from the response JSON
-    JsonObject aggregations = ElasticsearchResponse.getAggregations();
     results.add(aggregations);
     return results;
   }
@@ -84,5 +86,9 @@ public class ResponseModel {
 
   public PaginationInfo getPaginationInfo() {
     return paginationInfo;
+  }
+
+  public JsonObject getAggregations() {
+    return aggregations;
   }
 }

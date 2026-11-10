@@ -1,0 +1,120 @@
+/ngsi-ld/v2/entities/{id}:
+  get:
+    tags:
+      - Latest Entity
+    summary: Latest Data
+    operationId: getLatestEntityData
+    description: |
+      The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
+      By default data is sorted in descending order of the `observationDateTime` property. <br/>
+      Note: time and endTime parameters are only supported if timeRel is given.
+    security:
+      - authorization: [ ]
+    parameters:
+      - name: did
+        in: header
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: 'A <b> valid data exchange ID </b> of the resource. <br/> Information about the data exchange ID of the resource and security scope of the resource can be obtained from the <b> DX(Data exchange) Controlplane server </b> .'
+        required: true
+        schema:
+          type: string
+          format: uuid
+          maxLength: 36
+      - name: page
+        in: query
+        description: 'The page parameter is used to specify the page number of the result set. <br/> It is an optional parameter. <br/> If not provided, it defaults to 1.'
+        required: false
+        schema:
+          type: integer
+      - name: size
+        in: query
+        description: 'The size parameter is used to specify the number of results per page. <br/> It is an optional parameter. <br/> If not provided, it defaults to 10.'
+        required: false
+        schema:
+          type: integer
+      - name: timeRel
+        in: query
+        description: 'The temporal relation type of <b>timerel</b> to be performed. <br/> This <b>should</b> be one from the available options in the Enum list. <br/> If the relation is <b> between </b> it should be always accomodated with a <b> time </b> and <b> endtime </b> property.  <br/> If the relation is <b> before </b> or <b> after </b>it should be always accomodated <b> only</b> with a <b> time </b> property.'
+        required: false
+        schema:
+          type: string
+          enum: [ between, before, after ,during ]
+      - name: time
+        in: query
+        description: 'This parameter specifies the <b>start time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query.'
+        required: false
+        schema:
+          type: string
+      - name: endTime
+        in: query
+        description: 'This parameter specifies the <b>end time</b> for the temporal-query in `ISO8601` format. <br/> data exchange currently accepts `IST` and `UTC` time zones for the temporal query. <br/>If <b>timerel</b> is `between` time and endtime are mandatory'
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: 'This parameter is used to sort the results basis on this property. <br/> The default sortBy property is `observationDateTime:desc` . <br/> The user could provide any property among `observationDateTime` and `itemCreatedAt` of the resource to sort the data. <br/> If the user provides a property which is not part of the resource, the API will throw a `400-Bad Request` error.'
+        required: false
+        schema:
+          type: string
+          enum: [ observationDateTime:desc, itemCreatedAt:desc, observationDateTime:asc, itemCreatedAt:asc ]
+
+    responses:
+      200:
+        description: 'Successful retrieval of latest data'
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/entityresponse'
+
+      400:
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/invalidParamBadRequestErrorResponse"
+        description: 'Bad query - Empty response | Missing/Invalid parameters'
+
+      401:
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/standardInvalidTokenErrorResponse"
+        description: 'Unauthorized - Invalid/missing token'
+
+      403:
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/common.yaml#/ForbiddenResponse'
+
+      404:
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/standardResourceNotFoundErrorResponse"
+        description: 'Resource not found'
+
+      413:
+        content:
+          application/json:
+            schema:
+              "$ref": "../components/schemas/common.yaml#/payloadTooLarge"
+        description: 'Payload Too Large'
+
+    x-codeSamples:
+      - lang: 'cURL'
+        label: 'get latest data'
+        source: |
+          curl --location --request GET 'https://${HOSTNAME}/ngsi-ld/v2/entities/f29d4456-b712-4b96-af64-82916bffcb62' \
+          --header 'Authorization: Bearer <tokenValue>'
+
+        description: |
+          The <b> Latest Data API </b> is used to get the latest (last published) data of a resource. <br /> It uses the <b> data exchange ID </b> a.k.a `id` to query the resource server. <br />  To get data a <b> valid data exchange Auth token</b> is mandatory.  <br/> The `/entities` end point followed by `id` as a <b>path parameter</b> is used to get the latest data.
+
+    deprecated: false

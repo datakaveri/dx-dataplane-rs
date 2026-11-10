@@ -1,98 +1,144 @@
 {
-  "version": "1.0",
-  "zookeepers": [
-    "zookeeper"
-  ],
   "clusterId": "iudx-rs-cluster",
-  "host": "rs.iudx.io",
   "commonConfig": {
-    "dxApiBasePath": "/ngsi-ld/v1",
-
-    "timeLimit": "test,2020-10-22T00:00:00Z,20",
-    "timeLimitForAsync": 365,
-    "tenantPrefix": "iudx",
+    "appIdCacheMaxSize": 1000,
+    "appIdCacheTtlMinutes": 5,
+    "appIdRevokeExchange": "revoked-appid",
+    "appIdRevokeQueue": "revoked-appid",
+    "chunkMaxBytes": 8000,
+    "chunkMaxItems": 25000,
+    "controlPlaneDomain": "https://v2.dev.iudx.io/controlplane",
+    "controlplaneGrpcPort": 9090,
+    "controlplaneHost": "localhost",
     "corsAllowedOrigin": [
       "*",
       "http://localhost:4001"
     ],
-    "kcIss": "",
-    "aaaIss": "",
-    "keycloakCertUrl": "",
-    "aaaCertUrl": ""
+    "dxApiBasePath": "/ngsi-ld/v2",
+    "gatewayurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/rsp",
+    "grpcClientId": "svc-dx-dataplane",
+    "grpcClientSecret": "",
+    "issuers": {
+      "https://v2.dev.iudx.io/auth/realms/iudx-v2": {
+        "audience": [],
+        "jwksUrl": "https://v2.dev.iudx.io/auth/realms/iudx-v2/protocol/openid-connect/certs",
+        "type": "remote"
+      },
+      "jwksRefreshIntervalMs": 21600000,
+      "jwtIgnoreExpiry": true,
+      "jwtLeeway": 60,
+      "v2.dev.iudx.io/controlplane": {
+        "audience": [],
+        "jwksUrl": "https://v2.dev.iudx.io/controlplane/iudx/v2/auth/jwks",
+        "type": "remote"
+      }
+    },
+    "keycloakTokenUrl": "https://v2.dev.iudx.io/auth/realms/iudx-v2/protocol/openid-connect/token",
+    "ngsildurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in",
+    "publishedurl": "rs.forest-stack.digivan.forest.rajasthan.gov.in/published",
+    "supportEmail": "support@cdpg.org.in",
+    "tenantPrefix": "iudx-v2",
+    "timeLimit": "test,2020-10-22T00:00:00Z,25000"
   },
+  "host": "rs.iudx.io",
   "modules": [
     {
-      "id": "org.cdpg.dx.database.postgres.verticle.PostgresVerticle",
+      "id": "org.cdpg.dx.cloudstorage.s3.verticle.S3Verticle",
       "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "databaseIP": "",
-      "databasePort": 5433,
-      "databaseName": "",
-      "databaseUserName": "",
-      "databasePassword": "",
-      "poolSize": 25,
-      "databaseSchema": ""
-    },
-    {
-      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "dataBrokerIP": "",
-      "dataBrokerPort": 24568,
-      "prodVhost": "",
-      "internalVhost": "",
-      "externalVhost": "",
-      "dataBrokerUserName": "",
-      "dataBrokerPassword": "",
-      "dataBrokerManagementPort": 28042,
-      "connectionTimeout": 6000,
-      "requestedHeartbeat": 60,
-      "handshakeTimeout": 6000,
-      "requestedChannelMax": 5,
-      "networkRecoveryInterval": 500,
-      "automaticRecoveryEnabled": "true",
-      "brokerAmqpIp": "",
-      "brokerAmqpPort": 24567
-    },
-    {
-      "id": "org.cdpg.dx.catalogue.CatalogueVerticle",
-      "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "dxCatalogueBasePath": "",
-      "catServerHost": "",
-      "catServerPort": 443
-    },
-    {
-      "id": "org.cdpg.dx.uniqueattribute.UniqueAttributeVerticle",
-      "isWorkerVerticle": false,
+      "s3AccessKey": "",
+      "s3Bucket": "",
+      "s3ProxyTimeoutMs": 240000,
+      "s3Region": "ap-south-1",
+      "s3SecretKey": "",
       "verticleInstances": 1
     },
     {
-      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
+      "adapterQueryPublishExchange": "rpc-adapter-requests",
+      "automaticRecoveryEnabled": "true",
+      "brokerAmqpIp": "",
+      "brokerAmqpPort": 24567,
+      "connectionTimeout": 6000,
+      "dataBrokerIP": "",
+      "dataBrokerManagementPort": 443,
+      "dataBrokerPassword": "",
+      "dataBrokerPort": 24568,
+      "dataBrokerUserName": "",
+      "externalVhost": "IUDX-V2-EXTERNAL",
+      "handshakeTimeout": 6000,
+      "id": "org.cdpg.dx.databroker.DataBrokerVerticle",
+      "internalVhost": "IUDX-V2-INTERNAL",
       "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "tenantPrefix": "",
-      "databaseIP": "",
-      "databasePort": 24034,
-      "databaseUser": "",
-      "databasePassword": ""
+      "networkRecoveryInterval": 500,
+      "portSsl": true,
+      "prodVhost": "IUDX-V2",
+      "requestedChannelMax": 5,
+      "requestedHeartbeat": 60,
+      "required": [
+        "commonConfig"
+      ],
+      "verticleInstances": 1
     },
     {
-      "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
+      "databaseIP": "",
+      "databasePassword": "",
+      "databasePort": 9200,
+      "databaseUser": "",
+      "id": "org.cdpg.dx.database.elastic.ElasticsearchVerticle",
       "isWorkerVerticle": false,
-      "verticleInstances": 1,
-      "ssl": false,
-      "production": false,
-      "httpPort": 1234,
-      "iss": "",
-      "aud": "",
-      "jwtIgnoreExpiry": true,
+      "verticleInstances": 2
+    },
+    {
+      "httpPort": 8443,
+      "id": "org.cdpg.dx.apiserver.ApiServerVerticle",
       "isAdexInstance": false,
+      "isWorkerVerticle": false,
       "keystore": "configs/keystore.jks",
-      "keystorePassword": "",
-      "dxAuthBasePath": "",
-      "authServerHost": "",
-      "authServerPort": 443
+      "keystorePassword": "password",
+      "maxDaysSync": 25000,
+      "required": [
+        "commonConfig"
+      ],
+      "ssl": true,
+      "urnPrefix": "dx:dataplane:",
+      "verticleInstances": 1
+    },
+    {
+      "httpPort": 8444,
+      "id": "org.cdpg.dx.apiserver.ProxyApiServerVerticle",
+      "isAdexInstance": false,
+      "isEmailRequiredInRequest": false,
+      "isSadax": false,
+      "isWorkerVerticle": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "maxDaysAsync": 365,
+      "maxDaysSync": 365,
+      "required": [
+        "commonConfig"
+      ],
+      "ssl": true,
+      "timeout": 500000,
+      "urnPrefix": "dx:dataplaneProxy:",
+      "verticleInstances": 1
+    },
+    {
+      "httpPort": 8445,
+      "id": "org.cdpg.dx.apiserver.PublishedApiServerVerticle",
+      "isAdexInstance": false,
+      "isWorkerVerticle": false,
+      "keystore": "configs/keystore.jks",
+      "keystorePassword": "password",
+      "required": [
+        "commonConfig"
+      ],
+      "ssl": true,
+      "timeout": 500000,
+      "urnPrefix": "dx:dataplanePublish:",
+      "verticleInstances": 1
     }
+  ],
+  "version": 2,
+  "zookeepers": [
+    "zookeeper"
   ]
 }
