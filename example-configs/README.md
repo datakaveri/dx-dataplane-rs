@@ -654,6 +654,17 @@ unboxing `controlplaneGrpcPort`).
 - **Notes / gotchas:** These belong **on this module** (or in `commonConfig`), not on the
   `S3Verticle` entry where the example currently parks `s3ProxyTimeoutMs`. See §4.
 
+#### `ProxyApiServerVerticle.dataBrokerProxyTimeoutMs`
+
+- **Type / format:** long; ms — **tuning knob**
+- **Required:** no — default `30000` (Vert.x event-bus default; `ControllerFactoryProxy`)
+- **Purpose:** Event-bus send timeout from the proxy API server to the DataBroker verticle —
+  the ceiling on an adapter RPC (`/ngsi-ld/v1/entities` etc.) waiting for the external adapter.
+- **Failure mode:** too low → `ReplyException: Timed out after waiting 30000(ms) for a reply`
+  and a **500** while the adapter is still working.
+- **Notes / gotchas:** Keep it **below** this module's `timeout` (408) and below the reverse
+  proxy's `proxy_read_timeout` (otherwise the client sees a **504** from nginx first).
+
 #### `auditingExchange` / `auditingRoutingKey` *(optional, any API-server module)*
 
 - **Required:** no — default `"auditing"` / `"##"` (`ControllerFactory`,
@@ -709,6 +720,7 @@ Scheme and slash rules are enforced inconsistently — follow this table literal
 | `maxDaysSync` / `maxDaysAsync` | site-dependent (see §2) | rejected queries vs runaway scans |
 | `chunkMaxItems` / `chunkMaxBytes` (MB!) | 2000 / 5 | memory pressure vs bulk overhead |
 | `s3ProxyTimeoutMs` / `minioProxyTimeoutMs` | 240k / 180k | large file transfers abort early |
+| `dataBrokerProxyTimeoutMs` (proxy) | 30k | slow adapter RPC → 500 after 30s |
 | `jwksRefreshIntervalMs` | 600 000 | after key rotation, valid tokens rejected until refresh |
 | RMQ timeouts / channel max / heartbeat | as shipped | reconnect storms, channel exhaustion, stalled messages |
 

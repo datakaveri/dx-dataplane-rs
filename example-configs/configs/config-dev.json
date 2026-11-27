@@ -118,6 +118,7 @@
       ],
       "ssl": true,
       "timeout": 500000,
+      "dataBrokerProxyTimeoutMs": 480000,
       "urnPrefix": "dx:dataplaneProxy:",
       "verticleInstances": 1
     },

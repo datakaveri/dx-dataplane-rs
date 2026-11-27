@@ -19,8 +19,12 @@ public class ControllerFactoryProxy {
       Vertx vertx, JsonObject config, URNGenerator urnGenerator,
       AppIdItemAccessHandler appIdItemAccessHandler, boolean isEmailRequiredInRequest) {
 
+    // Event-bus send timeout for adapter RPC calls. Vert.x default is 30s, which is too short
+    // for slow external adapters; must stay below the verticle's "timeout" (TimeoutHandler).
+    long dataBrokerProxyTimeoutMs = config.getLong("dataBrokerProxyTimeoutMs", 30000L);
     DataBrokerService dataBrokerService =
-        DataBrokerService.createProxy(vertx, DATA_BROKER_SERVICE_ADDRESS);
+        DataBrokerService.createProxy(
+            vertx, DATA_BROKER_SERVICE_ADDRESS, dataBrokerProxyTimeoutMs);
     AuditingHandler auditingHandler =
         new AuditingHandler(
             dataBrokerService,
