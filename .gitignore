@@ -188,3 +188,9 @@ out/
 1. A butt or mark to shoot at, as for practice, or to test the accuracy of a firearm, or the force of a projectile.
 2. A goal or objective.
 3. A kind of small shield or buckler, used as a defensive weapon in war.
+
+### Local design / analysis docs (not for repo) ###
+docs/auth/
+docs/auth_new/jwt-token-exchange-design.md
+docs/pagination/
+docs/performance/
