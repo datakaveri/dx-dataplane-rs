@@ -103,6 +103,7 @@
       "verticleInstances": 1
     },
     {
+      "dataBrokerProxyTimeoutMs": 480000,
       "httpPort": 8444,
       "id": "org.cdpg.dx.apiserver.ProxyApiServerVerticle",
       "isAdexInstance": false,
@@ -118,7 +119,6 @@
       ],
       "ssl": true,
       "timeout": 500000,
-      "dataBrokerProxyTimeoutMs": 480000,
       "urnPrefix": "dx:dataplaneProxy:",
       "verticleInstances": 1
     },
@@ -138,7 +138,7 @@
       "verticleInstances": 1
     }
   ],
-  "version": 2,
+  "version": 3,
   "zookeepers": [
     "zookeeper"
   ]
